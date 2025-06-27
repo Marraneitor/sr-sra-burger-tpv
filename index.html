@@ -1,0 +1,2883 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SR & SRA BURGER - Sistema TPV Offline</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/heroicons/2.0.18/24/solid/css/heroicons.min.css" rel="stylesheet">
+    <style>
+        ::-webkit-scrollbar { width: 12px; }
+        ::-webkit-scrollbar-track { background: #000000; border-radius: 6px; }
+        ::-webkit-scrollbar-thumb { background: linear-gradient(135deg, #333333, #555555); border-radius: 6px; border: 2px solid #000000; }
+        ::-webkit-scrollbar-thumb:hover { background: linear-gradient(135deg, #555555, #777777); }
+        
+        .view { display: none; }
+        .view.active { display: block; animation: slideIn 0.4s ease-out; }
+        
+        @keyframes slideIn { 
+            from { opacity: 0; transform: translateY(20px); } 
+            to { opacity: 1; transform: translateY(0); } 
+        }
+        
+        .nav-link { 
+            transition: all 0.3s ease; 
+            position: relative;
+            overflow: hidden;
+        }
+        .nav-link:hover { 
+            background: linear-gradient(135deg, #333333, #1a1a1a); 
+            transform: translateX(5px);
+            box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+        }
+        .nav-link.active { 
+            background: linear-gradient(135deg, #ffffff, #e5e5e5); 
+            color: #000000;
+            font-weight: 600;
+            box-shadow: 0 4px 20px rgba(255, 255, 255, 0.2);
+        }
+        .nav-link.active i { color: #000000; }
+        
+        .loader {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #333333;
+            border-top: 4px solid #ffffff;
+            border-radius: 50%;
+            animation: spin 1.2s linear infinite;
+            filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.3));
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .glass-effect {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .card-hover {
+            transition: all 0.3s ease;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        
+        .btn-gradient {
+            background: linear-gradient(135deg, #ffffff, #e5e5e5);
+            color: #000000;
+            border: none;
+            transition: all 0.3s ease;
+            font-weight: 600;
+        }
+        .btn-gradient:hover {
+            background: linear-gradient(135deg, #e5e5e5, #cccccc);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(255, 255, 255, 0.2);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(135deg, #ff4444, #cc0000);
+            color: white;
+        }
+        .btn-danger:hover {
+            background: linear-gradient(135deg, #ff6666, #ff0000);
+        }
+        
+        .btn-success {
+            background: linear-gradient(135deg, #00ff88, #00cc66);
+            color: #000000;
+        }
+        .btn-success:hover {
+            background: linear-gradient(135deg, #33ffaa, #00ff88);
+        }
+        
+        .input-modern {
+            background: rgba(0, 0, 0, 0.6);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            color: #ffffff;
+            transition: all 0.3s ease;
+        }
+        .input-modern:focus {
+            border-color: #ffffff;
+            background: rgba(0, 0, 0, 0.8);
+            box-shadow: 0 0 20px rgba(255, 255, 255, 0.1);
+            outline: none;
+        }
+        
+        .table-modern th {
+            background: linear-gradient(135deg, #1a1a1a, #000000);
+            color: #ffffff;
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.85rem;
+            letter-spacing: 1px;
+            border-bottom: 2px solid #ffffff;
+        }
+        
+        .table-modern tr:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: scale(1.01);
+            transition: all 0.2s ease;
+        }
+        
+        .modal-modern {
+            background: linear-gradient(135deg, #000000, #1a1a1a);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.8);
+        }
+        
+        .stats-card {
+            background: linear-gradient(135deg, #000000, #1a1a1a);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            position: relative;
+            overflow: hidden;
+        }
+        .stats-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 3px;
+            background: linear-gradient(90deg, #ffffff, #cccccc, #ffffff);
+        }
+        
+        .product-card {
+            background: linear-gradient(135deg, #000000, #1a1a1a);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .product-card:hover {
+            transform: scale(1.05);
+            border-color: rgba(255, 255, 255, 0.4);
+            box-shadow: 0 10px 30px rgba(255, 255, 255, 0.1);
+        }
+        
+        .toast-notification {
+            background: linear-gradient(135deg, #00ff88, #00cc66);
+            color: #000000;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0, 255, 136, 0.3);
+        }
+        
+        .stats-card {
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .table-modern {
+            border-collapse: separate;
+            border-spacing: 0;
+        }
+        .table-modern th {
+            background: rgba(255, 255, 255, 0.05);
+            font-weight: 600;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+            letter-spacing: 0.05em;
+            color: rgba(255, 255, 255, 0.9);
+        }
+        .table-modern td {
+            color: rgba(255, 255, 255, 0.8);
+        }
+        
+        /* Estilos para las gráficas */
+        canvas {
+            max-height: 400px !important;
+        }
+        
+        /* Animaciones para las métricas */
+        .metric-card {
+            transition: all 0.3s ease;
+        }
+        .metric-card:hover {
+            transform: scale(1.02);
+        }
+        
+        /* Estilo para filtros */
+        .filter-section {
+            background: rgba(255, 255, 255, 0.02);
+            backdrop-filter: blur(5px);
+        }
+    </style>
+</head>
+<body class="bg-black text-white font-sans min-h-screen">
+
+    <div id="loading-overlay" class="fixed inset-0 bg-black z-[100] flex flex-col justify-center items-center">
+        <div class="loader"></div>
+        <p class="mt-6 text-white text-lg font-medium">Cargando sistema TPV...</p>
+    </div>
+
+    <div class="flex h-screen bg-black">
+        <!-- Barra de Navegación Lateral -->
+        <aside class="w-72 bg-black border-r border-white/20 text-white flex flex-col flex-shrink-0 glass-effect">
+            <div class="p-8 text-center border-b border-white/20">
+                <h1 class="text-2xl font-bold text-white mb-2">SR & SRA BURGER</h1>
+                <p class="text-sm text-white/70 uppercase tracking-wider">Sistema de Gestión</p>
+            </div>
+            <nav class="flex-1 p-6 space-y-3">
+                <a href="#dashboard" class="nav-link flex items-center px-6 py-4 rounded-xl active text-lg font-medium">
+                    <i class="h-6 w-6 mr-4 uis-create-dashboard"></i> Dashboard
+                </a>
+                <a href="#reportes" class="nav-link flex items-center px-6 py-4 rounded-xl hover:bg-white/10 text-lg font-medium">
+                    <i class="h-6 w-6 mr-4 uis-chart-pie"></i> Reportes & Analytics
+                </a>
+                <a href="#vender" class="nav-link flex items-center px-6 py-4 rounded-xl hover:bg-white/10 text-lg font-medium">
+                    <i class="h-6 w-6 mr-4 uis-shopping-cart"></i> Punto de Venta
+                </a>
+                <a href="#ventas" class="nav-link flex items-center px-6 py-4 rounded-xl hover:bg-white/10 text-lg font-medium">
+                    <i class="h-6 w-6 mr-4 uis-bill"></i> Historial de Ventas
+                </a>
+                <a href="#productos" class="nav-link flex items-center px-6 py-4 rounded-xl hover:bg-white/10 text-lg font-medium">
+                    <i class="h-6 w-6 mr-4 uis-box"></i> Productos
+                </a>
+                <a href="#ingredientes" class="nav-link flex items-center px-6 py-4 rounded-xl hover:bg-white/10 text-lg font-medium">
+                    <i class="h-6 w-6 mr-4 uis-circle-layer"></i> Ingredientes
+                </a>
+                <a href="#clientes" class="nav-link flex items-center px-6 py-4 rounded-xl hover:bg-white/10 text-lg font-medium">
+                    <i class="h-6 w-6 mr-4 uis-users-alt"></i> Clientes
+                </a>
+            </nav>
+            <div class="p-6 border-t border-white/20 text-center text-sm text-white/70">
+                <p class="font-semibold mb-2">ID de Sesión:</p>
+                <p id="user-id-display" class="break-all font-mono text-xs bg-white/10 px-3 py-2 rounded-lg"></p>
+            </div>
+        </aside>
+
+        <!-- Contenido Principal -->
+        <main class="flex-1 p-8 lg:p-10 overflow-y-auto bg-black">
+
+            <!-- Vista: Dashboard -->
+            <div id="view-dashboard" class="view active">
+                <h2 class="text-4xl font-bold text-white mb-8 tracking-tight">Dashboard del Día</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-10">
+                    <div class="stats-card p-8 rounded-2xl shadow-2xl card-hover">
+                        <div class="flex items-center">
+                            <div class="bg-white/10 p-6 rounded-2xl mr-6">
+                                <i class="h-10 w-10 text-white uis-graph-bar"></i>
+                            </div>
+                            <div>
+                                <p class="text-white/70 text-sm uppercase tracking-wider font-medium">Ventas Totales</p>
+                                <p id="db-total-ventas" class="text-3xl font-bold text-white mt-1">$0.00</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stats-card p-8 rounded-2xl shadow-2xl card-hover">
+                        <div class="flex items-center">
+                            <div class="bg-white/10 p-6 rounded-2xl mr-6">
+                                <i class="h-10 w-10 text-white uis-transaction"></i>
+                            </div>
+                            <div>
+                                <p class="text-white/70 text-sm uppercase tracking-wider font-medium">Transacciones</p>
+                                <p id="db-total-transacciones" class="text-3xl font-bold text-white mt-1">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stats-card p-8 rounded-2xl shadow-2xl card-hover">
+                        <div class="flex items-center">
+                            <div class="bg-white/10 p-6 rounded-2xl mr-6">
+                                <i class="h-10 w-10 text-white uis-users-alt"></i>
+                            </div>
+                            <div>
+                                <p class="text-white/70 text-sm uppercase tracking-wider font-medium">Clientes</p>
+                                <p id="db-total-clientes" class="text-3xl font-bold text-white mt-1">0</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="stats-card p-8 rounded-2xl shadow-2xl">
+                    <h3 class="font-bold text-2xl text-white mb-6">Ventas Recientes</h3>
+                    <div class="max-h-96 overflow-y-auto">
+                        <table class="w-full text-left table-modern">
+                            <thead>
+                                <tr class="border-b border-white/20">
+                                    <th class="p-4">ID Venta</th>
+                                    <th class="p-4">Cliente</th>
+                                    <th class="p-4">Fecha</th>
+                                    <th class="p-4 text-right">Total</th>
+                                </tr>
+                            </thead>
+                            <tbody id="db-ventas-recientes-body" class="text-white/90"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vista: Reportes & Analytics -->
+            <div id="view-reportes" class="view">
+                <h2 class="text-4xl font-bold text-white mb-8 tracking-tight">Reportes & Analytics</h2>
+                
+                <!-- Filtros -->
+                <div class="stats-card p-6 rounded-2xl shadow-2xl mb-8">
+                    <h3 class="text-xl font-bold text-white mb-4">Filtros de Análisis</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium text-white/70 mb-2">Desde</label>
+                            <input type="date" id="filter-date-from" class="input-modern w-full p-3 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-white/70 mb-2">Hasta</label>
+                            <input type="date" id="filter-date-to" class="input-modern w-full p-3 rounded-lg">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-white/70 mb-2">Cliente</label>
+                            <select id="filter-cliente" class="input-modern w-full p-3 rounded-lg">
+                                <option value="">Todos los clientes</option>
+                            </select>
+                        </div>
+                        <div class="flex items-end">
+                            <button id="apply-filters" class="btn-gradient w-full py-3 px-6 rounded-lg font-bold transition-all duration-300">
+                                <i class="uis-filter mr-2"></i>Aplicar Filtros
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Métricas Principales -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+                    <div class="stats-card p-6 rounded-2xl shadow-2xl card-hover">
+                        <div class="flex items-center">
+                            <div class="bg-green-500/20 p-4 rounded-xl mr-4">
+                                <i class="h-8 w-8 text-green-400 uis-money-bill"></i>
+                            </div>
+                            <div>
+                                <p class="text-white/70 text-sm uppercase tracking-wider font-medium">Ingresos Totales</p>
+                                <p id="metric-ingresos" class="text-2xl font-bold text-white mt-1">$0.00</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stats-card p-6 rounded-2xl shadow-2xl card-hover">
+                        <div class="flex items-center">
+                            <div class="bg-blue-500/20 p-4 rounded-xl mr-4">
+                                <i class="h-8 w-8 text-blue-400 uis-chart-line"></i>
+                            </div>
+                            <div>
+                                <p class="text-white/70 text-sm uppercase tracking-wider font-medium">Ganancia Neta</p>
+                                <p id="metric-ganancia" class="text-2xl font-bold text-white mt-1">$0.00</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stats-card p-6 rounded-2xl shadow-2xl card-hover">
+                        <div class="flex items-center">
+                            <div class="bg-purple-500/20 p-4 rounded-xl mr-4">
+                                <i class="h-8 w-8 text-purple-400 uis-percentage"></i>
+                            </div>
+                            <div>
+                                <p class="text-white/70 text-sm uppercase tracking-wider font-medium">Margen Promedio</p>
+                                <p id="metric-margen" class="text-2xl font-bold text-white mt-1">0%</p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="stats-card p-6 rounded-2xl shadow-2xl card-hover">
+                        <div class="flex items-center">
+                            <div class="bg-orange-500/20 p-4 rounded-xl mr-4">
+                                <i class="h-8 w-8 text-orange-400 uis-shopping-cart"></i>
+                            </div>
+                            <div>
+                                <p class="text-white/70 text-sm uppercase tracking-wider font-medium">Ticket Promedio</p>
+                                <p id="metric-ticket" class="text-2xl font-bold text-white mt-1">$0.00</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gráficas -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <!-- Gráfica de Ventas por Período -->
+                    <div class="stats-card p-6 rounded-2xl shadow-2xl">
+                        <h3 class="text-xl font-bold text-white mb-4">Ventas por Período</h3>
+                        <div class="h-80">
+                            <canvas id="sales-chart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <!-- Gráfica de Productos Más Vendidos -->
+                    <div class="stats-card p-6 rounded-2xl shadow-2xl">
+                        <h3 class="text-xl font-bold text-white mb-4">Productos Más Vendidos</h3>
+                        <div class="h-80">
+                            <canvas id="products-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Análisis de Rentabilidad por Producto -->
+                <div class="stats-card p-6 rounded-2xl shadow-2xl mb-8">
+                    <h3 class="text-xl font-bold text-white mb-4">Análisis de Rentabilidad por Producto</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left table-modern">
+                            <thead>
+                                <tr class="border-b border-white/20">
+                                    <th class="p-4">Producto</th>
+                                    <th class="p-4">Unidades Vendidas</th>
+                                    <th class="p-4">Ingresos</th>
+                                    <th class="p-4">Costo</th>
+                                    <th class="p-4">Ganancia</th>
+                                    <th class="p-4">Margen</th>
+                                    <th class="p-4">ROI</th>
+                                </tr>
+                            </thead>
+                            <tbody id="profitability-table-body" class="text-white/90"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Análisis de Clientes -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+                    <!-- Top Clientes -->
+                    <div class="stats-card p-6 rounded-2xl shadow-2xl">
+                        <h3 class="text-xl font-bold text-white mb-4">Top Clientes por Gasto</h3>
+                        <div class="space-y-3">
+                            <div id="top-clients-list" class="space-y-2"></div>
+                        </div>
+                    </div>
+                    
+                    <!-- Distribución de Clientes -->
+                    <div class="stats-card p-6 rounded-2xl shadow-2xl">
+                        <h3 class="text-xl font-bold text-white mb-4">Distribución de Clientes</h3>
+                        <div class="h-64">
+                            <canvas id="clients-chart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Historial de Ventas Filtrado -->
+                <div class="stats-card p-6 rounded-2xl shadow-2xl">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-xl font-bold text-white">Historial de Ventas Detallado</h3>
+                        <button id="export-data" class="btn-gradient py-2 px-4 rounded-lg font-medium transition-all duration-300">
+                            <i class="uis-download-alt mr-2"></i>Exportar Datos
+                        </button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left table-modern">
+                            <thead>
+                                <tr class="border-b border-white/20">
+                                    <th class="p-4">ID Venta</th>
+                                    <th class="p-4">Fecha</th>
+                                    <th class="p-4">Cliente</th>
+                                    <th class="p-4">Productos</th>
+                                    <th class="p-4">Subtotal</th>
+                                    <th class="p-4">Descuento</th>
+                                    <th class="p-4">Envío</th>
+                                    <th class="p-4">Total</th>
+                                    <th class="p-4">Ganancia</th>
+                                </tr>
+                            </thead>
+                            <tbody id="sales-history-table-body" class="text-white/90"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vista: Punto de Venta -->
+            <div id="view-vender" class="view">
+                <h2 class="text-4xl font-bold text-white mb-8 tracking-tight">Punto de Venta</h2>
+                <div class="flex flex-col lg:flex-row gap-10">
+                    <div class="lg:w-2/3">
+                        <div id="pos-product-list" class="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+                    </div>
+                    <div class="lg:w-1/3 stats-card p-8 rounded-2xl shadow-2xl flex flex-col">
+                        <h3 class="text-2xl font-bold border-b border-white/20 pb-4 mb-6 text-white">Orden Actual</h3>
+                        <div id="pos-order-items" class="space-y-3 mb-6 max-h-80 overflow-y-auto flex-grow">
+                            <p class="text-white/70 text-center py-8">Añade productos para empezar</p>
+                        </div>
+                        <div class="border-t border-white/20 pt-6 space-y-4">
+                            <div class="flex justify-between text-lg">
+                                <span class="text-white/70 font-medium">Subtotal:</span>
+                                <span id="pos-subtotal" class="text-white font-bold">$0.00</span>
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <label for="pos-discount-input" class="text-white/70 font-medium">Descuento:</label>
+                                <input type="number" id="pos-discount-input" class="w-32 p-3 input-modern rounded-lg text-right font-medium" placeholder="0.00" min="0">
+                            </div>
+                            <div class="flex justify-between items-center">
+                                <label for="pos-shipping-checkbox" class="flex items-center space-x-3 text-white/70 font-medium">
+                                    <input type="checkbox" id="pos-shipping-checkbox" class="rounded bg-black border-white/30 text-white focus:ring-white">
+                                    <span>Envío</span>
+                                </label>
+                                <input type="number" id="pos-shipping-cost" class="w-32 p-3 input-modern rounded-lg text-right font-medium hidden" placeholder="0.00" min="0">
+                            </div>
+                            <div class="flex justify-between text-2xl font-bold mt-6 border-t border-white/20 pt-4 text-white">
+                                <span>Total:</span>
+                                <span id="pos-total">$0.00</span>
+                            </div>
+                            <div class="pt-4">
+                                <label for="pos-customer-select" class="block text-lg font-medium text-white mb-3">Cliente</label>
+                                <select id="pos-customer-select" class="w-full p-4 input-modern rounded-lg font-medium"></select>
+                            </div>
+                            <button id="process-sale-btn" class="w-full btn-success text-black font-bold py-4 rounded-xl mt-6 text-lg transition-all duration-300 disabled:opacity-50" disabled>
+                                <i class="h-6 w-6 inline-block -mt-1 uis-check-circle mr-2"></i> Procesar Venta
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Vistas: Genéricas para tablas -->
+             <div id="view-ventas" class="view">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-4xl font-bold text-white tracking-tight">Historial de Ventas</h2>
+                </div>
+                <div class="stats-card p-8 rounded-2xl shadow-2xl overflow-x-auto">
+                    <table class="w-full text-left table-modern">
+                        <thead>
+                            <tr>
+                                <th class="p-4 text-white">ID Venta</th>
+                                <th class="p-4 text-white">Fecha</th>
+                                <th class="p-4 text-white">Cliente</th>
+                                <th class="p-4 text-white">Items</th>
+                                <th class="p-4 text-right text-white">Total</th>
+                                <th class="p-4 text-center text-white">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ventas-list-body" class="text-white/90"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="view-productos" class="view">
+                 <div class="flex justify-between items-center mb-8">
+                     <h2 class="text-4xl font-bold text-white tracking-tight">Gestión de Productos</h2>
+                     <button id="open-productos-modal" class="btn-gradient px-8 py-4 rounded-xl text-lg font-bold transition-all duration-300">
+                         <i class="h-6 w-6 inline-block -mt-1 uis-plus-circle mr-2"></i> Crear Producto
+                     </button>
+                 </div>
+                <div class="stats-card p-8 rounded-2xl shadow-2xl overflow-x-auto">
+                    <table class="w-full text-left table-modern">
+                        <thead>
+                            <tr>
+                                <th class="p-4 text-white">Nombre</th>
+                                <th class="p-4 text-white">Precio Venta</th>
+                                <th class="p-4 text-white">Costo</th>
+                                <th class="p-4 text-white">Descripción</th>
+                                <th class="p-4 text-white">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productos-list-body" class="text-white/90"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="view-ingredientes" class="view">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-4xl font-bold text-white tracking-tight">Gestión de Ingredientes</h2>
+                    <button id="open-ingredientes-modal" class="btn-gradient px-8 py-4 rounded-xl text-lg font-bold transition-all duration-300">
+                        <i class="h-6 w-6 inline-block -mt-1 uis-plus-circle mr-2"></i> Añadir Ingrediente
+                    </button>
+                </div>
+                <div class="stats-card p-8 rounded-2xl shadow-2xl overflow-x-auto">
+                    <table class="w-full text-left table-modern">
+                        <thead>
+                            <tr>
+                                <th class="p-4 text-white">Nombre</th>
+                                <th class="p-4 text-white">Precio Paquete</th>
+                                <th class="p-4 text-white">Unidades/Paquete</th>
+                                <th class="p-4 text-white">Costo Unitario</th>
+                                <th class="p-4 text-white">Unidad</th>
+                                <th class="p-4 text-white">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ingredientes-list-body" class="text-white/90"></tbody>
+                    </table>
+                </div>
+            </div>
+            <div id="view-clientes" class="view">
+                <div class="flex justify-between items-center mb-8">
+                    <h2 class="text-4xl font-bold text-white tracking-tight">Gestión de Clientes</h2>
+                    <button id="open-clientes-modal" class="btn-gradient px-8 py-4 rounded-xl text-lg font-bold transition-all duration-300">
+                        <i class="h-6 w-6 inline-block -mt-1 uis-plus-circle mr-2"></i> Nuevo Cliente
+                    </button>
+                </div>
+                <div class="stats-card p-8 rounded-2xl shadow-2xl overflow-x-auto">
+                    <table class="w-full text-left table-modern">
+                        <thead>
+                            <tr>
+                                <th class="p-4 text-white">Nombre</th>
+                                <th class="p-4 text-white">Teléfono</th>
+                                <th class="p-4 text-white">Dirección</th>
+                                <th class="p-4 text-white">Gasto Total</th>
+                                <th class="p-4 text-white">Puntos</th>
+                                <th class="p-4 text-white">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="clientes-list-body" class="text-white/90"></tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modales -->
+    <div id="modal-backdrop" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden z-40"></div>
+    <div id="modal-container" class="fixed inset-0 hidden z-50 flex items-center justify-center p-6">
+        <!-- Contenido del modal se insertará aquí -->
+    </div>
+    
+    <script>
+        // --- CONFIGURACIÓN LOCAL (SIN FIREBASE) ---
+        let userId = 'local-user-' + Math.random().toString(36).substr(2, 9);
+
+        // --- DECLARACIONES DE UI Y ESTADO ---
+        const views = document.querySelectorAll('.view');
+        const navLinks = document.querySelectorAll('.nav-link');
+        const modalBackdrop = document.getElementById('modal-backdrop');
+        const modalContainer = document.getElementById('modal-container');
+
+        let localState = {
+            ingredientes: [],
+            productos: [],
+            clientes: [],
+            ventas: []
+        };
+        let currentOrder = { items: [], clienteId: null, subtotal: 0, total: 0, descuento: 0, costoEnvio: 0 };
+        
+        // --- FUNCIONES AUXILIARES (MODALES, ETC.) ---
+        function closeModal() {
+            modalContainer.classList.add('hidden');
+            modalBackdrop.classList.add('hidden');
+            modalContainer.innerHTML = '';
+        }
+
+        function openModal(title, formHtml, submitHandler, itemToEdit = null) {
+            const isEdit = itemToEdit !== null;
+            const actionText = isEdit ? 'Actualizar' : 'Crear';
+            const modalContent = `
+                <div class="modal-modern text-white p-10 rounded-3xl shadow-2xl w-full max-w-2xl transform transition-all max-h-screen overflow-y-auto">
+                    <div class="flex items-center justify-between mb-8">
+                        <h3 class="text-3xl font-bold flex items-center">
+                            ${isEdit ? '<i class="uis-pen text-white mr-3 h-8 w-8"></i>' : '<i class="uis-plus text-white mr-3 h-8 w-8"></i>'}
+                            ${title}
+                        </h3>
+                        <button class="btn-cancel text-white/70 hover:text-white text-3xl font-bold transition-colors w-10 h-10 flex items-center justify-center rounded-full hover:bg-white/10" type="button">&times;</button>
+                    </div>
+                    <form id="dynamic-form">
+                        ${formHtml}
+                        <div class="flex space-x-4 mt-8 pt-6 border-t border-white/20">
+                            <button type="submit" class="flex-1 btn-gradient py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center space-x-3">
+                                <i class="uis-check h-6 w-6"></i>
+                                <span>${actionText}</span>
+                            </button>
+                            <button type="button" class="btn-cancel flex-1 bg-white/10 hover:bg-white/20 text-white py-4 px-6 rounded-xl font-bold text-lg transition-all duration-300 flex items-center justify-center space-x-3">
+                                <i class="uis-times h-6 w-6"></i>
+                                <span>Cancelar</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>`;
+            modalContainer.innerHTML = modalContent;
+            
+            // Configurar eventos dinámicos para ingredientes si es el modal de productos
+            if (formHtml.includes('add-ingredient-btn')) {
+                setupIngredientManagement(itemToEdit);
+            }
+            
+            if (isEdit) {
+                const form = modalContainer.querySelector('#dynamic-form');
+                for (const key in itemToEdit) {
+                    const input = form.elements[key];
+                    if (input) {
+                        if(input.type === 'checkbox') input.checked = itemToEdit[key];
+                        else input.value = itemToEdit[key];
+                    }
+                }
+                // Ya no necesitamos esto porque se maneja en setupIngredientManagement
+            }
+            
+            modalContainer.classList.remove('hidden');
+            modalBackdrop.classList.remove('hidden');
+            
+            document.getElementById('dynamic-form').addEventListener('submit', async (e) => {
+                e.preventDefault();
+                const formData = new FormData(e.target);
+                const data = Object.fromEntries(formData.entries());
+                await submitHandler(data, itemToEdit ? itemToEdit.id : null);
+                closeModal();
+            });
+
+            modalContainer.querySelector('.btn-cancel').addEventListener('click', closeModal);
+            modalBackdrop.addEventListener('click', closeModal);
+
+            const generateDescBtn = document.getElementById('generate-desc-btn');
+            if(generateDescBtn) {
+                generateDescBtn.addEventListener('click', generateDescription);
+            }
+        }
+        
+        async function openConfirmationModal(title, message, onConfirm) {
+            const confirmHtml = `
+                <div class="bg-gray-800 text-gray-200 p-8 rounded-lg shadow-xl w-full max-w-md">
+                    <h3 class="text-xl font-bold mb-4">${title}</h3>
+                    <p>${message}</p>
+                    <div class="flex justify-end space-x-4 mt-6">
+                        <button id="confirm-cancel" class="bg-gray-600 text-gray-200 py-2 px-4 rounded-lg hover:bg-gray-500">Cancelar</button>
+                        <button id="confirm-ok" class="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700">Confirmar</button>
+                    </div>
+                </div>`;
+            modalContainer.innerHTML = confirmHtml;
+            modalContainer.classList.remove('hidden');
+            modalBackdrop.classList.remove('hidden');
+
+            document.getElementById('confirm-ok').addEventListener('click', () => {
+                onConfirm();
+                closeModal();
+            });
+            document.getElementById('confirm-cancel').addEventListener('click', closeModal);
+        }
+
+        // Función para mostrar mensajes de éxito
+        function showSuccessMessage(message) {
+            // Crear elemento del toast
+            const toast = document.createElement('div');
+            toast.className = 'toast-notification fixed top-6 right-6 px-8 py-6 rounded-2xl shadow-2xl z-50 transform translate-x-full transition-transform duration-500 flex items-center space-x-4';
+            toast.innerHTML = `
+                <i class="uis-check-circle text-2xl"></i>
+                <span class="font-bold text-lg">${message}</span>
+            `;
+            
+            document.body.appendChild(toast);
+            
+            // Animar entrada
+            setTimeout(() => {
+                toast.classList.remove('translate-x-full');
+            }, 100);
+            
+            // Remover después de 4 segundos
+            setTimeout(() => {
+                toast.classList.add('translate-x-full');
+                setTimeout(() => {
+                    if (document.body.contains(toast)) {
+                        document.body.removeChild(toast);
+                    }
+                }, 500);
+            }, 4000);
+        }
+
+        // --- CONFIGURACIÓN DE VISTAS (Depende de las funciones auxiliares) ---
+        const viewConfigs = {
+            ingredientes: {
+                buttonId: "open-ingredientes-modal",
+                tbodyId: "ingredientes-list-body",
+                headers: ["Nombre", "Precio Paquete", "Unidades/Paquete", "Costo Unitario", "Unidad", "Acciones"],
+                dataFn: () => localState.ingredientes,
+                rowFn: (item) => {
+                    const costoUnitario = (item.precioPaquete / item.unidadesPaquete) || 0;
+                    return `<td>${item.nombre}</td>
+                            <td>$${item.precioPaquete.toFixed(2)}</td>
+                            <td>${item.unidadesPaquete}</td>
+                            <td class="font-bold">$${costoUnitario.toFixed(4)}</td>
+                            <td>${item.unidad}</td>
+                            <td class="flex space-x-2">
+                                <button class="edit-btn bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors flex items-center space-x-1" data-id="${item.id}" data-type="ingredientes" title="Editar ingrediente">
+                                    <i class="h-4 w-4 uis-pen"></i><span>Editar</span>
+                                </button>
+                                <button class="delete-btn bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors flex items-center space-x-1" data-id="${item.id}" data-type="ingredientes" title="Eliminar ingrediente">
+                                    <i class="h-4 w-4 uis-trash-alt"></i><span>Eliminar</span>
+                                </button>
+                            </td>`;
+                },
+                modal: {
+                    title: "Ingrediente",
+                    form: `
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-400 mb-2">
+                                    <i class="uis-box mr-1"></i>Nombre del Ingrediente
+                                    <span class="text-red-400">*</span>
+                                </label>
+                                <input type="text" name="nombre" 
+                                       class="mt-1 w-full p-3 border bg-gray-700 border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                       placeholder="Ej: Tomate, Queso, Aceitunas..." required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-400 mb-2">
+                                    <i class="uis-money-bill mr-1"></i>Precio por Paquete (€)
+                                    <span class="text-red-400">*</span>
+                                </label>
+                                <input type="number" name="precioPaquete" 
+                                       class="mt-1 w-full p-3 border bg-gray-700 border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                       placeholder="0.00" required min="0" step="0.01">
+                                <div class="text-xs text-gray-500 mt-1">Precio del paquete completo del proveedor</div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-400 mb-2">
+                                    <i class="uis-package mr-1"></i>Unidades por Paquete
+                                    <span class="text-red-400">*</span>
+                                </label>
+                                <input type="number" name="unidadesPaquete" 
+                                       class="mt-1 w-full p-3 border bg-gray-700 border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                       placeholder="1" required min="1" step="1">
+                                <div class="text-xs text-gray-500 mt-1">Cuántas unidades hay en un paquete</div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-400 mb-2">
+                                    <i class="uis-ruler mr-1"></i>Unidad de Medida
+                                    <span class="text-red-400">*</span>
+                                </label>
+                                <input type="text" name="unidad" 
+                                       class="mt-1 w-full p-3 border bg-gray-700 border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                       placeholder="kg, L, unids, gramos..." required>
+                                <div class="text-xs text-gray-500 mt-1">Ej: kg, litros, unidades, gramos</div>
+                            </div>
+                        </div>
+                    `,
+                    handler: async (data, id) => {
+                        const payload = {
+                            nombre: data.nombre,
+                            precioPaquete: parseFloat(data.precioPaquete),
+                            unidadesPaquete: parseInt(data.unidadesPaquete),
+                            unidad: data.unidad
+                        };
+                        if (id) {
+                            const index = localState.ingredientes.findIndex(i => i.id === id);
+                            if (index !== -1) {
+                                localState.ingredientes[index] = { ...localState.ingredientes[index], ...payload };
+                                showSuccessMessage('Ingrediente actualizado correctamente');
+                            }
+                        } else {
+                            payload.id = 'ing_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+                            localState.ingredientes.push(payload);
+                            showSuccessMessage('Nuevo ingrediente agregado correctamente');
+                        }
+                        saveToLocalStorage();
+                        renderAllViews();
+                    }
+                }
+            },
+            clientes: {
+                buttonId: "open-clientes-modal",
+                tbodyId: "clientes-list-body",
+                headers: ["Nombre", "Teléfono", "Dirección", "Gasto Total", "Puntos", "Acciones"],
+                dataFn: () => localState.clientes,
+                rowFn: (item) => `<td>${item.nombre}</td>
+                                    <td>${item.telefono}</td>
+                                    <td>${item.direccion}</td>
+                                    <td class="font-semibold">$${(item.gastoTotal || 0).toFixed(2)}</td>
+                                    <td class="font-semibold">${item.puntos || 0}</td>
+                                    <td class="flex space-x-2">
+                                        <button class="history-btn bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors flex items-center space-x-1" data-id="${item.id}" data-type="clientes" title="Ver historial">
+                                            <i class="h-4 w-4 uis-eye"></i><span>Historial</span>
+                                        </button>
+                                        <button class="edit-btn bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors flex items-center space-x-1" data-id="${item.id}" data-type="clientes" title="Editar cliente">
+                                            <i class="h-4 w-4 uis-pen"></i><span>Editar</span>
+                                        </button>
+                                        <button class="delete-btn bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors flex items-center space-x-1" data-id="${item.id}" data-type="clientes" title="Eliminar cliente">
+                                            <i class="h-4 w-4 uis-trash-alt"></i><span>Eliminar</span>
+                                        </button>
+                                    </td>`,
+                modal: {
+                    title: "Cliente",
+                    form: `
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-400 mb-2">
+                                    <i class="uis-user mr-1"></i>Nombre completo
+                                    <span class="text-red-400">*</span>
+                                </label>
+                                <input type="text" name="nombre" 
+                                       class="mt-1 w-full p-3 border bg-gray-700 border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                       placeholder="Nombre y apellidos del cliente" required>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-400 mb-2">
+                                    <i class="uis-phone mr-1"></i>Teléfono
+                                    <span class="text-red-400">*</span>
+                                </label>
+                                <input type="tel" name="telefono" 
+                                       class="mt-1 w-full p-3 border bg-gray-700 border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                       placeholder="600 123 456" required>
+                                <div class="text-xs text-gray-500 mt-1">Para contacto y pedidos a domicilio</div>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-400 mb-2">
+                                    <i class="uis-map-marker mr-1"></i>Dirección completa
+                                    <span class="text-red-400">*</span>
+                                </label>
+                                <textarea name="direccion" rows="3"
+                                          class="mt-1 w-full p-3 border bg-gray-700 border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                          placeholder="Calle, número, piso, código postal, ciudad..." required></textarea>
+                                <div class="text-xs text-gray-500 mt-1">Dirección completa para entregas a domicilio</div>
+                            </div>
+                        </div>
+                    `,
+                    handler: async (data, id) => {
+                         const payload = { 
+                             nombre: data.nombre, 
+                             telefono: data.telefono, 
+                             direccion: data.direccion,
+                         };
+                         if (id) {
+                             const index = localState.clientes.findIndex(c => c.id === id);
+                             if (index !== -1) {
+                                 localState.clientes[index] = { ...localState.clientes[index], ...payload };
+                                 showSuccessMessage('Cliente actualizado correctamente');
+                             }
+                         } else {
+                            payload.id = 'cli_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+                            payload.gastoTotal = 0;
+                            payload.puntos = 0;
+                            localState.clientes.push(payload);
+                            showSuccessMessage('Nuevo cliente agregado correctamente');
+                         }
+                         saveToLocalStorage();
+                         renderAllViews();
+                    }
+                }
+            },
+            productos: {
+                buttonId: "open-productos-modal",
+                tbodyId: "productos-list-body",
+                headers: ["Nombre", "Precio Venta", "Costo", "Descripción", "Acciones"],
+                dataFn: () => localState.productos,
+                rowFn: (item) => {
+                    const costoProducto = calcularCostoProducto(item);
+                    const margen = item.precio - costoProducto;
+                    const porcentajeMargen = costoProducto > 0 ? ((margen / costoProducto) * 100) : 0;
+                    
+                    const truncatedDesc = (item.descripcion || '').substring(0, 40);
+                    return `<td class="font-semibold">${item.nombre}</td>
+                            <td class="font-bold text-green-400">$${item.precio.toFixed(2)}</td>
+                            <td class="font-bold text-red-400" title="Margen: $${margen.toFixed(2)} (${porcentajeMargen.toFixed(1)}%)">
+                                $${costoProducto.toFixed(2)}
+                            </td>
+                            <td class="text-sm text-gray-400" title="${item.descripcion || ''}">${truncatedDesc}${item.descripcion && item.descripcion.length > 40 ? '...' : ''}</td>
+                            <td class="flex space-x-2">
+                                <button class="edit-btn bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors flex items-center space-x-1" data-id="${item.id}" data-type="productos" title="Editar producto">
+                                    <i class="h-4 w-4 uis-pen"></i><span>Editar</span>
+                                </button>
+                                <button class="delete-btn bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-md text-sm font-medium transition-colors flex items-center space-x-1" data-id="${item.id}" data-type="productos" title="Eliminar producto">
+                                    <i class="h-4 w-4 uis-trash-alt"></i><span>Eliminar</span>
+                                </button>
+                            </td>`;
+                },
+                modal: {
+                    title: "Producto",
+                    form_fn: () => {
+                        let ingredientOptions = '';
+                        if (localState.ingredientes.length > 0) {
+                            ingredientOptions = `
+                                <div class="space-y-3" id="receta-container">
+                                    <div class="flex justify-between items-center">
+                                        <span class="text-sm text-gray-300">Ingredientes de la receta:</span>
+                                        <button type="button" id="add-ingredient-btn" class="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm">
+                                            + Agregar Ingrediente
+                                        </button>
+                                    </div>
+                                    <div id="ingredient-list" class="space-y-2">
+                                        <!-- Los ingredientes se agregarán aquí dinámicamente -->
+                                    </div>
+                                </div>
+                            `;
+                        } else {
+                            ingredientOptions = `
+                                <div class="text-center p-6 text-gray-400">
+                                    <i class="uis-exclamation-triangle text-3xl mb-2"></i>
+                                    <p class="font-medium">No hay ingredientes disponibles</p>
+                                    <p class="text-sm">Primero debe añadir ingredientes desde la sección de Inventario</p>
+                                </div>
+                            `;
+                        }
+                        return `
+                            <div class="space-y-4">
+                                <div class="flex items-end space-x-2">
+                                    <div class="flex-grow">
+                                        <label class="block text-sm font-medium text-gray-400 mb-2">
+                                            <i class="uis-pizza-slice mr-1"></i>Nombre del Producto
+                                            <span class="text-red-400">*</span>
+                                        </label>
+                                        <input type="text" name="nombre" 
+                                               class="mt-1 w-full p-3 border bg-gray-700 border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                               placeholder="Ej: Pizza Margarita, Burger Deluxe..." required>
+                                    </div>
+                                    <button type="button" id="generate-desc-btn" 
+                                            class="p-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg transition-colors" 
+                                            title="Generar descripción con IA">
+                                        ✨
+                                    </button>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-400 mb-2">
+                                        <i class="uis-document-layout-left mr-1"></i>Descripción para el Menú
+                                    </label>
+                                    <textarea name="descripcion" rows="3"
+                                              class="mt-1 w-full p-3 border bg-gray-700 border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                              placeholder="Descripción atractiva del producto para mostrar a los clientes..."></textarea>
+                                    <div class="text-xs text-gray-500 mt-1">Esta descripción aparecerá en el menú para los clientes</div>
+                                </div>
+                                <div>
+                                    <label class="block text-sm font-medium text-gray-400 mb-2">
+                                        <i class="uis-euro mr-1"></i>Precio de Venta (€)
+                                        <span class="text-red-400">*</span>
+                                    </label>
+                                    <input type="number" name="precio" 
+                                           class="mt-1 w-full p-3 border bg-gray-700 border-gray-600 text-white rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" 
+                                           placeholder="0.00" required min="0" step="0.01">
+                                    <div class="text-xs text-gray-500 mt-1">Precio que pagarán los clientes</div>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-medium text-gray-400 mb-3">
+                                        <i class="uis-receipt mr-1"></i>Receta e Ingredientes
+                                    </h4>
+                                    <div class="mt-2 p-4 border border-gray-600 rounded-lg max-h-48 overflow-y-auto bg-gray-800">
+                                        ${ingredientOptions}
+                                    </div>
+                                    <div class="text-xs text-gray-500 mt-2">Agrega los ingredientes necesarios para este producto</div>
+                                </div>
+                            </div>
+                        `;
+                    },
+                    handler: async (data, id) => {
+                        // Recopilar ingredientes desde los inputs dinámicos
+                        const receta = [];
+                        const ingredientInputs = document.querySelectorAll('[data-ingredient-id]');
+                        
+                        ingredientInputs.forEach(input => {
+                            const ingredienteId = input.dataset.ingredientId;
+                            const cantidad = parseFloat(input.value) || 0;
+                            
+                            if (cantidad > 0) {
+                                receta.push({ 
+                                    ingredienteId: ingredienteId, 
+                                    cantidad: cantidad 
+                                });
+                                console.log(`Ingrediente agregado: ${ingredienteId}, cantidad: ${cantidad}`);
+                            }
+                        });
+                        
+                        const payload = {
+                            nombre: data.nombre,
+                            descripcion: data.descripcion || '',
+                            precio: parseFloat(data.precio) || 0,
+                            receta: receta
+                        };
+                        
+                        console.log('Payload del producto:', payload);
+                        
+                        if (id) {
+                            const index = localState.productos.findIndex(p => p.id === id);
+                            if (index !== -1) {
+                                localState.productos[index] = { ...localState.productos[index], ...payload };
+                                showSuccessMessage('Producto actualizado correctamente');
+                            }
+                        } else {
+                            payload.id = 'prod_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5);
+                            localState.productos.push(payload);
+                            showSuccessMessage('Nuevo producto agregado correctamente');
+                        }
+                        
+                        saveToLocalStorage();
+                        renderAllViews();
+                    }
+                }
+            },
+            ventas: {
+                tbodyId: "ventas-list-body",
+                headers: ["ID Venta", "Fecha", "Cliente", "Items", "Total", "Acciones"],
+                dataFn: () => [...localState.ventas].sort((a, b) => new Date(b.fecha) - new Date(a.fecha)),
+                rowFn: (item) => {
+                     const cliente = localState.clientes.find(c => c.id === item.clienteId);
+                     return `<td>#${item.id.substring(0,6)}...</td>
+                             <td>${new Date(item.fecha).toLocaleString()}</td>
+                             <td>${cliente ? cliente.nombre : 'Cliente General'}</td>
+                             <td>${item.items.reduce((sum, i) => sum + i.cantidad, 0)}</td>
+                             <td class="font-bold text-right">$${item.total.toFixed(2)}</td>
+                             <td class="flex justify-center space-x-2">
+                                <button class="view-sale-details-btn text-indigo-400 hover:text-indigo-600" data-sale-id="${item.id}"><i class="h-5 w-5 uis-eye"></i></button>
+                                <button class="delete-btn text-red-500 hover:text-red-700" data-id="${item.id}" data-type="ventas"><i class="h-5 w-5 uis-trash-alt"></i></button>
+                            </td>`;
+                },
+            }
+        };
+
+        // --- INICIALIZACIÓN SIN FIREBASE ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            console.log("DOM cargado, iniciando sistema...");
+            document.getElementById('user-id-display').textContent = userId;
+            
+            // Timeout de seguridad para ocultar loading después de 5 segundos máximo
+            setTimeout(() => {
+                const loadingOverlay = document.getElementById('loading-overlay');
+                if (loadingOverlay && loadingOverlay.style.display !== 'none') {
+                    console.log("Timeout: Ocultando loading overlay por seguridad");
+                    loadingOverlay.style.display = 'none';
+                }
+            }, 5000);
+            
+            await initializeAppLogic();
+        });
+
+        async function initializeAppLogic() {
+            try {
+                console.log("Iniciando carga de datos...");
+                loadFromLocalStorage();
+                await seedInitialData();
+                setupModalOpenListeners(); 
+                setupNavigation();
+                setupEventListeners();
+                renderAllViews();
+                console.log("Sistema cargado correctamente");
+            } catch (error) {
+                console.error("Error durante la inicialización:", error);
+                // Asegurarse de que el sistema funcione aunque haya errores
+                try {
+                    setupNavigation();
+                    setupEventListeners();
+                } catch (e) {
+                    console.error("Error en configuración básica:", e);
+                }
+            } finally {
+                // Siempre ocultar el loading, sin importar si hay errores
+                document.getElementById('loading-overlay').style.display = 'none';
+                console.log("Loading overlay ocultado");
+            }
+        }
+
+        // --- FUNCIONES DE ALMACENAMIENTO LOCAL ---
+        function saveToLocalStorage() {
+            localStorage.setItem('sr-sra-burger-data', JSON.stringify(localState));
+        }
+
+        function loadFromLocalStorage() {
+            const saved = localStorage.getItem('sr-sra-burger-data');
+            if (saved) {
+                localState = JSON.parse(saved);
+            }
+        }
+
+        async function seedInitialData() {
+            // Solo cargar datos iniciales si no hay datos guardados (PRESERVAR DATOS DEL USUARIO)
+            
+            if (localState.ingredientes.length === 0) {
+                console.log("Seeding initial ingredients...");
+                const initialIngredients = [
+                    { id: 'ing_1', nombre: 'BOTECITO', unidad: 'unidad', unidadesPaquete: 100, precioPaquete: 100.00 },
+                    { id: 'ing_2', nombre: 'Mantequilla Gloria', unidad: 'g', unidadesPaquete: 1170, precioPaquete: 269.10 },
+                    { id: 'ing_3', nombre: 'Galletas Marbu', unidad: 'unidad', unidadesPaquete: 1, precioPaquete: 20.00 },
+                    { id: 'ing_4', nombre: 'Cocoa', unidad: 'g', unidadesPaquete: 250, precioPaquete: 90.00 },
+                    { id: 'ing_5', nombre: 'QUESO NACHOS', unidad: 'g', unidadesPaquete: 4000, precioPaquete: 200.00 },
+                    { id: 'ing_6', nombre: 'Cocacola 1.75', unidad: 'unidad', unidadesPaquete: 1, precioPaquete: 39.00 },
+                    { id: 'ing_7', nombre: 'Queso Bola', unidad: 'g', unidadesPaquete: 1900, precioPaquete: 494.00 },
+                    { id: 'ing_8', nombre: 'SALCHICHAS JUMBO', unidad: 'unidad', unidadesPaquete: 20, precioPaquete: 147.00 },
+                    { id: 'ing_9', nombre: 'PAN HAMBURGUESA PEQUEÑO', unidad: 'unidad', unidadesPaquete: 12, precioPaquete: 75.00 },
+                    { id: 'ing_10', nombre: 'Vegetales Hotdog', unidad: 'unidad', unidadesPaquete: 1, precioPaquete: 4.00 },
+                    { id: 'ing_11', nombre: 'Queso Fiorelo', unidad: 'unidad', unidadesPaquete: 1, precioPaquete: 31.00 },
+                    { id: 'ing_12', nombre: 'Cocacola 600Ml', unidad: 'unidad', unidadesPaquete: 1, precioPaquete: 18.00 },
+                    { id: 'ing_13', nombre: 'CHAROLA PEQUEÑA', unidad: 'unidad', unidadesPaquete: 25, precioPaquete: 50.00 },
+                    { id: 'ing_14', nombre: 'Pepinillos', unidad: 'g', unidadesPaquete: 2000, precioPaquete: 140.00 },
+                    { id: 'ing_15', nombre: 'CHAROLA UNISEL', unidad: 'unidad', unidadesPaquete: 50, precioPaquete: 170.00 },
+                    { id: 'ing_16', nombre: 'PAPAS GAJO', unidad: 'g', unidadesPaquete: 2000, precioPaquete: 160.00 },
+                    { id: 'ing_17', nombre: 'Maicena', unidad: 'g', unidadesPaquete: 300, precioPaquete: 30.00 },
+                    { id: 'ing_18', nombre: 'TOCINO', unidad: 'unidad', unidadesPaquete: 48, precioPaquete: 304.80 },
+                    { id: 'ing_19', nombre: 'QUESO AMERICANO', unidad: 'unidad', unidadesPaquete: 90, precioPaquete: 162.90 },
+                    { id: 'ing_20', nombre: 'PAPEL GRADO ALIMENTICIO', unidad: 'unidad', unidadesPaquete: 1000, precioPaquete: 300.00 },
+                    { id: 'ing_21', nombre: 'PAPAS FRANCESAS', unidad: 'g', unidadesPaquete: 2000, precioPaquete: 160.00 },
+                    { id: 'ing_22', nombre: 'Ranch', unidad: 'mL', unidadesPaquete: 750, precioPaquete: 75.00 },
+                    { id: 'ing_23', nombre: 'AROS DE CEBOLLA', unidad: 'unidad', unidadesPaquete: 100, precioPaquete: 272.00 },
+                    { id: 'ing_24', nombre: 'MAYONESA', unidad: 'g', unidadesPaquete: 3400, precioPaquete: 306.00 },
+                    { id: 'ing_25', nombre: 'Royal', unidad: 'g', unidadesPaquete: 500, precioPaquete: 30.00 },
+                    { id: 'ing_26', nombre: 'Crema Avellana', unidad: 'g', unidadesPaquete: 2000, precioPaquete: 220.00 },
+                    { id: 'ing_27', nombre: 'Costillas', unidad: 'g', unidadesPaquete: 1000, precioPaquete: 150.00 },
+                    { id: 'ing_28', nombre: 'CARNE HAMBURGUESA SIRLON', unidad: 'unidad', unidadesPaquete: 12, precioPaquete: 90.00 },
+                    { id: 'ing_29', nombre: 'Vegetales', unidad: 'unidad', unidadesPaquete: 1, precioPaquete: 8.00 },
+                    { id: 'ing_30', nombre: 'Harina', unidad: 'g', unidadesPaquete: 1000, precioPaquete: 20.00 },
+                    { id: 'ing_31', nombre: 'SALSA BBQ', unidad: 'g', unidadesPaquete: 600, precioPaquete: 42.00 },
+                    { id: 'ing_32', nombre: 'Crema lala 4L', unidad: 'g', unidadesPaquete: 3920, precioPaquete: 274.40 },
+                    { id: 'ing_33', nombre: 'PAN HOTDOG', unidad: 'unidad', unidadesPaquete: 12, precioPaquete: 69.96 },
+                    { id: 'ing_34', nombre: 'Chispas de Chocolate', unidad: 'g', unidadesPaquete: 1000, precioPaquete: 200.00 },
+                    { id: 'ing_35', nombre: 'CHILES', unidad: 'unidad', unidadesPaquete: 2, precioPaquete: 2.00 },
+                    { id: 'ing_36', nombre: 'QUESO MANCHEGO', unidad: 'g', unidadesPaquete: 1000, precioPaquete: 150.00 },
+                    { id: 'ing_37', nombre: 'Catsup', unidad: 'unidad', unidadesPaquete: 200, precioPaquete: 144.00 },
+                    { id: 'ing_38', nombre: 'CARNE DE HAMBURGUESA', unidad: 'unidad', unidadesPaquete: 16, precioPaquete: 271.86 },
+                    { id: 'ing_39', nombre: 'Azucar Mascabada', unidad: 'g', unidadesPaquete: 2000, precioPaquete: 80.00 },
+                    { id: 'ing_40', nombre: 'AGUAS', unidad: 'unidad', unidadesPaquete: 18, precioPaquete: 86.00 },
+                    { id: 'ing_41', nombre: 'BIMBOLLO', unidad: 'unidad', unidadesPaquete: 12, precioPaquete: 90.96 }
+                ];
+                localState.ingredientes = initialIngredients;
+            }
+
+            if (localState.clientes.length === 0) {
+                console.log("Seeding initial clients...");
+                const initialClients = [
+                { id: 'cli_1', nombre: 'JAIME', telefono: '9221579492', direccion: 'Talcualoya', puntos: 20, gastoTotal: 200.00 },
+                { id: 'cli_2', nombre: 'Viridiana Maciel', telefono: '9221569521', direccion: 'Desconocida', puntos: 0, gastoTotal: 0.00 },
+                { id: 'cli_3', nombre: 'pollero', telefono: '9221657362', direccion: 'desconocido', puntos: 14, gastoTotal: 140.00 },
+                { id: 'cli_4', nombre: 'Didi', telefono: '9222831642', direccion: 'Desconocida', puntos: 16, gastoTotal: 160.00 },
+                { id: 'cli_5', nombre: 'Miguel Pimentel', telefono: '5638430441', direccion: 'Desconocido', puntos: 0, gastoTotal: 0.00 },
+                { id: 'cli_6', nombre: 'paul', telefono: '9221745327', direccion: 'centro', puntos: 20, gastoTotal: 200.00 },
+                { id: 'cli_7', nombre: 'Pablo Verazas', telefono: '9221140524', direccion: 'Desconocida', puntos: 78, gastoTotal: 780.00 },
+                { id: 'cli_8', nombre: 'Jeronimo', telefono: '9221585606', direccion: 'Desconocida', puntos: 51, gastoTotal: 510.00 },
+                { id: 'cli_9', nombre: 'Hermano mimi', telefono: 'desconocido', direccion: 'desconocido', puntos: 34, gastoTotal: 340.00 },
+                { id: 'cli_10', nombre: 'Fany', telefono: '9221306105', direccion: 'Desconocida', puntos: 38, gastoTotal: 380.00 },
+                { id: 'cli_11', nombre: 'CENDI', telefono: 'desconocido', direccion: 'desconocido', puntos: 0, gastoTotal: 0.00 },
+                { id: 'cli_12', nombre: 'TONY DIVA', telefono: '9613612532', direccion: 'nueva tacoteno', puntos: 34, gastoTotal: 340.00 },
+                { id: 'cli_13', nombre: 'Karim', telefono: '9221928934', direccion: 'Petrolera', puntos: 0, gastoTotal: 0.00 },
+                { id: 'cli_14', nombre: 'Claudia', telefono: '9222053732', direccion: 'Calle quintanarro colonia emiliano zapata', puntos: 0, gastoTotal: 0.00 },
+                { id: 'cli_15', nombre: 'uriel', telefono: '9222108294', direccion: 'coahuila 36', puntos: 24, gastoTotal: 240.00 },
+                { id: 'cli_16', nombre: 'YOSHUA', telefono: 'desconocido', direccion: 'desconocido', puntos: 6, gastoTotal: 60.00 },
+                { id: 'cli_17', nombre: 'ISRAEL UNI', telefono: 'DESCONOCIDO', direccion: 'DESCONOCIDO', puntos: 6, gastoTotal: 60.00 },
+                { id: 'cli_18', nombre: 'Gladys Casa Rosa', telefono: '9222271093', direccion: 'desconocida', puntos: 0, gastoTotal: 0.00 },
+                { id: 'cli_19', nombre: 'Denise', telefono: '9222822876', direccion: 'Calle tecnologico casa madera', puntos: 0, gastoTotal: 0.00 },
+                { id: 'cli_20', nombre: 'Maribel Vecina', telefono: '9221281283', direccion: 'Coahuila 31', puntos: 0, gastoTotal: 0.00 },
+                { id: 'cli_21', nombre: 'denis vazques', telefono: '9222822876', direccion: 'casa madera', puntos: 11, gastoTotal: 110.00 },
+                { id: 'cli_22', nombre: 'SY', telefono: '9221135326', direccion: 'CONGRESO', puntos: 12, gastoTotal: 120.00 },
+                { id: 'cli_23', nombre: 'Mimi', telefono: '9221637737', direccion: 'Coahuila 34', puntos: 0, gastoTotal: 0.00 },
+                { id: 'cli_24', nombre: 'Tienda Esquina', telefono: '9221751654', direccion: 'Tienda esquina Colonia 10 de mayo', puntos: 0, gastoTotal: 0.00 },
+                { id: 'cli_25', nombre: 'Hernesto Martinez', telefono: '9221633150', direccion: 'Desconocida', puntos: 20, gastoTotal: 200.00 },
+                { id: 'cli_26', nombre: 'Yuri', telefono: '9221253602', direccion: 'desconocido', puntos: 60, gastoTotal: 600.00 }
+            ];
+            localState.clientes = initialClients;
+            }
+
+            if (localState.productos.length === 0) {
+                console.log("Seeding initial products...");
+                const initialProducts = [
+                {
+                    id: 'prod_1',
+                    nombre: 'HAMBURGUESA',
+                    descripcion: 'Hamburguesa clásica con carne, queso manchego, tocino y vegetales.',
+                    precio: 100.00,
+                    receta: [
+                        { ingredienteId: 'ing_36', cantidad: 30 }, // QUESO MANCHEGO
+                        { ingredienteId: 'ing_18', cantidad: 1 },  // TOCINO
+                        { ingredienteId: 'ing_29', cantidad: 1 },  // Vegetales
+                        { ingredienteId: 'ing_38', cantidad: 1 },  // CARNE DE HAMBURGUESA
+                        { ingredienteId: 'ing_24', cantidad: 10 }, // MAYONESA
+                        { ingredienteId: 'ing_19', cantidad: 1 },  // QUESO AMERICANO
+                        { ingredienteId: 'ing_15', cantidad: 1 },  // CHAROLA UNISEL
+                        { ingredienteId: 'ing_1', cantidad: 1 },   // BOTECITO
+                        { ingredienteId: 'ing_35', cantidad: 1 },  // CHILES
+                        { ingredienteId: 'ing_41', cantidad: 1 }   // BIMBOLLO
+                    ]
+                },
+                {
+                    id: 'prod_2',
+                    nombre: 'HAMBURGUESA DOBLE',
+                    descripcion: 'Hamburguesa doble carne con queso manchego, tocino y vegetales.',
+                    precio: 130.00,
+                    receta: [
+                        { ingredienteId: 'ing_36', cantidad: 50 }, // QUESO MANCHEGO
+                        { ingredienteId: 'ing_18', cantidad: 1 },  // TOCINO
+                        { ingredienteId: 'ing_29', cantidad: 1 },  // Vegetales
+                        { ingredienteId: 'ing_38', cantidad: 2 },  // CARNE DE HAMBURGUESA x2
+                        { ingredienteId: 'ing_24', cantidad: 10 }, // MAYONESA
+                        { ingredienteId: 'ing_19', cantidad: 1 },  // QUESO AMERICANO
+                        { ingredienteId: 'ing_15', cantidad: 1 },  // CHAROLA UNISEL
+                        { ingredienteId: 'ing_1', cantidad: 1 },   // BOTECITO
+                        { ingredienteId: 'ing_35', cantidad: 1 },  // CHILES
+                        { ingredienteId: 'ing_41', cantidad: 1 }   // BIMBOLLO
+                    ]
+                },
+                {
+                    id: 'prod_3',
+                    nombre: 'HAMBURGUESA BBQ',
+                    descripcion: 'Hamburguesa con salsa BBQ, tocino y vegetales.',
+                    precio: 110.00,
+                    receta: [
+                        { ingredienteId: 'ing_18', cantidad: 1 },  // TOCINO
+                        { ingredienteId: 'ing_29', cantidad: 1 },  // Vegetales
+                        { ingredienteId: 'ing_38', cantidad: 1 },  // CARNE DE HAMBURGUESA
+                        { ingredienteId: 'ing_24', cantidad: 10 }, // MAYONESA
+                        { ingredienteId: 'ing_19', cantidad: 1 },  // QUESO AMERICANO
+                        { ingredienteId: 'ing_15', cantidad: 1 },  // CHAROLA UNISEL
+                        { ingredienteId: 'ing_1', cantidad: 1 },   // BOTECITO
+                        { ingredienteId: 'ing_35', cantidad: 1 },  // CHILES
+                        { ingredienteId: 'ing_41', cantidad: 1 },  // BIMBOLLO
+                        { ingredienteId: 'ing_31', cantidad: 30 }  // SALSA BBQ
+                    ]
+                },
+                {
+                    id: 'prod_4',
+                    nombre: 'HAMBURGUESA BBQ DOBLE',
+                    descripcion: 'Hamburguesa doble carne con salsa BBQ, tocino y vegetales.',
+                    precio: 140.00,
+                    receta: [
+                        { ingredienteId: 'ing_18', cantidad: 1 },  // TOCINO
+                        { ingredienteId: 'ing_29', cantidad: 1 },  // Vegetales
+                        { ingredienteId: 'ing_38', cantidad: 2 },  // CARNE DE HAMBURGUESA x2
+                        { ingredienteId: 'ing_24', cantidad: 10 }, // MAYONESA
+                        { ingredienteId: 'ing_19', cantidad: 2 },  // QUESO AMERICANO x2
+                        { ingredienteId: 'ing_15', cantidad: 1 },  // CHAROLA UNISEL
+                        { ingredienteId: 'ing_1', cantidad: 1 },   // BOTECITO
+                        { ingredienteId: 'ing_35', cantidad: 1 },  // CHILES
+                        { ingredienteId: 'ing_41', cantidad: 1 },  // BIMBOLLO
+                        { ingredienteId: 'ing_31', cantidad: 30 }  // SALSA BBQ
+                    ]
+                },
+                {
+                    id: 'prod_5',
+                    nombre: 'PAPAS GAJO complemento',
+                    descripcion: 'Porción de papas gajo con queso nachos.',
+                    precio: 20.00,
+                    receta: [
+                        { ingredienteId: 'ing_16', cantidad: 140 }, // PAPAS GAJO
+                        { ingredienteId: 'ing_1', cantidad: 1 },    // BOTECITO
+                        { ingredienteId: 'ing_5', cantidad: 35 }    // QUESO NACHOS
+                    ]
+                },
+                {
+                    id: 'prod_6',
+                    nombre: 'PAPAS FRANCESAS complemento',
+                    descripcion: 'Porción de papas francesas con queso nachos.',
+                    precio: 20.00,
+                    receta: [
+                        { ingredienteId: 'ing_21', cantidad: 140 }, // PAPAS FRANCESAS
+                        { ingredienteId: 'ing_1', cantidad: 1 },    // BOTECITO
+                        { ingredienteId: 'ing_5', cantidad: 35 }    // QUESO NACHOS
+                    ]
+                },
+                {
+                    id: 'prod_7',
+                    nombre: 'PAPAS GAJO MEDIANAS',
+                    descripcion: 'Papas gajo medianas con queso nachos en charola.',
+                    precio: 20.00,
+                    receta: [
+                        { ingredienteId: 'ing_16', cantidad: 280 }, // PAPAS GAJO
+                        { ingredienteId: 'ing_13', cantidad: 1 },   // CHAROLA PEQUEÑA
+                        { ingredienteId: 'ing_1', cantidad: 1 },    // BOTECITO
+                        { ingredienteId: 'ing_5', cantidad: 35 },   // QUESO NACHOS
+                        { ingredienteId: 'ing_20', cantidad: 1 }    // PAPEL GRADO ALIMENTICIO
+                    ]
+                },
+                {
+                    id: 'prod_8',
+                    nombre: 'PAPAS FRANCESAS MEDIANAS',
+                    descripcion: 'Papas francesas medianas con queso nachos en charola.',
+                    precio: 20.00,
+                    receta: [
+                        { ingredienteId: 'ing_21', cantidad: 280 }, // PAPAS FRANCESAS
+                        { ingredienteId: 'ing_1', cantidad: 1 },    // BOTECITO
+                        { ingredienteId: 'ing_5', cantidad: 35 },   // QUESO NACHOS
+                        { ingredienteId: 'ing_13', cantidad: 1 },   // CHAROLA PEQUEÑA
+                        { ingredienteId: 'ing_20', cantidad: 1 }    // PAPEL GRADO ALIMENTICIO
+                    ]
+                },
+                {
+                    id: 'prod_9',
+                    nombre: 'PAPAS GAJO GRANDES',
+                    descripcion: 'Papas gajo grandes con queso nachos en charola grande.',
+                    precio: 120.00,
+                    receta: [
+                        { ingredienteId: 'ing_16', cantidad: 560 }, // PAPAS GAJO
+                        { ingredienteId: 'ing_1', cantidad: 2 },    // BOTECITO x2
+                        { ingredienteId: 'ing_5', cantidad: 75 },   // QUESO NACHOS
+                        { ingredienteId: 'ing_15', cantidad: 1 },   // CHAROLA UNISEL
+                        { ingredienteId: 'ing_20', cantidad: 1 }    // PAPEL GRADO ALIMENTICIO
+                    ]
+                },
+                {
+                    id: 'prod_10',
+                    nombre: 'PAPAS FRANCESAS GRANDES',
+                    descripcion: 'Papas francesas grandes con queso nachos en charola grande.',
+                    precio: 120.00,
+                    receta: [
+                        { ingredienteId: 'ing_21', cantidad: 560 }, // PAPAS FRANCESAS
+                        { ingredienteId: 'ing_1', cantidad: 2 },    // BOTECITO x2
+                        { ingredienteId: 'ing_5', cantidad: 75 },   // QUESO NACHOS
+                        { ingredienteId: 'ing_15', cantidad: 1 },   // CHAROLA UNISEL
+                        { ingredienteId: 'ing_20', cantidad: 1 }    // PAPEL GRADO ALIMENTICIO
+                    ]
+                },
+                {
+                    id: 'prod_11',
+                    nombre: 'HOTDOG JUMBO',
+                    descripcion: 'Hot dog jumbo con salchicha jumbo, tocino, vegetales y queso nachos.',
+                    precio: 60.00,
+                    receta: [
+                        { ingredienteId: 'ing_18', cantidad: 1 },  // TOCINO
+                        { ingredienteId: 'ing_10', cantidad: 1 },  // Vegetales hotdog
+                        { ingredienteId: 'ing_8', cantidad: 1 },   // SALCHICHA JUMBO
+                        { ingredienteId: 'ing_24', cantidad: 10 }, // MAYONESA
+                        { ingredienteId: 'ing_33', cantidad: 1 },  // PAN HOTDOG
+                        { ingredienteId: 'ing_15', cantidad: 1 },  // CHAROLA UNISEL
+                        { ingredienteId: 'ing_1', cantidad: 1 },   // BOTECITO
+                        { ingredienteId: 'ing_35', cantidad: 1 },  // CHILES
+                        { ingredienteId: 'ing_5', cantidad: 15 }   // QUESO NACHOS
+                    ]
+                }
+            ];
+            localState.productos = initialProducts;
+            }
+
+            if (localState.ventas.length === 0) {
+                console.log("Generating 6 months of sales data...");
+                
+                function generateSalesHistory() {
+                const sales = [];
+                const today = new Date();
+                const sixMonthsAgo = new Date(today.getTime() - (180 * 24 * 60 * 60 * 1000)); // 180 días
+                
+                // Productos disponibles con nombres actualizados
+                const productos = [
+                    { id: 'prod_1', nombre: 'HAMBURGUESA', precio: 100.00 },
+                    { id: 'prod_2', nombre: 'HAMBURGUESA DOBLE', precio: 130.00 },
+                    { id: 'prod_3', nombre: 'HAMBURGUESA BBQ', precio: 110.00 },
+                    { id: 'prod_4', nombre: 'HAMBURGUESA BBQ DOBLE', precio: 140.00 },
+                    { id: 'prod_5', nombre: 'PAPAS GAJO complemento', precio: 20.00 },
+                    { id: 'prod_6', nombre: 'PAPAS FRANCESAS complemento', precio: 20.00 },
+                    { id: 'prod_7', nombre: 'PAPAS GAJO MEDIANAS', precio: 20.00 },
+                    { id: 'prod_8', nombre: 'PAPAS FRANCESAS MEDIANAS', precio: 20.00 },
+                    { id: 'prod_9', nombre: 'PAPAS GAJO GRANDES', precio: 120.00 },
+                    { id: 'prod_10', nombre: 'PAPAS FRANCESAS GRANDES', precio: 120.00 },
+                    { id: 'prod_11', nombre: 'HOTDOG JUMBO', precio: 60.00 }
+                ];
+                
+                // IDs de clientes para asignar ventas
+                const clienteIds = [
+                    'cli_1', 'cli_2', 'cli_3', 'cli_4', 'cli_5', 'cli_6', 'cli_7', 'cli_8', 'cli_9', 'cli_10',
+                    'cli_11', 'cli_12', 'cli_13', 'cli_14', 'cli_15', 'cli_16', 'cli_17', 'cli_18', 'cli_19', 'cli_20',
+                    'cli_21', 'cli_22', 'cli_23', 'cli_24', 'cli_25', 'cli_26', null // null para ventas sin cliente
+                ];
+                
+                let saleCounter = 1;
+                
+                // Generar ventas día por día
+                for (let date = new Date(sixMonthsAgo); date <= today; date.setDate(date.getDate() + 1)) {
+                    // Skip algunos domingos (día de descanso ocasional)
+                    if (date.getDay() === 0 && Math.random() < 0.3) continue;
+                    
+                    // Ventas por día: entre 3-8 transacciones
+                    const ventasDelDia = Math.floor(Math.random() * 6) + 3;
+                    let totalDiario = 0;
+                    const targetDiario = Math.floor(Math.random() * 600) + 1400; // $1400-2000
+                    
+                    for (let v = 0; v < ventasDelDia && totalDiario < targetDiario; v++) {
+                        const fechaVenta = new Date(date.getTime() + (Math.random() * 14 * 60 * 60 * 1000) + (8 * 60 * 60 * 1000)); // Entre 8am-10pm
+                        
+                        // Seleccionar cliente (70% con cliente, 30% sin cliente)
+                        const clienteId = Math.random() < 0.7 ? clienteIds[Math.floor(Math.random() * (clienteIds.length - 1))] : null;
+                        
+                        // Generar items para esta venta
+                        const items = [];
+                        const numItems = Math.floor(Math.random() * 4) + 1; // 1-4 productos diferentes
+                        let subtotal = 0;
+                        
+                        for (let i = 0; i < numItems; i++) {
+                            const producto = productos[Math.floor(Math.random() * productos.length)];
+                            const cantidad = Math.floor(Math.random() * 3) + 1; // 1-3 unidades
+                            
+                            items.push({
+                                productoId: producto.id,
+                                nombre: producto.nombre,
+                                precio: producto.precio,
+                                cantidad: cantidad
+                            });
+                            
+                            subtotal += producto.precio * cantidad;
+                        }
+                        
+                        // Aplicar descuentos ocasionales (15% de probabilidad)
+                        const descuento = Math.random() < 0.15 ? Math.floor(subtotal * 0.1) : 0;
+                        
+                        // Costo de envío ocasional (25% de probabilidad)
+                        const costoEnvio = Math.random() < 0.25 ? (Math.random() < 0.5 ? 15 : 25) : 0;
+                        
+                        const total = subtotal - descuento + costoEnvio;
+                        totalDiario += total;
+                        
+                        // Evitar exceder demasiado el target diario
+                        if (totalDiario > targetDiario + 200) break;
+                        
+                        sales.push({
+                            id: 'venta_' + Date.now() + '_' + saleCounter.toString().padStart(4, '0'),
+                            fecha: fechaVenta.toISOString(),
+                            clienteId: clienteId,
+                            items: items,
+                            subtotal: subtotal,
+                            descuento: descuento,
+                            costoEnvio: costoEnvio,
+                            total: total
+                        });
+                        
+                        saleCounter++;
+                    }
+                }
+                
+                return sales.sort((a, b) => new Date(b.fecha) - new Date(a.fecha)); // Más recientes primero
+            }
+            
+            const initialSales = generateSalesHistory();
+            localState.ventas = initialSales;
+            }
+            
+            saveToLocalStorage();
+        }
+        
+        function setupNavigation() {
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const viewId = e.currentTarget.getAttribute('href').substring(1);
+                    showView(viewId);
+                });
+            });
+        }
+
+        function showView(viewId) {
+            views.forEach(view => view.classList.remove('active'));
+            document.getElementById(`view-${viewId}`).classList.add('active');
+            navLinks.forEach(link => {
+                link.classList.toggle('active', link.getAttribute('href') === `#${viewId}`);
+            });
+            if (viewId === 'vender') renderPosProductList();
+            if (viewId === 'reportes') initializeReportsView();
+        }
+        
+        function setupEventListeners() {
+            document.getElementById('process-sale-btn').addEventListener('click', processSale);
+            document.querySelector('main').addEventListener('click', (e) => {
+                const editBtn = e.target.closest('.edit-btn');
+                const deleteBtn = e.target.closest('.delete-btn');
+                const historyBtn = e.target.closest('.history-btn');
+                if (editBtn) handleEditClick(editBtn);
+                if (deleteBtn) handleDeleteClick(deleteBtn);
+                if (historyBtn) handleHistoryClick(historyBtn);
+            });
+            document.getElementById('pos-discount-input').addEventListener('input', updateOrderTotals);
+            const shippingCheckbox = document.getElementById('pos-shipping-checkbox');
+            shippingCheckbox.addEventListener('change', () => {
+                document.getElementById('pos-shipping-cost').classList.toggle('hidden', !shippingCheckbox.checked);
+                if (!shippingCheckbox.checked) {
+                    document.getElementById('pos-shipping-cost').value = '';
+                }
+                updateOrderTotals();
+            });
+            document.getElementById('pos-shipping-cost').addEventListener('input', updateOrderTotals);
+        }
+
+        function setupModalOpenListeners() {
+            for (const key in viewConfigs) {
+                 const config = viewConfigs[key];
+                 if (config.buttonId) {
+                    document.getElementById(config.buttonId).addEventListener('click', () => {
+                        const formHtml = (typeof config.modal.form_fn === 'function' ? config.modal.form_fn() : config.modal.form);
+                        openModal(config.modal.title, formHtml, config.modal.handler);
+                    });
+                 }
+            }
+        }
+        
+        function handleEditClick(button) {
+            const type = button.dataset.type;
+            const id = button.dataset.id;
+            const item = localState[type].find(i => i.id === id);
+            if (!item) return;
+
+            const config = viewConfigs[type];
+            const formHtml = (typeof config.modal.form_fn === 'function' ? config.modal.form_fn() : config.modal.form);
+            openModal(`Editar ${config.modal.title}`, formHtml, config.modal.handler, item);
+        }
+
+        function handleDeleteClick(button) {
+            const type = button.dataset.type;
+            const id = button.dataset.id;
+            const item = localState[type].find(i => i.id === id);
+            if (!item) return;
+            
+            if (type === 'ingredientes') {
+                const isUsed = localState.productos.some(p => p.receta && p.receta.some(r => r.ingredienteId === id));
+                if (isUsed) {
+                    alert('Este ingrediente no se puede eliminar porque está siendo utilizado en al menos un producto.');
+                    return;
+                }
+            } else if (type === 'clientes') {
+                 const isUsed = localState.ventas.some(v => v.clienteId === id);
+                 if(isUsed) {
+                     alert('Este cliente no se puede eliminar porque tiene ventas asociadas.');
+                     return;
+                 }
+            } else if (type === 'ventas') {
+                 openConfirmationModal(`Eliminar Venta`, `¿Estás seguro? Esta acción revertirá el gasto y los puntos del cliente si aplica. No se puede deshacer.`, async () => {
+                    if (item.clienteId) {
+                        const cliente = localState.clientes.find(c => c.id === item.clienteId);
+                        if(cliente) {
+                            const puntosRevertir = Math.floor(item.total / 10);
+                            const nuevoGasto = Math.max(0, (cliente.gastoTotal || 0) - item.total);
+                            const nuevosPuntos = Math.max(0, (cliente.puntos || 0) - puntosRevertir);
+                            cliente.gastoTotal = nuevoGasto;
+                            cliente.puntos = nuevosPuntos;
+                        }
+                    }
+                    const index = localState.ventas.findIndex(v => v.id === id);
+                    if (index !== -1) {
+                        localState.ventas.splice(index, 1);
+                    }
+                    saveToLocalStorage();
+                    renderAllViews();
+                });
+                return;
+            }
+
+            openConfirmationModal(`Eliminar ${item.nombre}`, `¿Estás seguro de que quieres eliminar este elemento? Esta acción no se puede deshacer.`, async () => {
+                const index = localState[type].findIndex(i => i.id === id);
+                if (index !== -1) {
+                    localState[type].splice(index, 1);
+                    saveToLocalStorage();
+                    renderAllViews();
+                }
+            });
+        }
+        
+        function handleHistoryClick(button) {
+            const clienteId = button.dataset.id;
+            const cliente = localState.clientes.find(c => c.id === clienteId);
+            if (!cliente) return;
+            
+            const ventasCliente = localState.ventas.filter(v => v.clienteId === clienteId).sort((a,b) => new Date(b.fecha) - new Date(a.fecha));
+            
+            let historyHtml = '<p class="text-gray-400">Este cliente aún no tiene compras.</p>';
+            if(ventasCliente.length > 0) {
+                 historyHtml = '<ul class="space-y-2 max-h-80 overflow-y-auto">';
+                 ventasCliente.forEach(v => {
+                    historyHtml += `<li class="p-2 bg-gray-700 rounded">
+                        <div class="flex justify-between">
+                            <span class="font-semibold">${new Date(v.fecha).toLocaleString()}</span>
+                            <span>$${v.total.toFixed(2)}</span>
+                        </div>
+                    </li>`;
+                 });
+                 historyHtml += '</ul>';
+            }
+            
+            const modalHtml = `
+                <div class="bg-gray-800 text-gray-200 p-8 rounded-lg shadow-xl w-full max-w-lg">
+                    <div class="flex justify-between items-center mb-4">
+                        <h3 class="text-2xl font-bold">Historial de ${cliente.nombre}</h3>
+                        <button class="btn-cancel text-2xl">&times;</button>
+                    </div>
+                    ${historyHtml}
+                </div>`;
+
+            modalContainer.innerHTML = modalHtml;
+            modalContainer.querySelector('.btn-cancel').addEventListener('click', closeModal);
+            modalContainer.classList.remove('hidden');
+            modalBackdrop.classList.remove('hidden');
+        }
+
+        function renderAllTables() {
+            for (const key in viewConfigs) {
+                const config = viewConfigs[key];
+                const tbody = document.getElementById(`${key}-list-body`);
+                if (!tbody) continue;
+
+                const data = config.dataFn();
+                tbody.innerHTML = ''; 
+
+                if (data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="${config.headers.length}" class="text-center p-4 text-gray-400">No hay datos registrados.</td></tr>`;
+                } else {
+                    data.forEach(item => {
+                        const row = document.createElement('tr');
+                        row.className = 'border-b border-gray-700 hover:bg-gray-700/30';
+                        row.innerHTML = config.rowFn(item);
+                        tbody.appendChild(row);
+                    });
+                }
+            }
+            setupSaleDetailsListener();
+        }
+
+        function setupSaleDetailsListener() {
+            document.querySelectorAll('.view-sale-details-btn').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    const saleId = e.currentTarget.dataset.saleId;
+                    const sale = localState.ventas.find(v => v.id === saleId);
+                    if (sale) {
+                        showSaleDetails(sale);
+                    }
+                });
+            });
+        }
+
+        function showSaleDetails(sale) {
+            const cliente = localState.clientes.find(c => c.id === sale.clienteId);
+            
+            let itemsHtml = '';
+            if (sale.items && sale.items.length > 0) {
+                itemsHtml = sale.items.map(item => {
+                    const producto = localState.productos.find(p => p.id === item.productoId);
+                    return `
+                        <div class="flex justify-between py-2 border-b border-gray-600">
+                            <span>${producto ? producto.nombre : 'Producto eliminado'} x${item.cantidad}</span>
+                            <span>$${(item.precio * item.cantidad).toFixed(2)}</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            const modalHtml = `
+                <div class="bg-gray-800 text-gray-200 p-8 rounded-lg shadow-xl w-full max-w-md">
+                    <h3 class="text-xl font-bold mb-4">Detalles de Venta #${sale.id.substring(0,6)}</h3>
+                    <div class="space-y-3">
+                        <p><strong>Fecha:</strong> ${new Date(sale.fecha).toLocaleString()}</p>
+                        <p><strong>Cliente:</strong> ${cliente ? cliente.nombre : 'Cliente General'}</p>
+                        <div>
+                            <strong>Productos:</strong>
+                            <div class="mt-2 bg-gray-700 p-3 rounded max-h-40 overflow-y-auto">
+                                ${itemsHtml || '<p class="text-gray-400">Sin productos</p>'}
+                            </div>
+                        </div>
+                        <div class="text-right space-y-1 border-t border-gray-600 pt-3">
+                            <p>Subtotal: $${sale.subtotal.toFixed(2)}</p>
+                            ${sale.descuento > 0 ? `<p>Descuento: -$${sale.descuento.toFixed(2)}</p>` : ''}
+                            ${sale.costoEnvio > 0 ? `<p>Envío: +$${sale.costoEnvio.toFixed(2)}</p>` : ''}
+                            <p class="text-lg font-bold">Total: $${sale.total.toFixed(2)}</p>
+                        </div>
+                    </div>
+                    <button class="btn-cancel w-full bg-gray-600 text-white py-2 px-4 rounded-lg mt-4 hover:bg-gray-500">Cerrar</button>
+                </div>
+            `;
+
+            modalContainer.innerHTML = modalHtml;
+            modalContainer.querySelector('.btn-cancel').addEventListener('click', closeModal);
+            modalContainer.classList.remove('hidden');
+            modalBackdrop.classList.remove('hidden');
+        }
+        
+        function renderDashboard() {
+            const totalVentas = localState.ventas.reduce((sum, venta) => sum + venta.total, 0);
+            const totalTransacciones = localState.ventas.length;
+            const totalClientes = localState.clientes.length;
+            
+            document.getElementById('db-total-ventas').textContent = `$${totalVentas.toFixed(2)}`;
+            document.getElementById('db-total-transacciones').textContent = totalTransacciones;
+            document.getElementById('db-total-clientes').textContent = totalClientes;
+            
+            // Ventas recientes
+            const ventasRecientes = [...localState.ventas]
+                .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+                .slice(0, 5);
+            
+            const tbody = document.getElementById('db-ventas-recientes-body');
+            tbody.innerHTML = '';
+            
+            if (ventasRecientes.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4 text-gray-400">No hay ventas registradas</td></tr>';
+            } else {
+                ventasRecientes.forEach(venta => {
+                    const cliente = localState.clientes.find(c => c.id === venta.clienteId);
+                    const row = document.createElement('tr');
+                    row.className = 'border-b border-gray-700';
+                    row.innerHTML = `
+                        <td class="p-2">#${venta.id.substring(0,6)}</td>
+                        <td class="p-2">${cliente ? cliente.nombre : 'Cliente General'}</td>
+                        <td class="p-2">${new Date(venta.fecha).toLocaleDateString()}</td>
+                        <td class="p-2 text-right font-bold">$${venta.total.toFixed(2)}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+        }
+        
+        function renderCustomerSelect() {
+            const select = document.getElementById('pos-customer-select');
+            if (!select) return;
+            
+            select.innerHTML = '<option value="">Cliente General</option>';
+            localState.clientes.forEach(cliente => {
+                const option = document.createElement('option');
+                option.value = cliente.id;
+                option.textContent = cliente.nombre;
+                select.appendChild(option);
+            });
+        }
+        
+        function renderPosProductList() {
+            const container = document.getElementById('pos-product-list');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            if (localState.productos.length === 0) {
+                container.innerHTML = '<div class="col-span-full text-center text-gray-400 p-8">No hay productos disponibles. Agrega productos desde la sección de Productos.</div>';
+                return;
+            }
+            
+            localState.productos.forEach(producto => {
+                const card = document.createElement('div');
+                card.className = 'bg-gray-800 p-4 rounded-lg shadow-md cursor-pointer hover:bg-gray-700 transition-colors';
+                card.onclick = () => addToOrder(producto);
+                
+                const costo = calcularCostoProducto(producto);
+                const margen = producto.precio - costo;
+                
+                card.innerHTML = `
+                    <h3 class="font-bold text-white mb-2">${producto.nombre}</h3>
+                    <p class="text-sm text-gray-400 mb-3 line-clamp-2">${producto.descripcion || 'Sin descripción'}</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-2xl font-bold text-green-400">$${producto.precio.toFixed(2)}</span>
+                        <span class="text-xs text-gray-500" title="Margen: $${margen.toFixed(2)}">
+                            Costo: $${costo.toFixed(2)}
+                        </span>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+
+        function addToOrder(producto) {
+            const existingItem = currentOrder.items.find(item => item.productoId === producto.id);
+            
+            if (existingItem) {
+                existingItem.cantidad++;
+            } else {
+                currentOrder.items.push({
+                    productoId: producto.id,
+                    nombre: producto.nombre,
+                    precio: producto.precio,
+                    cantidad: 1
+                });
+            }
+            
+            updateOrderDisplay();
+            updateOrderTotals();
+        }
+
+        function updateOrderDisplay() {
+            const container = document.getElementById('pos-order-items');
+            const processBtn = document.getElementById('process-sale-btn');
+            
+            if (currentOrder.items.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-center">Añade productos para empezar</p>';
+                processBtn.disabled = true;
+                return;
+            }
+            
+            processBtn.disabled = false;
+            container.innerHTML = currentOrder.items.map(item => `
+                <div class="flex justify-between items-center p-2 bg-gray-700 rounded">
+                    <div class="flex-grow">
+                        <div class="font-medium text-white">${item.nombre}</div>
+                        <div class="text-sm text-gray-400">$${item.precio.toFixed(2)} c/u</div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="changeQuantity('${item.productoId}', -1)" class="bg-red-600 text-white w-6 h-6 rounded text-sm">-</button>
+                        <span class="text-white font-bold w-8 text-center">${item.cantidad}</span>
+                        <button onclick="changeQuantity('${item.productoId}', 1)" class="bg-green-600 text-white w-6 h-6 rounded text-sm">+</button>
+                        <button onclick="removeFromOrder('${item.productoId}')" class="bg-red-600 text-white px-2 py-1 rounded text-xs">×</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function changeQuantity(productoId, delta) {
+            const item = currentOrder.items.find(i => i.productoId === productoId);
+            if (item) {
+                item.cantidad += delta;
+                if (item.cantidad <= 0) {
+                    removeFromOrder(productoId);
+                } else {
+                    updateOrderDisplay();
+                    updateOrderTotals();
+                }
+            }
+        }
+
+        function removeFromOrder(productoId) {
+            currentOrder.items = currentOrder.items.filter(i => i.productoId !== productoId);
+            updateOrderDisplay();
+            updateOrderTotals();
+        }
+
+        function updateOrderTotals() {
+            const subtotal = currentOrder.items.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+            const descuento = parseFloat(document.getElementById('pos-discount-input').value) || 0;
+            const envio = document.getElementById('pos-shipping-checkbox').checked ? 
+                         (parseFloat(document.getElementById('pos-shipping-cost').value) || 0) : 0;
+            
+            const total = Math.max(0, subtotal - descuento + envio);
+            
+            currentOrder.subtotal = subtotal;
+            currentOrder.descuento = descuento;
+            currentOrder.costoEnvio = envio;
+            currentOrder.total = total;
+            
+            document.getElementById('pos-subtotal').textContent = `$${subtotal.toFixed(2)}`;
+            document.getElementById('pos-total').textContent = `$${total.toFixed(2)}`;
+        }
+
+        async function processSale() {
+            if (currentOrder.items.length === 0) return;
+            
+            const clienteId = document.getElementById('pos-customer-select').value || null;
+            
+            const venta = {
+                id: 'venta_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                fecha: new Date().toISOString(),
+                clienteId: clienteId,
+                items: [...currentOrder.items],
+                subtotal: currentOrder.subtotal,
+                descuento: currentOrder.descuento,
+                costoEnvio: currentOrder.costoEnvio,
+                total: currentOrder.total
+            };
+            
+            // Actualizar cliente si existe
+            if (clienteId) {
+                const cliente = localState.clientes.find(c => c.id === clienteId);
+                if (cliente) {
+                    cliente.gastoTotal = (cliente.gastoTotal || 0) + currentOrder.total;
+                    cliente.puntos = (cliente.puntos || 0) + Math.floor(currentOrder.total);
+                }
+            }
+            
+            localState.ventas.push(venta);
+            saveToLocalStorage();
+            
+            // Limpiar orden
+            currentOrder = { items: [], clienteId: null, subtotal: 0, total: 0, descuento: 0, costoEnvio: 0 };
+            document.getElementById('pos-discount-input').value = '';
+            document.getElementById('pos-shipping-checkbox').checked = false;
+            document.getElementById('pos-shipping-cost').value = '';
+            document.getElementById('pos-shipping-cost').classList.add('hidden');
+            document.getElementById('pos-customer-select').value = '';
+            
+            updateOrderDisplay();
+            updateOrderTotals();
+            renderAllViews();
+            
+            showSuccessMessage(`Venta procesada correctamente. Total: $${venta.total.toFixed(2)}`);
+        }
+
+        function generateDescription() {
+            const nombreInput = document.querySelector('input[name="nombre"]');
+            const descripcionTextarea = document.querySelector('textarea[name="descripcion"]');
+            
+            if (!nombreInput.value.trim()) {
+                alert('Primero ingresa el nombre del producto');
+                return;
+            }
+            
+            // Generar descripción simple basada en el nombre
+            const nombre = nombreInput.value.trim();
+            const descripciones = [
+                `Delicioso ${nombre} preparado con ingredientes frescos y de la mejor calidad.`,
+                `Nuestro especial ${nombre}, una experiencia única de sabor que no puedes perderte.`,
+                `${nombre} casero con el toque especial de la casa. ¡Te va a encantar!`,
+                `Exquisito ${nombre} elaborado con nuestra receta tradicional y amor.`,
+                `${nombre} gourmet que combina sabores únicos en cada bocado.`
+            ];
+            
+            const randomDesc = descripciones[Math.floor(Math.random() * descripciones.length)];
+            descripcionTextarea.value = randomDesc;
+            
+            // Efecto visual
+            descripcionTextarea.style.backgroundColor = '#10b981';
+            setTimeout(() => {
+                descripcionTextarea.style.backgroundColor = '';
+            }, 500);
+        }
+
+        // --- CARGA DE ÍCONOS SVG ---
+        function loadIcons() {
+            const icons = {
+                'uis-create-dashboard': '<path d="M10 3H4a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1zM9 9H5V5h4v4zm11-6h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1V4a1 1 0 0 0-1-1zm-1 6h-4V5h4v4zm-9 4H4a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-6a1 1 0 0 0-1-1zm-1 6H5v-4h4v4zm11-6h-6a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-6a1 1 0 0 0-1-1zm-1 6h-4v-4h4v4z"/>',
+                'uis-shopping-cart': '<path d="M21.822 7.431A1 1 0 0 0 21 7H7.333L6.179 4.23A1.994 1.994 0 0 0 4.333 3H2v2h2.333l4.744 11.385A1 1 0 0 0 10 17h8a1 1 0 0 0 .931-.648L21.784 8.43a1 1 0 0 0 .038-.999zM10.873 15l-1.42-3.411L18.498 11l.543 2.59z"/><circle cx="10.5" cy="19.5" r="1.5"/><circle cx="17.5" cy="19.5" r="1.5"/>',
+                'uis-bill': '<path d="M19 2H5a1 1 0 0 0-1 1v18a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1V3a1 1 0 0 0-1-1zM8 6h8v2H8zm8 10H8v-2h8zm0-4H8v-2h8z"/>',
+                'uis-box': '<path d="M21 4H3a1 1 0 0 0-1 1v14a1 1 0 0 0 1 1h18a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1zM5 13h4v4H5zm6 4h4v-4h-4zm5 0h-4v-4h4zM5 7h14v4H5z"/>',
+                'uis-circle-layer': '<path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M12 7a5 5 0 1 0 5 5 5 5 0 0 0-5-5zm0 8a3 3 0 1 1 3-3 3 3 0 0 1-3 3z"/>',
+                'uis-users-alt': '<path d="M16 11.33A2.83 2.83 0 0 0 13.17 8.5 2.83 2.83 0 0 0 10.33 11.33a2.83 2.83 0 0 0 2.84 2.84A2.83 2.83 0 0 0 16 11.33zM18 19.5a.5.5 0 0 0 .5-.5A3.5 3.5 0 0 0 15 15.5H8a3.5 3.5 0 0 0-3.5 3.5.5.5 0 0 0 .5.5zM12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/>',
+                'uis-graph-bar': '<path d="M19 20H5a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h14a1 1 0 0 1 1 1v14a1 1 0 0 1-1 1zM6 18h2v-4H6zm4 0h2v-8h-2z"/>',
+                'uis-transaction': '<path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M15 8h-4V6a1 1 0 0 0-2 0v2H5a1 1 0 0 0 0 2h2v2a1 1 0 0 0 2 0v-2h4a1 1 0 0 0 0-2z"/>',
+                'uis-check-circle': '<path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm-1.07 13.44-3.5-3.5a1 1 0 0 1 1.41-1.41L10.93 13.6a.2.2 0 0 0 .28 0l4.5-5.5a1 1 0 1 1 1.58 1.22l-5.25 6.5a1 1  0 0 0-.74.34z"/>',
+                'uis-plus-circle': '<path d="M12 2a10 10 0 1 0 10 10A10 10 0 0 0 12 2zm0 18a8 8 0 1 1 8-8 8 8 0 0 1-8 8z"/><path d="M15 11h-2V9a1 1 0 0 0-2 0v2H9a1 1 0 0 0 0 2h2v2a1 1 0 0 0 2 0v-2h2a1 1 0 0 0 0-2z"/>',
+                'uis-eye': '<path d="M21.92 11.6C19.9 6.91 16.1 4 12 4s-7.9 2.91-9.92 7.6a1 1 0 0 0 0 .8C4.1 17.09 7.9 20 12 20s7.9-2.91 9.92-7.6a1 1 0 0 0 .038-.999z"/><circle cx="12" cy="12" r="3"/>',
+                'uis-pen': '<path d="M21.71,4.29a1,1,0,0,0-1.42,0L18.41,6.17,14.83,2.59,16.71.71a1,1,0,0,0,0-1.42,1,1,0,0,0-1.42,0L13.41,1.17a4.23,4.23,0,0,0-6,6L2.29,12.29a1,1,0,0,0-.29.71V15a1,1,0,0,0,1,1H5a1,1,0,0,0,.71-.29L10.83,10.6l3.58,3.58L6.17,18.41,2.59,14.83,1.17,16.29a1,1,0,0,0,0,1.42,1,1,0,0,0,1.42,0L4.41,15.83a4.28,4.28,0,0,0,6,0L15.83,10.41l3.58,3.58-1.88,1.88a1,1,0,0,0,0,1.42,1,1,0,0,0,1.42,0l2.29-2.29a1,1,0,0,0,0-1.42Z"/>',
+                'uis-trash-alt': '<path d="M16,2H8A3,3,0,0,0,5,5V7H4A1,1,0,0,0,4,9H5.08l.77,9.25a3,3,0,0,0,3,2.75h6.3a3,3,0,0,0,3-2.75L18.92,9H20a1,1,0,0,0,0-2H19V5A3,3,0,0,0,16,2Z"/>'
+            };
+            
+            document.querySelectorAll('[class^="uis-"]').forEach(el => {
+                const iconName = Array.from(el.classList).find(c => c.startsWith('uis-'));
+                if (iconName && icons[iconName] && el.children.length === 0) {
+                    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                    svg.setAttribute('viewBox', '0 0 24 24');
+                    svg.setAttribute('fill', 'currentColor');
+                    svg.classList.add('h-full', 'w-full');
+                    svg.innerHTML = icons[iconName];
+                    el.appendChild(svg);
+                }
+            });
+        }
+
+        // Inicializar iconos cuando se carga la página
+        loadIcons();
+
+        // Función auxiliar para calcular el costo de un producto basado en su receta
+        function calcularCostoProducto(producto) {
+            if (!producto.receta || producto.receta.length === 0) {
+                return 0;
+            }
+            
+            let costoTotal = 0;
+            producto.receta.forEach(r => {
+                const ingrediente = localState.ingredientes.find(i => i.id === r.ingredienteId);
+                if (ingrediente) {
+                    const costoUnitario = ingrediente.precioPaquete / ingrediente.unidadesPaquete;
+                    costoTotal += costoUnitario * r.cantidad;
+                }
+            });
+            
+            return costoTotal;
+        }
+
+        function setupIngredientManagement(itemToEdit = null) {
+            const addBtn = document.getElementById('add-ingredient-btn');
+            const ingredientList = document.getElementById('ingredient-list');
+            let ingredientCounter = 0;
+            
+            function addIngredientRow(selectedIngredientId = '', cantidad = '') {
+                ingredientCounter++;
+                const rowId = `ingredient-row-${ingredientCounter}`;
+                
+                const options = localState.ingredientes.map(ing => {
+                    const selected = ing.id === selectedIngredientId ? 'selected' : '';
+                    const costoUnitario = (ing.precioPaquete / ing.unidadesPaquete) || 0;
+                    return `<option value="${ing.id}" ${selected}>${ing.nombre} - $${costoUnitario.toFixed(4)}/${ing.unidad}</option>`;
+                }).join('');
+                
+                const row = document.createElement('div');
+                row.id = rowId;
+                row.className = 'flex items-center space-x-2 p-2 bg-gray-700 rounded-lg';
+                row.innerHTML = `
+                    <select class="flex-1 p-2 bg-gray-600 border border-gray-500 text-white rounded-md ingredient-select">
+                        <option value="">Seleccionar ingrediente...</option>
+                        ${options}
+                    </select>
+                    <input type="number" 
+                           data-ingredient-id="${selectedIngredientId}"
+                           value="${cantidad}"
+                           min="0" 
+                           step="0.01" 
+                           placeholder="Cantidad"
+                           class="w-24 p-2 bg-gray-600 border border-gray-500 text-white rounded-md text-right ingredient-qty">
+                    <span class="text-sm text-gray-300 w-16 ingredient-unit">
+                        ${selectedIngredientId ? localState.ingredientes.find(i => i.id === selectedIngredientId)?.unidad || '' : ''}
+                    </span>
+                    <button type="button" class="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded text-xs remove-ingredient">
+                        ×
+                    </button>
+                `;
+                
+                ingredientList.appendChild(row);
+                
+                // Event listeners para esta fila
+                const select = row.querySelector('.ingredient-select');
+                const qtyInput = row.querySelector('.ingredient-qty');
+                const unitSpan = row.querySelector('.ingredient-unit');
+                const removeBtn = row.querySelector('.remove-ingredient');
+                
+                select.addEventListener('change', function() {
+                    const selectedId = this.value;
+                    qtyInput.dataset.ingredientId = selectedId;
+                    
+                    if (selectedId) {
+                        const ingrediente = localState.ingredientes.find(i => i.id === selectedId);
+                        unitSpan.textContent = ingrediente ? ingrediente.unidad : '';
+                    } else {
+                        unitSpan.textContent = '';
+                    }
+                });
+                
+                removeBtn.addEventListener('click', function() {
+                    row.remove();
+                });
+            }
+            
+            addBtn.addEventListener('click', () => addIngredientRow());
+            
+            // Si estamos editando, cargar los ingredientes existentes
+            if (itemToEdit && itemToEdit.receta) {
+                itemToEdit.receta.forEach(r => {
+                    addIngredientRow(r.ingredienteId, r.cantidad);
+                });
+            }
+        }
+
+        function renderAllViews() {
+            renderAllTables();
+            renderDashboard();
+            renderCustomerSelect();
+        }
+
+        function renderAllTables() {
+            for (const key in viewConfigs) {
+                const config = viewConfigs[key];
+                const tbody = document.getElementById(`${key}-list-body`);
+                if (!tbody) continue;
+
+                const data = config.dataFn();
+                tbody.innerHTML = ''; 
+
+                if (data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="${config.headers.length}" class="text-center p-4 text-gray-400">No hay datos registrados.</td></tr>`;
+                } else {
+                    data.forEach(item => {
+                        const row = document.createElement('tr');
+                        row.className = 'border-b border-gray-700 hover:bg-gray-700/30';
+                        row.innerHTML = config.rowFn(item);
+                        tbody.appendChild(row);
+                    });
+                }
+            }
+            setupSaleDetailsListener();
+        }
+
+        function setupSaleDetailsListener() {
+            document.querySelectorAll('.view-sale-details-btn').forEach(btn => {
+                btn.addEventListener('click', e => {
+                    const saleId = e.currentTarget.dataset.saleId;
+                    const sale = localState.ventas.find(v => v.id === saleId);
+                    if (sale) {
+                        showSaleDetails(sale);
+                    }
+                });
+            });
+        }
+
+        function showSaleDetails(sale) {
+            const cliente = localState.clientes.find(c => c.id === sale.clienteId);
+            
+            let itemsHtml = '';
+            if (sale.items && sale.items.length > 0) {
+                itemsHtml = sale.items.map(item => {
+                    const producto = localState.productos.find(p => p.id === item.productoId);
+                    return `
+                        <div class="flex justify-between py-2 border-b border-gray-600">
+                            <span>${producto ? producto.nombre : 'Producto eliminado'} x${item.cantidad}</span>
+                            <span>$${(item.precio * item.cantidad).toFixed(2)}</span>
+                        </div>
+                    `;
+                }).join('');
+            }
+
+            const modalHtml = `
+                <div class="bg-gray-800 text-gray-200 p-8 rounded-lg shadow-xl w-full max-w-md">
+                    <h3 class="text-xl font-bold mb-4">Detalles de Venta #${sale.id.substring(0,6)}</h3>
+                    <div class="space-y-3">
+                        <p><strong>Fecha:</strong> ${new Date(sale.fecha).toLocaleString()}</p>
+                        <p><strong>Cliente:</strong> ${cliente ? cliente.nombre : 'Cliente General'}</p>
+                        <div>
+                            <strong>Productos:</strong>
+                            <div class="mt-2 bg-gray-700 p-3 rounded max-h-40 overflow-y-auto">
+                                ${itemsHtml || '<p class="text-gray-400">Sin productos</p>'}
+                            </div>
+                        </div>
+                        <div class="text-right space-y-1 border-t border-gray-600 pt-3">
+                            <p>Subtotal: $${sale.subtotal.toFixed(2)}</p>
+                            ${sale.descuento > 0 ? `<p>Descuento: -$${sale.descuento.toFixed(2)}</p>` : ''}
+                            ${sale.costoEnvio > 0 ? `<p>Envío: +$${sale.costoEnvio.toFixed(2)}</p>` : ''}
+                            <p class="text-lg font-bold">Total: $${sale.total.toFixed(2)}</p>
+                        </div>
+                    </div>
+                    <button class="btn-cancel w-full bg-gray-600 text-white py-2 px-4 rounded-lg mt-4 hover:bg-gray-500">Cerrar</button>
+                </div>
+            `;
+
+            modalContainer.innerHTML = modalHtml;
+            modalContainer.querySelector('.btn-cancel').addEventListener('click', closeModal);
+            modalContainer.classList.remove('hidden');
+            modalBackdrop.classList.remove('hidden');
+        }
+        
+        function renderDashboard() {
+            const totalVentas = localState.ventas.reduce((sum, venta) => sum + venta.total, 0);
+            const totalTransacciones = localState.ventas.length;
+            const totalClientes = localState.clientes.length;
+            
+            document.getElementById('db-total-ventas').textContent = `$${totalVentas.toFixed(2)}`;
+            document.getElementById('db-total-transacciones').textContent = totalTransacciones;
+            document.getElementById('db-total-clientes').textContent = totalClientes;
+            
+            // Ventas recientes
+            const ventasRecientes = [...localState.ventas]
+                .sort((a, b) => new Date(b.fecha) - new Date(a.fecha))
+                .slice(0, 5);
+            
+            const tbody = document.getElementById('db-ventas-recientes-body');
+            tbody.innerHTML = '';
+            
+            if (ventasRecientes.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center p-4 text-gray-400">No hay ventas registradas</td></tr>';
+            } else {
+                ventasRecientes.forEach(venta => {
+                    const cliente = localState.clientes.find(c => c.id === venta.clienteId);
+                    const row = document.createElement('tr');
+                    row.className = 'border-b border-gray-700';
+                    row.innerHTML = `
+                        <td class="p-2">#${venta.id.substring(0,6)}</td>
+                        <td class="p-2">${cliente ? cliente.nombre : 'Cliente General'}</td>
+                        <td class="p-2">${new Date(venta.fecha).toLocaleDateString()}</td>
+                        <td class="p-2 text-right font-bold">$${venta.total.toFixed(2)}</td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+        }
+        
+        function renderCustomerSelect() {
+            const select = document.getElementById('pos-customer-select');
+            if (!select) return;
+            
+            select.innerHTML = '<option value="">Cliente General</option>';
+            localState.clientes.forEach(cliente => {
+                const option = document.createElement('option');
+                option.value = cliente.id;
+                option.textContent = cliente.nombre;
+                select.appendChild(option);
+            });
+        }
+        
+        function renderPosProductList() {
+            const container = document.getElementById('pos-product-list');
+            if (!container) return;
+            
+            container.innerHTML = '';
+            
+            if (localState.productos.length === 0) {
+                container.innerHTML = '<div class="col-span-full text-center text-gray-400 p-8">No hay productos disponibles. Agrega productos desde la sección de Productos.</div>';
+                return;
+            }
+            
+            localState.productos.forEach(producto => {
+                const card = document.createElement('div');
+                card.className = 'bg-gray-800 p-4 rounded-lg shadow-md cursor-pointer hover:bg-gray-700 transition-colors';
+                card.onclick = () => addToOrder(producto);
+                
+                const costo = calcularCostoProducto(producto);
+                const margen = producto.precio - costo;
+                
+                card.innerHTML = `
+                    <h3 class="font-bold text-white mb-2">${producto.nombre}</h3>
+                    <p class="text-sm text-gray-400 mb-3 line-clamp-2">${producto.descripcion || 'Sin descripción'}</p>
+                    <div class="flex justify-between items-center">
+                        <span class="text-2xl font-bold text-green-400">$${producto.precio.toFixed(2)}</span>
+                        <span class="text-xs text-gray-500" title="Margen: $${margen.toFixed(2)}">
+                            Costo: $${costo.toFixed(2)}
+                        </span>
+                    </div>
+                `;
+                
+                container.appendChild(card);
+            });
+        }
+
+        function addToOrder(producto) {
+            const existingItem = currentOrder.items.find(item => item.productoId === producto.id);
+            
+            if (existingItem) {
+                existingItem.cantidad++;
+            } else {
+                currentOrder.items.push({
+                    productoId: producto.id,
+                    nombre: producto.nombre,
+                    precio: producto.precio,
+                    cantidad: 1
+                });
+            }
+            
+            updateOrderDisplay();
+            updateOrderTotals();
+        }
+
+        function updateOrderDisplay() {
+            const container = document.getElementById('pos-order-items');
+            const processBtn = document.getElementById('process-sale-btn');
+            
+            if (currentOrder.items.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-center">Añade productos para empezar</p>';
+                processBtn.disabled = true;
+                return;
+            }
+            
+            processBtn.disabled = false;
+            container.innerHTML = currentOrder.items.map(item => `
+                <div class="flex justify-between items-center p-2 bg-gray-700 rounded">
+                    <div class="flex-grow">
+                        <div class="font-medium text-white">${item.nombre}</div>
+                        <div class="text-sm text-gray-400">$${item.precio.toFixed(2)} c/u</div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                        <button onclick="changeQuantity('${item.productoId}', -1)" class="bg-red-600 text-white w-6 h-6 rounded text-sm">-</button>
+                        <span class="text-white font-bold w-8 text-center">${item.cantidad}</span>
+                        <button onclick="changeQuantity('${item.productoId}', 1)" class="bg-green-600 text-white w-6 h-6 rounded text-sm">+</button>
+                        <button onclick="removeFromOrder('${item.productoId}')" class="bg-red-600 text-white px-2 py-1 rounded text-xs">×</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function changeQuantity(productoId, delta) {
+            const item = currentOrder.items.find(i => i.productoId === productoId);
+            if (item) {
+                item.cantidad += delta;
+                if (item.cantidad <= 0) {
+                    removeFromOrder(productoId);
+                } else {
+                    updateOrderDisplay();
+                    updateOrderTotals();
+                }
+            }
+        }
+
+        function removeFromOrder(productoId) {
+            currentOrder.items = currentOrder.items.filter(i => i.productoId !== productoId);
+            updateOrderDisplay();
+            updateOrderTotals();
+        }
+
+        function updateOrderTotals() {
+            const subtotal = currentOrder.items.reduce((sum, item) => sum + (item.precio * item.cantidad), 0);
+            const descuento = parseFloat(document.getElementById('pos-discount-input').value) || 0;
+            const envio = document.getElementById('pos-shipping-checkbox').checked ? 
+                         (parseFloat(document.getElementById('pos-shipping-cost').value) || 0) : 0;
+            
+            const total = Math.max(0, subtotal - descuento + envio);
+            
+            currentOrder.subtotal = subtotal;
+            currentOrder.descuento = descuento;
+            currentOrder.costoEnvio = envio;
+            currentOrder.total = total;
+            
+            document.getElementById('pos-subtotal').textContent = `$${subtotal.toFixed(2)}`;
+            document.getElementById('pos-total').textContent = `$${total.toFixed(2)}`;
+        }
+
+        async function processSale() {
+            if (currentOrder.items.length === 0) return;
+            
+            const clienteId = document.getElementById('pos-customer-select').value || null;
+            
+            const venta = {
+                id: 'venta_' + Date.now() + '_' + Math.random().toString(36).substr(2, 5),
+                fecha: new Date().toISOString(),
+                clienteId: clienteId,
+                items: [...currentOrder.items],
+                subtotal: currentOrder.subtotal,
+                descuento: currentOrder.descuento,
+                costoEnvio: currentOrder.costoEnvio,
+                total: currentOrder.total
+            };
+            
+            // Actualizar cliente si existe
+            if (clienteId) {
+                const cliente = localState.clientes.find(c => c.id === clienteId);
+                if (cliente) {
+                    cliente.gastoTotal = (cliente.gastoTotal || 0) + currentOrder.total;
+                    cliente.puntos = (cliente.puntos || 0) + Math.floor(currentOrder.total);
+                }
+            }
+            
+            localState.ventas.push(venta);
+            saveToLocalStorage();
+            
+            // Limpiar orden
+            currentOrder = { items: [], clienteId: null, subtotal: 0, total: 0, descuento: 0, costoEnvio: 0 };
+            document.getElementById('pos-discount-input').value = '';
+            document.getElementById('pos-shipping-checkbox').checked = false;
+            document.getElementById('pos-shipping-cost').value = '';
+            document.getElementById('pos-shipping-cost').classList.add('hidden');
+            document.getElementById('pos-customer-select').value = '';
+            
+            updateOrderDisplay();
+            updateOrderTotals();
+            renderAllViews();
+            
+            showSuccessMessage(`Venta procesada correctamente. Total: $${venta.total.toFixed(2)}`);
+        }
+
+        // --- SISTEMA DE REPORTES Y ANALYTICS ---
+        let reportsData = {
+            filteredSales: [],
+            currentFilters: {
+                dateFrom: null,
+                dateTo: null,
+                clienteId: null
+            }
+        };
+
+        let charts = {
+            sales: null,
+            products: null,
+            clients: null
+        };
+
+        function initializeReportsView() {
+            setupReportsFilters();
+            setDefaultDateRange();
+            applyFilters();
+        }
+
+        function setupReportsFilters() {
+            // Poblar select de clientes
+            const clienteSelect = document.getElementById('filter-cliente');
+            clienteSelect.innerHTML = '<option value="">Todos los clientes</option>';
+            localState.clientes.forEach(cliente => {
+                const option = document.createElement('option');
+                option.value = cliente.id;
+                option.textContent = cliente.nombre;
+                clienteSelect.appendChild(option);
+            });
+
+            // Event listeners
+            document.getElementById('apply-filters').addEventListener('click', applyFilters);
+            document.getElementById('export-data').addEventListener('click', exportReportsData);
+        }
+
+        function setDefaultDateRange() {
+            const today = new Date();
+            const thirtyDaysAgo = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000));
+            
+            document.getElementById('filter-date-to').value = today.toISOString().split('T')[0];
+            document.getElementById('filter-date-from').value = thirtyDaysAgo.toISOString().split('T')[0];
+        }
+
+        function applyFilters() {
+            const dateFrom = document.getElementById('filter-date-from').value;
+            const dateTo = document.getElementById('filter-date-to').value;
+            const clienteId = document.getElementById('filter-cliente').value;
+
+            reportsData.currentFilters = { dateFrom, dateTo, clienteId };
+
+            // Filtrar ventas
+            reportsData.filteredSales = localState.ventas.filter(venta => {
+                const ventaDate = new Date(venta.fecha).toISOString().split('T')[0];
+                
+                let passDateFilter = true;
+                if (dateFrom && ventaDate < dateFrom) passDateFilter = false;
+                if (dateTo && ventaDate > dateTo) passDateFilter = false;
+                
+                let passClientFilter = true;
+                if (clienteId && venta.clienteId !== clienteId) passClientFilter = false;
+                
+                return passDateFilter && passClientFilter;
+            });
+
+            updateReportsMetrics();
+            updateReportsCharts();
+            updateProfitabilityTable();
+            updateTopClients();
+            updateSalesHistoryTable();
+        }
+
+        function updateReportsMetrics() {
+            const sales = reportsData.filteredSales;
+            
+            // Ingresos totales
+            const totalIngresos = sales.reduce((sum, venta) => sum + venta.total, 0);
+            
+            // Calcular ganancia neta
+            let totalGanancia = 0;
+            let totalCostos = 0;
+            
+            sales.forEach(venta => {
+                venta.items.forEach(item => {
+                    const producto = localState.productos.find(p => p.id === item.productoId);
+                    if (producto) {
+                        const costoUnitario = calcularCostoProducto(producto);
+                        totalCostos += costoUnitario * item.cantidad;
+                    }
+                });
+            });
+            
+            totalGanancia = totalIngresos - totalCostos;
+            
+            // Margen promedio
+            const margenPromedio = totalIngresos > 0 ? (totalGanancia / totalIngresos) * 100 : 0;
+            
+            // Ticket promedio
+            const ticketPromedio = sales.length > 0 ? totalIngresos / sales.length : 0;
+            
+            // Actualizar UI
+            document.getElementById('metric-ingresos').textContent = `$${totalIngresos.toFixed(2)}`;
+            document.getElementById('metric-ganancia').textContent = `$${totalGanancia.toFixed(2)}`;
+            document.getElementById('metric-margen').textContent = `${margenPromedio.toFixed(1)}%`;
+            document.getElementById('metric-ticket').textContent = `$${ticketPromedio.toFixed(2)}`;
+        }
+
+        function updateReportsCharts() {
+            updateSalesChart();
+            updateProductsChart();
+            updateClientsChart();
+        }
+
+        function updateSalesChart() {
+            const ctx = document.getElementById('sales-chart').getContext('2d');
+            
+            if (charts.sales) {
+                charts.sales.destroy();
+            }
+            
+            // Agrupar ventas por día
+            const salesByDay = {};
+            reportsData.filteredSales.forEach(venta => {
+                const day = new Date(venta.fecha).toISOString().split('T')[0];
+                salesByDay[day] = (salesByDay[day] || 0) + venta.total;
+            });
+            
+            const labels = Object.keys(salesByDay).sort();
+            const data = labels.map(day => salesByDay[day]);
+            
+            charts.sales = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels.map(day => new Date(day).toLocaleDateString()),
+                    datasets: [{
+                        label: 'Ventas Diarias',
+                        data: data,
+                        borderColor: 'rgb(59, 130, 246)',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 3,
+                        fill: true,
+                        tension: 0.4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: 'white' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        y: {
+                            ticks: { 
+                                color: 'white',
+                                callback: function(value) {
+                                    return '$' + value.toFixed(2);
+                                }
+                            },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateProductsChart() {
+            const ctx = document.getElementById('products-chart').getContext('2d');
+            
+            if (charts.products) {
+                charts.products.destroy();
+            }
+            
+            // Contar productos vendidos
+            const productSales = {};
+            reportsData.filteredSales.forEach(venta => {
+                venta.items.forEach(item => {
+                    const producto = localState.productos.find(p => p.id === item.productoId);
+                    if (producto) {
+                        productSales[producto.nombre] = (productSales[producto.nombre] || 0) + item.cantidad;
+                    }
+                });
+            });
+            
+            // Tomar top 10
+            const sortedProducts = Object.entries(productSales)
+                .sort(([,a], [,b]) => b - a)
+                .slice(0, 10);
+            
+            const labels = sortedProducts.map(([name]) => name);
+            const data = sortedProducts.map(([,quantity]) => quantity);
+            
+            charts.products = new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [
+                            'rgba(239, 68, 68, 0.8)',
+                            'rgba(34, 197, 94, 0.8)',
+                            'rgba(59, 130, 246, 0.8)',
+                            'rgba(168, 85, 247, 0.8)',
+                            'rgba(245, 158, 11, 0.8)',
+                            'rgba(20, 184, 166, 0.8)',
+                            'rgba(244, 63, 94, 0.8)',
+                            'rgba(139, 69, 19, 0.8)',
+                            'rgba(75, 85, 99, 0.8)',
+                            'rgba(156, 163, 175, 0.8)'
+                        ],
+                        borderWidth: 2,
+                        borderColor: '#000000'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { 
+                                color: 'white',
+                                padding: 20
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateClientsChart() {
+            const ctx = document.getElementById('clients-chart').getContext('2d');
+            
+            if (charts.clients) {
+                charts.clients.destroy();
+            }
+            
+            // Agrupar clientes por gasto
+            const ranges = {
+                '0-50': 0,
+                '51-100': 0,
+                '101-200': 0,
+                '201-500': 0,
+                '500+': 0
+            };
+            
+            const clientGastos = {};
+            reportsData.filteredSales.forEach(venta => {
+                if (venta.clienteId) {
+                    clientGastos[venta.clienteId] = (clientGastos[venta.clienteId] || 0) + venta.total;
+                }
+            });
+            
+            Object.values(clientGastos).forEach(gasto => {
+                if (gasto <= 50) ranges['0-50']++;
+                else if (gasto <= 100) ranges['51-100']++;
+                else if (gasto <= 200) ranges['101-200']++;
+                else if (gasto <= 500) ranges['201-500']++;
+                else ranges['500+']++;
+            });
+            
+            charts.clients = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: Object.keys(ranges),
+                    datasets: [{
+                        label: 'Número de Clientes',
+                        data: Object.values(ranges),
+                        backgroundColor: 'rgba(168, 85, 247, 0.8)',
+                        borderColor: 'rgba(168, 85, 247, 1)',
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            labels: { color: 'white' }
+                        }
+                    },
+                    scales: {
+                        x: {
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        },
+                        y: {
+                            ticks: { color: 'white' },
+                            grid: { color: 'rgba(255, 255, 255, 0.1)' }
+                        }
+                    }
+                }
+            });
+        }
+
+        function updateProfitabilityTable() {
+            const tbody = document.getElementById('profitability-table-body');
+            tbody.innerHTML = '';
+            
+            // Analizar rentabilidad por producto
+            const productStats = {};
+            
+            reportsData.filteredSales.forEach(venta => {
+                venta.items.forEach(item => {
+                    const producto = localState.productos.find(p => p.id === item.productoId);
+                    if (producto) {
+                        if (!productStats[producto.id]) {
+                            productStats[producto.id] = {
+                                nombre: producto.nombre,
+                                unidadesVendidas: 0,
+                                ingresos: 0,
+                                costoTotal: 0
+                            };
+                        }
+                        
+                        const costoUnitario = calcularCostoProducto(producto);
+                        const stats = productStats[producto.id];
+                        
+                        stats.unidadesVendidas += item.cantidad;
+                        stats.ingresos += item.precio * item.cantidad;
+                        stats.costoTotal += costoUnitario * item.cantidad;
+                    }
+                });
+            });
+            
+            // Ordenar por ganancia
+            const sortedProducts = Object.values(productStats)
+                .map(stats => {
+                    const ganancia = stats.ingresos - stats.costoTotal;
+                    const margen = stats.ingresos > 0 ? (ganancia / stats.ingresos) * 100 : 0;
+                    const roi = stats.costoTotal > 0 ? (ganancia / stats.costoTotal) * 100 : 0;
+                    
+                    return { ...stats, ganancia, margen, roi };
+                })
+                .sort((a, b) => b.ganancia - a.ganancia);
+            
+            if (sortedProducts.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center p-4 text-gray-400">No hay datos para mostrar</td></tr>';
+                return;
+            }
+            
+            sortedProducts.forEach(product => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-white/10 hover:bg-white/5';
+                
+                const margenColor = product.margen >= 50 ? 'text-green-400' : 
+                                   product.margen >= 25 ? 'text-yellow-400' : 'text-red-400';
+                
+                row.innerHTML = `
+                    <td class="p-4 font-medium">${product.nombre}</td>
+                    <td class="p-4">${product.unidadesVendidas}</td>
+                    <td class="p-4">$${product.ingresos.toFixed(2)}</td>
+                    <td class="p-4">$${product.costoTotal.toFixed(2)}</td>
+                    <td class="p-4 font-bold text-green-400">$${product.ganancia.toFixed(2)}</td>
+                    <td class="p-4 font-bold ${margenColor}">${product.margen.toFixed(1)}%</td>
+                    <td class="p-4 font-bold ${margenColor}">${product.roi.toFixed(1)}%</td>
+                `;
+                tbody.appendChild(row);
+            });
+        }
+
+        function updateTopClients() {
+            const container = document.getElementById('top-clients-list');
+            container.innerHTML = '';
+            
+            // Calcular gasto por cliente en el período filtrado
+            const clientGastos = {};
+            
+            reportsData.filteredSales.forEach(venta => {
+                if (venta.clienteId) {
+                    clientGastos[venta.clienteId] = (clientGastos[venta.clienteId] || 0) + venta.total;
+                }
+            });
+            
+            // Ordenar y tomar top 10
+            const topClients = Object.entries(clientGastos)
+                .map(([clienteId, gasto]) => {
+                    const cliente = localState.clientes.find(c => c.id === clienteId);
+                    return { cliente, gasto };
+                })
+                .filter(item => item.cliente)
+                .sort((a, b) => b.gasto - a.gasto)
+                .slice(0, 10);
+            
+            if (topClients.length === 0) {
+                container.innerHTML = '<p class="text-gray-400 text-center py-4">No hay datos de clientes para mostrar</p>';
+                return;
+            }
+            
+            topClients.forEach((item, index) => {
+                const clientDiv = document.createElement('div');
+                clientDiv.className = 'flex justify-between items-center p-3 bg-white/5 rounded-lg';
+                
+                clientDiv.innerHTML = `
+                    <div class="flex items-center space-x-3">
+                        <span class="text-white/70 font-bold w-6">#${index + 1}</span>
+                        <div>
+                            <p class="font-medium text-white">${item.cliente.nombre}</p>
+                            <p class="text-sm text-white/70">${item.cliente.email || 'Sin email'}</p>
+                        </div>
+                    </div>
+                    <span class="font-bold text-green-400">$${item.gasto.toFixed(2)}</span>
+                `;
+                
+                container.appendChild(clientDiv);
+            });
+        }
+
+        function updateSalesHistoryTable() {
+            const tbody = document.getElementById('sales-history-table-body');
+            tbody.innerHTML = '';
+            
+            if (reportsData.filteredSales.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="9" class="text-center p-4 text-gray-400">No hay ventas para mostrar</td></tr>';
+                return;
+            }
+            
+            // Ordenar por fecha (más reciente primero)
+            const sortedSales = [...reportsData.filteredSales].sort((a, b) => new Date(b.fecha) - new Date(a.fecha));
+            
+            sortedSales.forEach(venta => {
+                const cliente = localState.clientes.find(c => c.id === venta.clienteId);
+                const productosStr = venta.items.map(item => `${item.nombre} (${item.cantidad})`).join(', ');
+                
+                // Calcular ganancia de la venta
+                let costoVenta = 0;
+                venta.items.forEach(item => {
+                    const producto = localState.productos.find(p => p.id === item.productoId);
+                    if (producto) {
+                        const costoUnitario = calcularCostoProducto(producto);
+                        costoVenta += costoUnitario * item.cantidad;
+                    }
+                });
+                
+                const gananciaVenta = venta.total - costoVenta;
+                
+                const row = document.createElement('tr');
+                row.className = 'border-b border-white/10 hover:bg-white/5';
+                
+                row.innerHTML = `
+                    <td class="p-4 font-mono text-sm">#${venta.id.substring(0, 8)}</td>
+                    <td class="p-4">${new Date(venta.fecha).toLocaleDateString()}</td>
+                    <td class="p-4">${cliente ? cliente.nombre : 'Cliente General'}</td>
+                    <td class="p-4 max-w-xs truncate" title="${productosStr}">${productosStr}</td>
+                    <td class="p-4">$${venta.subtotal.toFixed(2)}</td>
+                    <td class="p-4">${venta.descuento > 0 ? '-$' + venta.descuento.toFixed(2) : '$0.00'}</td>
+                    <td class="p-4">${venta.costoEnvio > 0 ? '$' + venta.costoEnvio.toFixed(2) : '$0.00'}</td>
+                    <td class="p-4 font-bold">$${venta.total.toFixed(2)}</td>
+                    <td class="p-4 font-bold text-green-400">$${gananciaVenta.toFixed(2)}</td>
+                `;
+                
+                tbody.appendChild(row);
+            });
+        }
+
+        function exportReportsData() {
+            const data = {
+                filters: reportsData.currentFilters,
+                metrics: {
+                    ingresos: document.getElementById('metric-ingresos').textContent,
+                    ganancia: document.getElementById('metric-ganancia').textContent,
+                    margen: document.getElementById('metric-margen').textContent,
+                    ticket: document.getElementById('metric-ticket').textContent
+                },
+                sales: reportsData.filteredSales,
+                generated: new Date().toISOString()
+            };
+            
+            const dataStr = JSON.stringify(data, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `reporte-ventas-${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            showSuccessMessage('Reporte exportado correctamente');
+        }
+
+    </script>
+</body>
+</html>
