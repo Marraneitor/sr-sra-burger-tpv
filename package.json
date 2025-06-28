@@ -1,0 +1,17 @@
+{
+  "name": "sr-sra-burger-pos",
+  "version": "1.0.0",
+  "description": "Sistema POS offline para SR & SRA BURGER",
+  "main": "index.html",
+  "scripts": {
+    "dev": "serve -s .",
+    "build": "echo 'Static site - no build needed'",
+    "start": "serve -s ."
+  },
+  "keywords": ["pos", "restaurant", "burger", "sales"],
+  "author": "SR & SRA BURGER",
+  "license": "MIT",
+  "devDependencies": {
+    "serve": "^14.2.0"
+  }
+}
