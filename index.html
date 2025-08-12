@@ -26,11 +26,18 @@
     };
     async function loadFirebaseConfig(){
       if(window.FIREBASE_CONFIG) return window.FIREBASE_CONFIG;
+      // Try to detect a real JS config file without triggering a module error in consoles (MIME, rewrites, etc.)
       try{
-        const mod = await import('./firebase-config.js');
-        if(mod?.firebaseConfig) return mod.firebaseConfig;
-        if(mod?.default) return mod.default;
-      }catch(_){ /* optional file; ignore */ }
+        const res = await fetch('./firebase-config.js', { method:'HEAD' });
+        const type = res.headers.get('content-type')||'';
+        if(res.ok && type.includes('javascript')){
+          try{
+            const mod = await import('./firebase-config.js');
+            if(mod?.firebaseConfig) return mod.firebaseConfig;
+            if(mod?.default) return mod.default;
+          }catch(_){ /* ignore and fallback */ }
+        }
+      }catch(_){ /* ignore and fallback */ }
       return DEFAULT_CONFIG;
     }
     const firebaseConfig = await loadFirebaseConfig();
