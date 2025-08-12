@@ -110,3 +110,4 @@ Thumbs.db
  
 # Local Firebase config (keep private)
 firebase-config.js
+firebase-config.json

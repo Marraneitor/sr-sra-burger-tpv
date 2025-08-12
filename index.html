@@ -26,6 +26,7 @@
     };
     async function loadFirebaseConfig(){
       if(window.FIREBASE_CONFIG) return window.FIREBASE_CONFIG;
+      try{ const ls = localStorage.getItem('FIREBASE_CONFIG'); if(ls){ const obj = JSON.parse(ls); if(obj?.apiKey) return obj; } }catch(_){ }
       // Try to detect a real JS config file without triggering a module error in consoles (MIME, rewrites, etc.)
       try{
         const res = await fetch('./firebase-config.js', { method:'HEAD' });
@@ -38,6 +39,11 @@
           }catch(_){ /* ignore and fallback */ }
         }
       }catch(_){ /* ignore and fallback */ }
+      // Also support a simple JSON config file (no modules) for static hosting
+      try{
+        const r = await fetch('./firebase-config.json', { cache:'no-store' });
+        if(r.ok){ const json = await r.json(); if(json?.apiKey) return json; }
+      }catch(_){ }
       return DEFAULT_CONFIG;
     }
     const firebaseConfig = await loadFirebaseConfig();
