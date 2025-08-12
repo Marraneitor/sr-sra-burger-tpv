@@ -5,10 +5,7 @@
   "outputDirectory": ".",
   "public": true,
   "rewrites": [
-    { "source": "/", "destination": "/index.html" },
-    { "source": "/index", "destination": "/index.html" },
-    { "source": "/((?!.*\.(?:js|mjs|css|ico|png|jpg|jpeg|gif|svg|webp|json|txt|map)$).*)",
-      "destination": "/index.html" }
+  { "source": "/:path*", "destination": "/index.html", "missing": [ { "type": "file" } ] }
   ],
   "headers": [
     {
