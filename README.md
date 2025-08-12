@@ -1,11 +1,12 @@
-# 🍔 SR & SRA BURGER - Sistema TPV Offline
+# 🍔 SR & SRA BURGER - Sistema TPV Cloud
 
 ![SR & SRA BURGER](https://img.shields.io/badge/TPV-Sistema%20Completo-brightgreen)
 ![HTML5](https://img.shields.io/badge/HTML5-E34F26?style=flat&logo=html5&logoColor=white)
 ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?style=flat&logo=javascript&logoColor=black)
 ![TailwindCSS](https://img.shields.io/badge/Tailwind_CSS-38B2AC?style=flat&logo=tailwind-css&logoColor=white)
+![Firebase](https://img.shields.io/badge/Firebase-039BE5?style=flat&logo=Firebase&logoColor=white)
 
-Sistema de Punto de Venta (TPV) completo y moderno para restaurantes, desarrollado en HTML, CSS y JavaScript puro. **Funciona completamente offline** usando localStorage.
+Sistema de Punto de Venta (TPV) completo y moderno para restaurantes, desarrollado en HTML, CSS y JavaScript puro. **Integrado con Firebase** para sincronización en la nube y acceso multi-dispositivo, con **fallback offline** usando localStorage.
 
 ## 🚀 Vista Previa
 
@@ -21,6 +22,14 @@ Sistema de Punto de Venta (TPV) completo y moderno para restaurantes, desarrolla
 - **Gestión de clientes** con historial de compras y puntos
 - **Sistema de reportes** avanzados con gráficas interactivas
 
+### ☁️ Integración Firebase Cloud
+- **Sincronización en tiempo real** entre dispositivos
+- **Autenticación anónima** automática
+- **Backup automático** en la nube
+- **Acceso multi-dispositivo** (PC, tablet, móvil)
+- **Fallback offline** - Funciona sin conexión
+- **Migración automática** de datos locales a la nube
+
 ### 📈 Reportes & Analytics Avanzados
 - **Gráficas interactivas** con Chart.js
 - **Análisis de rentabilidad** por producto
@@ -29,10 +38,11 @@ Sistema de Punto de Venta (TPV) completo y moderno para restaurantes, desarrolla
 - **Top clientes** y productos más vendidos
 - **Exportación de datos** para análisis externos
 
-### 💾 Tecnología Offline
-- **100% Offline** - Funciona sin conexión a internet
-- **Datos persistentes** en localStorage del navegador
-- **Preservación automática** de datos del usuario
+### 💾 Tecnología Híbrida Cloud/Local
+- **Firebase Cloud** - Sincronización en tiempo real
+- **localStorage Fallback** - Funciona sin conexión a internet
+- **Datos persistentes** en la nube y localmente
+- **Migración automática** al configurar Firebase
 - **Simulación realista** de 6 meses de ventas para demostración
 
 ## 🎨 Diseño Moderno
@@ -50,6 +60,8 @@ Sistema de Punto de Venta (TPV) completo y moderno para restaurantes, desarrolla
 | **HTML5** | Estructura semántica | - |
 | **CSS3 + Tailwind** | Estilos modernos | 3.x |
 | **Vanilla JavaScript** | Lógica de aplicación | ES6+ |
+| **Firebase** | Base de datos en la nube | 10.7.1 |
+| **Firestore** | NoSQL Database | Latest |
 | **Chart.js** | Gráficas interactivas | 4.x |
 | **LocalStorage** | Persistencia offline | Nativo |
 | **Heroicons** | Iconografía | 2.0 |
@@ -108,6 +120,14 @@ El sistema incluye datos realistas para demostración:
 
 ## 🔧 Instalación y Uso
 
+### 🔥 Configuración Firebase (Recomendado)
+
+Para habilitar la sincronización en la nube y acceso multi-dispositivo:
+
+1. **Sigue la guía completa**: [`FIREBASE_SETUP.md`](./FIREBASE_SETUP.md)
+2. **Configura las reglas**: [`FIRESTORE_RULES.md`](./FIRESTORE_RULES.md)
+3. **Reemplaza la configuración** en `index.html` con tus credenciales
+
 ### Instalación Local
 ```bash
 # Clona el repositorio
@@ -117,15 +137,17 @@ git clone https://github.com/tuusuario/sr-sra-burger-tpv.git
 cd sr-sra-burger-tpv
 
 # Abre index.html en tu navegador
-# ¡Listo! No requiere instalación adicional
+# ¡Listo! Funciona offline y online
 ```
 
 ### Uso del Sistema
 1. **Abre la aplicación** en tu navegador
-2. **Navega por las secciones** usando el menú lateral
-3. **Explora los datos precargados** en todas las secciones
-4. **Procesa ventas** en el punto de venta
-5. **Analiza resultados** en la sección de reportes
+2. **El sistema detecta** automáticamente si Firebase está configurado
+3. **Navega por las secciones** usando el menú lateral
+4. **Explora los datos precargados** en todas las secciones
+5. **Procesa ventas** en el punto de venta
+6. **Analiza resultados** en la sección de reportes
+7. **Sincroniza en la nube** si Firebase está configurado
 
 ## 🌐 Despliegue en Vercel
 
@@ -160,6 +182,8 @@ git push -u origin main
 sr-sra-burger-tpv/
 ├── index.html          # 🏠 Aplicación principal (SPA completa)
 ├── README.md           # 📖 Este archivo de documentación
+├── FIREBASE_SETUP.md   # 🔥 Guía de configuración de Firebase
+├── FIRESTORE_RULES.md  # 🛡️ Reglas de seguridad avanzadas
 ├── vercel.json         # ⚙️ Configuración de Vercel
 ├── .gitignore          # 🚫 Archivos a ignorar en Git
 └── LICENSE             # 📄 Licencia del proyecto
@@ -172,12 +196,20 @@ sr-sra-burger-tpv/
 - **Sin dependencias pesadas** - Solo CDNs necesarios
 - **Optimizado para móviles** - Responsive design completo
 - **Funciona offline** - Sin necesidad de internet
+- **Sincronización en tiempo real** - Con Firebase configurado
 
 ### 🔒 Seguridad
-- **No requiere base de datos** externa
-- **Datos locales** en el navegador del usuario
-- **Sin información sensible** en el servidor
+- **Autenticación requerida** - Firebase Anonymous Auth
+- **Reglas de Firestore** - Control granular de acceso
+- **Datos locales** como fallback seguro
+- **Sin información sensible** en el código cliente
 - **Control total** sobre los datos
+
+### ☁️ Cloud Features
+- **Multi-dispositivo** - Accede desde cualquier lugar
+- **Backup automático** - Nunca pierdas información
+- **Sincronización instantánea** - Cambios en tiempo real
+- **Escalabilidad** - Crece con tu negocio
 
 ### 🔧 Mantenimiento
 - **Código modular** y bien comentado
@@ -187,12 +219,16 @@ sr-sra-burger-tpv/
 
 ## 🚀 Próximas Funcionalidades
 
+- [x] ✅ Integración completa con Firebase
+- [x] ✅ Sincronización en tiempo real
+- [x] ✅ Autenticación anónima
+- [x] ✅ Reglas de seguridad avanzadas
 - [ ] Exportación a PDF de reportes
 - [ ] Sistema de notificaciones push
-- [ ] Sincronización en la nube opcional
 - [ ] Modo kiosko para tablets
 - [ ] Integración con impresoras de tickets
-- [ ] Sistema de backup automático
+- [ ] Sistema de roles y permisos
+- [ ] Multi-tenant para cadenas de restaurantes
 
 ## 🤝 Contribuciones
 
@@ -209,6 +245,8 @@ sr-sra-burger-tpv/
 - 🐛 **Reportar bugs**: [Issues en GitHub](https://github.com/tuusuario/sr-sra-burger-tpv/issues)
 - 💡 **Sugerir funcionalidades**: [Discussions](https://github.com/tuusuario/sr-sra-burger-tpv/discussions)
 - 📧 **Contacto directo**: [tu-email@example.com](mailto:tu-email@example.com)
+- 🔥 **Firebase Help**: Ver [`FIREBASE_SETUP.md`](./FIREBASE_SETUP.md) para configuración
+- 🛡️ **Security Rules**: Ver [`FIRESTORE_RULES.md`](./FIRESTORE_RULES.md) para seguridad
 
 ## 📄 Licencia
 
@@ -219,6 +257,7 @@ Este proyecto está bajo la Licencia MIT. Ver [LICENSE](LICENSE) para más detal
 - **[Tailwind CSS](https://tailwindcss.com/)** - Framework de estilos
 - **[Chart.js](https://www.chartjs.org/)** - Gráficas interactivas  
 - **[Heroicons](https://heroicons.com/)** - Iconos modernos
+- **[Firebase](https://firebase.google.com/)** - Backend como servicio
 - **[Vercel](https://vercel.com/)** - Hosting gratuito y rápido
 
 ---
@@ -227,7 +266,7 @@ Este proyecto está bajo la Licencia MIT. Ver [LICENSE](LICENSE) para más detal
 
 **¡Desarrollado con ❤️ para SR & SRA BURGER!**
 
-*Sistema TPV moderno, rápido y completamente funcional*
+*Sistema TPV moderno, rápido y completamente funcional con sincronización en la nube*
 
 [⭐ Dale una estrella](https://github.com/tuusuario/sr-sra-burger-tpv) • [🐛 Reportar bug](https://github.com/tuusuario/sr-sra-burger-tpv/issues) • [💡 Sugerir función](https://github.com/tuusuario/sr-sra-burger-tpv/discussions)
 

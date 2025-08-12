@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SR & SRA BURGER - Sistema TPV</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --burger-bun: #D4A574;
+            --burger-meat: #8B4513;
+            --burger-cheese: #FFD700;
+            --burger-lettuce: #228B22;
+            --burger-tomato: #DC143C;
+            --burger-cream: #FFF8DC;
+            --burger-dark: #2F1B14;
+            --burger-light: #F5E6D3;
+            --burger-accent: #FF6B35;
+        }
+
+        body {
+            background: linear-gradient(135deg, #F5E6D3 0%, #FFF8DC 50%, #D4A574 100%);
+            background-attachment: fixed;
+        }
+
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: linear-gradient(135deg, var(--burger-cream), var(--burger-light));
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .loader {
+            width: 70px;
+            height: 70px;
+            border: 5px solid var(--burger-light);
+            border-top: 5px solid var(--burger-accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .view {
+            display: none;
+        }
+
+        .view.active {
+            display: block;
+        }
+
+        .sidebar {
+            background: linear-gradient(180deg, var(--burger-meat) 0%, var(--burger-dark) 100%);
+        }
+
+        .nav-link {
+            transition: all 0.3s ease;
+            border-radius: 8px;
+            margin: 2px 0;
+        }
+
+        .nav-link:hover {
+            background: linear-gradient(135deg, var(--burger-cheese), var(--burger-bun));
+            color: var(--burger-dark);
+        }
+
+        .nav-link.active {
+            background: linear-gradient(135deg, var(--burger-accent), var(--burger-tomato));
+            color: white;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body class="font-sans min-h-screen">
+    <!-- Loading Overlay -->
+    <div id="loading-overlay" class="loading-overlay">
+        <div class="loader"></div>
+        <p class="mt-6 text-lg font-bold" style="color: var(--burger-dark);">🍔 Cargando Sistema TPV... 🍔</p>
+    </div>
+
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <aside class="sidebar w-72 text-white flex flex-col">
+            <div class="p-8 text-center border-b border-white/30" style="background: linear-gradient(135deg, var(--burger-accent), var(--burger-tomato));">
+                <div class="text-4xl mb-3">🍔</div>
+                <h1 class="text-2xl font-bold text-white mb-2">SR & SRA BURGER</h1>
+                <p class="text-sm text-white/90">Sistema TPV Premium</p>
+            </div>
+            <nav class="flex-1 p-6 space-y-2">
+                <a href="#dashboard" class="nav-link flex items-center px-6 py-4 rounded-xl active">
+                    <span class="text-2xl mr-4">📊</span> Dashboard
+                </a>
+                <a href="#productos" class="nav-link flex items-center px-6 py-4 rounded-xl">
+                    <span class="text-2xl mr-4">🍔</span> Productos
+                </a>
+                <a href="#vender" class="nav-link flex items-center px-6 py-4 rounded-xl">
+                    <span class="text-2xl mr-4">🛒</span> Punto de Venta
+                </a>
+                <a href="#ventas" class="nav-link flex items-center px-6 py-4 rounded-xl">
+                    <span class="text-2xl mr-4">🧾</span> Ventas
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="flex-1 p-8 overflow-y-auto">
+            <!-- Dashboard View -->
+            <div id="view-dashboard" class="view active">
+                <div class="text-center mb-8">
+                    <h2 class="text-4xl font-bold mb-4" style="color: var(--burger-dark);">
+                        🍔 Dashboard 🍔
+                    </h2>
+                    <p class="text-xl" style="color: var(--burger-meat);">Tu sistema TPV funcionando correctamente</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="bg-white/90 p-6 rounded-xl shadow-lg border-2" style="border-color: var(--burger-bun);">
+                        <div class="flex items-center">
+                            <div class="p-4 rounded-xl mr-4" style="background: linear-gradient(135deg, var(--burger-lettuce), #32CD32);">
+                                <span class="text-3xl">💰</span>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold" style="color: var(--burger-meat);">Ventas Totales</p>
+                                <p class="text-3xl font-bold" style="color: var(--burger-dark);">$0.00</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white/90 p-6 rounded-xl shadow-lg border-2" style="border-color: var(--burger-bun);">
+                        <div class="flex items-center">
+                            <div class="p-4 rounded-xl mr-4" style="background: linear-gradient(135deg, var(--burger-accent), var(--burger-tomato));">
+                                <span class="text-3xl">🧾</span>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold" style="color: var(--burger-meat);">Transacciones</p>
+                                <p class="text-3xl font-bold" style="color: var(--burger-dark);">0</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="bg-white/90 p-6 rounded-xl shadow-lg border-2" style="border-color: var(--burger-bun);">
+                        <div class="flex items-center">
+                            <div class="p-4 rounded-xl mr-4" style="background: linear-gradient(135deg, var(--burger-cheese), var(--burger-bun));">
+                                <span class="text-3xl">🍔</span>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold" style="color: var(--burger-meat);">Productos</p>
+                                <p class="text-3xl font-bold" style="color: var(--burger-dark);">0</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Productos View -->
+            <div id="view-productos" class="view">
+                <div class="text-center mb-8">
+                    <h2 class="text-4xl font-bold mb-4" style="color: var(--burger-dark);">
+                        🍔 Gestión de Productos 🍔
+                    </h2>
+                    <button class="bg-green-600 text-white px-6 py-3 rounded-lg font-bold hover:bg-green-700">
+                        ➕ Agregar Producto
+                    </button>
+                </div>
+                
+                <div class="bg-white/90 p-6 rounded-xl shadow-lg">
+                    <table class="w-full">
+                        <thead>
+                            <tr style="background: var(--burger-meat); color: white;">
+                                <th class="p-4 text-left">Nombre</th>
+                                <th class="p-4 text-left">Precio</th>
+                                <th class="p-4 text-left">Descripción</th>
+                                <th class="p-4 text-left">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="productos-table">
+                            <tr>
+                                <td colspan="4" class="p-8 text-center text-gray-500">
+                                    No hay productos registrados
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Punto de Venta View -->
+            <div id="view-vender" class="view">
+                <div class="text-center mb-8">
+                    <h2 class="text-4xl font-bold mb-4" style="color: var(--burger-dark);">
+                        🛒 Punto de Venta 🛒
+                    </h2>
+                </div>
+                
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <div class="bg-white/90 p-6 rounded-xl shadow-lg">
+                        <h3 class="text-xl font-bold mb-4" style="color: var(--burger-dark);">Productos Disponibles</h3>
+                        <p class="text-gray-500">No hay productos disponibles</p>
+                    </div>
+                    
+                    <div class="bg-white/90 p-6 rounded-xl shadow-lg">
+                        <h3 class="text-xl font-bold mb-4" style="color: var(--burger-dark);">Orden Actual</h3>
+                        <p class="text-gray-500">Añade productos para empezar</p>
+                        
+                        <div class="mt-6 pt-4 border-t">
+                            <div class="flex justify-between text-2xl font-bold">
+                                <span>Total:</span>
+                                <span>$0.00</span>
+                            </div>
+                            <button class="w-full mt-4 bg-green-600 text-white py-3 rounded-lg font-bold hover:bg-green-700">
+                                Procesar Venta
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Ventas View -->
+            <div id="view-ventas" class="view">
+                <div class="text-center mb-8">
+                    <h2 class="text-4xl font-bold mb-4" style="color: var(--burger-dark);">
+                        🧾 Historial de Ventas 🧾
+                    </h2>
+                </div>
+                
+                <div class="bg-white/90 p-6 rounded-xl shadow-lg">
+                    <table class="w-full">
+                        <thead>
+                            <tr style="background: var(--burger-meat); color: white;">
+                                <th class="p-4 text-left">ID</th>
+                                <th class="p-4 text-left">Fecha</th>
+                                <th class="p-4 text-left">Total</th>
+                                <th class="p-4 text-left">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="ventas-table">
+                            <tr>
+                                <td colspan="4" class="p-8 text-center text-gray-500">
+                                    No hay ventas registradas
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Estado de la aplicación
+        let appData = {
+            productos: [],
+            ventas: [],
+            currentOrder: { items: [], total: 0 }
+        };
+
+        // Ocultar loading y configurar navegación
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🚀 Iniciando aplicación...');
+            
+            // Ocultar loading después de 1 segundo
+            setTimeout(() => {
+                document.getElementById('loading-overlay').style.display = 'none';
+                console.log('✅ Aplicación cargada');
+            }, 1000);
+
+            // Configurar navegación
+            setupNavigation();
+            
+            // Cargar datos del localStorage
+            loadData();
+        });
+
+        function setupNavigation() {
+            const navLinks = document.querySelectorAll('.nav-link');
+            
+            navLinks.forEach(link => {
+                link.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    const viewId = link.getAttribute('href').substring(1);
+                    showView(viewId);
+                });
+            });
+        }
+
+        function showView(viewId) {
+            // Ocultar todas las vistas
+            document.querySelectorAll('.view').forEach(view => {
+                view.classList.remove('active');
+            });
+            
+            // Mostrar vista seleccionada
+            document.getElementById(`view-${viewId}`).classList.add('active');
+            
+            // Actualizar navegación
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.classList.remove('active');
+            });
+            document.querySelector(`[href="#${viewId}"]`).classList.add('active');
+            
+            console.log(`📄 Vista cambiada a: ${viewId}`);
+        }
+
+        function loadData() {
+            const saved = localStorage.getItem('burger-tpv-data');
+            if (saved) {
+                try {
+                    appData = JSON.parse(saved);
+                    console.log('📚 Datos cargados del localStorage');
+                } catch (e) {
+                    console.error('❌ Error cargando datos:', e);
+                }
+            }
+            updateUI();
+        }
+
+        function saveData() {
+            localStorage.setItem('burger-tpv-data', JSON.stringify(appData));
+            console.log('💾 Datos guardados');
+        }
+
+        function updateUI() {
+            // Actualizar estadísticas del dashboard
+            const totalVentas = appData.ventas.reduce((sum, venta) => sum + venta.total, 0);
+            
+            // Actualizar contadores (aquí puedes agregar más lógica)
+            console.log(`📊 Total ventas: $${totalVentas.toFixed(2)}`);
+        }
+
+        // Función de éxito para mostrar mensajes
+        function showSuccess(message) {
+            const toast = document.createElement('div');
+            toast.className = 'fixed top-4 right-4 bg-green-500 text-white p-4 rounded-lg shadow-lg z-50';
+            toast.textContent = message;
+            document.body.appendChild(toast);
+            
+            setTimeout(() => {
+                document.body.removeChild(toast);
+            }, 3000);
+        }
+
+        console.log('🍔 Sistema SR & SRA BURGER iniciado correctamente');
+    </script>
+</body>
+</html>

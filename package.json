@@ -6,7 +6,8 @@
   "scripts": {
     "dev": "serve -s .",
     "build": "echo 'Static site - no build needed'",
-    "start": "serve -s ."
+  "start": "serve -s .",
+  "lan": "serve -s . -l tcp://0.0.0.0:58670"
   },
   "keywords": ["pos", "restaurant", "burger", "sales"],
   "author": "SR & SRA BURGER",

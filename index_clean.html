@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>SR & SRA BURGER - Sistema TPV</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/heroicons/2.0.18/24/solid/css/heroicons.min.css" rel="stylesheet" />
+
+  <!-- Firebase SDKs (opcional) -->
+  <script type="module">
+    import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+    import { getFirestore } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+    import { getAuth, signInAnonymously, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCPZtWKgkQORsYEP85V9mQD8tAk6gjLZwM",
+      authDomain: "sr-sra-burger-tpv.firebaseapp.com",
+      projectId: "sr-sra-burger-tpv",
+      storageBucket: "sr-sra-burger-tpv.firebasestorage.app",
+      messagingSenderId: "392520899249",
+      appId: "1:392520899249:web:d5f1dd02ab1c77bb042090"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+    const auth = getAuth(app);
+
+    window.db = db;
+    window.auth = auth;
+    window.firebaseModules = { signInAnonymously, onAuthStateChanged };
+    console.log('🔥 Firebase inicializado');
+  </script>
+
+  <style>
+    :root { --burger-bun:#D4A574; --burger-meat:#8B4513; --burger-cheese:#FFD700; --burger-lettuce:#228B22; --burger-tomato:#DC143C; --burger-cream:#FFF8DC; --burger-dark:#2F1B14; --burger-light:#F5E6D3; --burger-accent:#FF6B35; }
+    .view{display:none} .view.active{display:block}
+    .nav-link{display:block;padding:.75rem 1rem;border-radius:.5rem} .nav-link.active{color:#fff;background:linear-gradient(135deg,var(--burger-accent),var(--burger-tomato))}
+    .loader{width:56px;height:56px;border:6px solid var(--burger-light);border-top-color:var(--burger-accent);border-radius:50%;animation:spin 1s linear infinite}
+    @keyframes spin{to{transform:rotate(360deg)}}
+    .btn-gradient{background:linear-gradient(135deg,var(--burger-cheese),var(--burger-bun));color:var(--burger-dark);font-weight:700}
+    .btn-success{background:linear-gradient(135deg,var(--burger-lettuce),#32CD32);color:#fff;font-weight:700}
+    .btn-danger{background:linear-gradient(135deg,var(--burger-tomato),#B22222);color:#fff;font-weight:700}
+    .input-modern{background:#fff;border:2px solid var(--burger-bun);color:var(--burger-dark)}
+    .sidebar{position:relative}
+    @media(max-width:1024px){.sidebar{position:fixed;left:-280px;top:0;bottom:0;width:280px;z-index:50;transition:left .3s}.sidebar.open{left:0}}
+  </style>
+</head>
+<body class="font-sans min-h-screen" style="background:linear-gradient(135deg,#F5E6D3 0%,#FFF8DC 50%,#D4A574 100%);background-attachment:fixed">
+  <!-- Loading -->
+  <div id="loading-overlay" class="fixed inset-0 z-[100] flex flex-col justify-center items-center" style="background:linear-gradient(135deg,var(--burger-cream),var(--burger-light))">
+    <div class="loader"></div>
+    <p class="mt-4 font-bold" style="color:var(--burger-dark)">Cargando TPV...</p>
+  </div>
+
+  <div class="flex h-screen">
+    <!-- Header móvil -->
+    <div class="lg:hidden flex items-center justify-between px-4 py-3" style="background:linear-gradient(135deg,var(--burger-accent),var(--burger-tomato));color:#fff">
+      <button id="mobile-menu-btn" class="text-2xl">☰</button>
+      <h1 class="text-lg font-bold">🍔 SR & SRA BURGER</h1>
+      <div class="w-8"></div>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="sidebar w-72 text-white flex flex-col flex-shrink-0" style="background:linear-gradient(180deg,var(--burger-meat) 0%,var(--burger-dark) 100%);border-right:3px solid var(--burger-bun)">
+      <div class="p-6 border-b border-white/20">
+        <div class="text-3xl">🍔</div>
+        <h1 class="text-xl font-bold">SR & SRA BURGER</h1>
+      </div>
+      <nav class="flex-1 p-4 space-y-2">
+        <a href="#dashboard" class="nav-link active">📊 Dashboard</a>
+        <a href="#reportes" class="nav-link">📈 Reportes</a>
+        <a href="#vender" class="nav-link">🛒 Punto de Venta</a>
+        <a href="#pedidos-pendientes" class="nav-link">👨‍🍳 Pedidos</a>
+        <a href="#ventas" class="nav-link">🧾 Ventas</a>
+        <a href="#productos" class="nav-link">🍔 Productos</a>
+        <a href="#ingredientes" class="nav-link">🥬 Ingredientes</a>
+        <a href="#clientes" class="nav-link">👥 Clientes</a>
+      </nav>
+      <div class="p-4 border-t border-white/20 text-xs">
+        <div class="opacity-80">ID Sesión:</div>
+        <div id="user-id-display" class="break-all font-mono"></div>
+      </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="flex-1 p-4 overflow-y-auto">
+      <!-- Dashboard -->
+      <section id="view-dashboard" class="view active">
+        <h2 class="text-2xl font-bold mb-4" style="color:var(--burger-dark)">Dashboard</h2>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+          <div class="p-4 rounded-xl shadow bg-white/80"><div class="text-sm">Ventas Totales</div><div id="db-total-ventas" class="text-3xl font-bold">$0.00</div></div>
+          <div class="p-4 rounded-xl shadow bg-white/80"><div class="text-sm">Transacciones</div><div id="db-total-transacciones" class="text-3xl font-bold">0</div></div>
+          <div class="p-4 rounded-xl shadow bg-white/80"><div class="text-sm">Clientes</div><div id="db-total-clientes" class="text-3xl font-bold">0</div></div>
+        </div>
+        <div class="p-4 rounded-xl shadow bg-white/80">
+          <h3 class="font-bold mb-2">Ventas recientes</h3>
+          <table class="w-full text-left"><thead><tr><th class="p-2">ID</th><th class="p-2">Cliente</th><th class="p-2">Fecha</th><th class="p-2 text-right">Total</th></tr></thead><tbody id="db-ventas-recientes-body"></tbody></table>
+        </div>
+      </section>
+
+      <!-- Reportes -->
+      <section id="view-reportes" class="view">
+        <h2 class="text-2xl font-bold mb-4" style="color:var(--burger-dark)">Reportes</h2>
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-4">
+          <div class="p-4 rounded-xl shadow bg-white/80"><h3 class="font-bold mb-2">Ventas por período</h3><canvas id="sales-chart"></canvas></div>
+          <div class="p-4 rounded-xl shadow bg-white/80"><h3 class="font-bold mb-2">Productos más vendidos</h3><canvas id="products-chart"></canvas></div>
+        </div>
+      </section>
+
+      <!-- POS -->
+      <section id="view-vender" class="view">
+        <h2 class="text-2xl font-bold mb-4" style="color:var(--burger-dark)">Punto de Venta</h2>
+        <div class="flex flex-col lg:flex-row gap-6">
+          <div class="lg:w-2/3">
+            <h3 class="font-bold mb-3">Nuestros Productos</h3>
+            <div id="pos-product-list" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+          </div>
+          <div class="lg:w-1/3 p-4 rounded-xl shadow bg-white/80">
+            <div class="flex items-center mb-4"><span class="mr-2">🧾</span><h3 class="font-bold">Orden Actual</h3></div>
+            <div id="pos-order-items" class="space-y-3 mb-4 max-h-80 overflow-y-auto"><div class="text-center py-6 text-sm opacity-70">Añade productos para empezar</div></div>
+            <div class="space-y-3 border-t pt-3">
+              <div class="flex justify-between text-lg"><span>Subtotal</span><span id="pos-subtotal" class="font-bold">$0.00</span></div>
+              <div class="flex justify-between items-center"><label for="pos-discount-input">Descuento</label><input type="number" id="pos-discount-input" class="w-28 input-modern p-2 rounded text-right" placeholder="0.00" min="0"></div>
+              <div class="flex justify-between items-center"><label class="flex items-center gap-2"><input type="checkbox" id="pos-shipping-checkbox"><span>Envío</span></label><input type="number" id="pos-shipping-cost" class="w-28 input-modern p-2 rounded text-right hidden" placeholder="0.00" min="0"></div>
+              <div class="flex justify-between text-2xl font-bold border-t pt-2"><span>Total</span><span id="pos-total">$0.00</span></div>
+              <div><label for="pos-customer-select" class="block text-sm font-bold mb-1">Cliente</label><select id="pos-customer-select" class="w-full input-modern p-2 rounded"></select></div>
+              <button id="process-sale-btn" class="w-full btn-success py-3 rounded mt-2 disabled:opacity-50" disabled>Procesar Venta</button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Pedidos -->
+      <section id="view-pedidos-pendientes" class="view">
+        <h2 class="text-2xl font-bold mb-4" style="color:var(--burger-dark)">Pedidos Pendientes</h2>
+        <div class="p-4 rounded-xl shadow bg-white/80">
+          <div class="mb-3 text-sm opacity-70">En cola: <span id="pedidos-count">0</span></div>
+          <div id="pedidos-pendientes-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+          <div id="no-pedidos-message" class="text-center py-8 opacity-70 hidden">No hay pedidos pendientes</div>
+        </div>
+      </section>
+
+      <!-- Ventas -->
+      <section id="view-ventas" class="view">
+        <h2 class="text-2xl font-bold mb-4" style="color:var(--burger-dark)">Historial de Ventas</h2>
+        <div class="p-4 rounded-xl shadow bg-white/80 overflow-x-auto">
+          <table class="w-full text-left"><thead><tr><th class="p-2">ID</th><th class="p-2">Fecha</th><th class="p-2">Cliente</th><th class="p-2">Items</th><th class="p-2 text-right">Total</th></tr></thead><tbody id="ventas-list-body"></tbody></table>
+        </div>
+      </section>
+
+      <!-- Productos -->
+      <section id="view-productos" class="view">
+        <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold" style="color:var(--burger-dark)">Gestión de Productos</h2><button id="open-productos-modal" class="btn-gradient px-4 py-2 rounded">➕ Crear Producto</button></div>
+        <div class="p-4 rounded-xl shadow bg-white/80 overflow-x-auto">
+          <table class="w-full text-left"><thead><tr><th class="p-2">Nombre</th><th class="p-2">Precio</th><th class="p-2">Descripción</th></tr></thead><tbody id="productos-list-body"></tbody></table>
+        </div>
+      </section>
+
+      <!-- Ingredientes -->
+      <section id="view-ingredientes" class="view">
+        <div class="flex justify_between items-center mb-4"><h2 class="text-2xl font-bold" style="color:var(--burger-dark)">Gestión de Ingredientes</h2><button id="open-ingredientes-modal" class="btn-gradient px-4 py-2 rounded">➕ Añadir Ingrediente</button></div>
+        <div class="p-4 rounded-xl shadow bg-white/80 overflow-x-auto">
+          <table class="w-full text-left"><thead><tr><th class="p-2">Nombre</th><th class="p-2">Unidad</th><th class="p-2">Precio Paquete</th><th class="p-2">Unidades/Paquete</th></tr></thead><tbody id="ingredientes-list-body"></tbody></table>
+        </div>
+      </section>
+
+      <!-- Clientes -->
+      <section id="view-clientes" class="view">
+        <div class="flex justify-between items-center mb-4"><h2 class="text-2xl font-bold" style="color:var(--burger-dark)">Gestión de Clientes</h2><button id="open-clientes-modal" class="btn-gradient px-4 py-2 rounded">➕ Nuevo Cliente</button></div>
+        <div class="p-4 rounded-xl shadow bg-white/80 overflow-x-auto">
+          <table class="w-full text-left"><thead><tr><th class="p-2">Nombre</th><th class="p-2">Teléfono</th><th class="p-2">Dirección</th><th class="p-2">Puntos</th></tr></thead><tbody id="clientes-list-body"></tbody></table>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <!-- Modales básicos -->
+  <div id="modal-backdrop" class="fixed inset-0 backdrop-blur-sm hidden z-40" style="background:rgba(0,0,0,.5)"></div>
+  <div id="modal-container" class="fixed inset-0 hidden z-50 flex items-center justify-center p-6"></div>
+
+  <script>
+    // Estado global
+    let appState = { ingredientes: [], productos: [], clientes: [], ventas: [], pedidosPendientes: [] };
+    let currentOrder = { items: [], clienteId: null, subtotal: 0, total: 0, descuento: 0, costoEnvio: 0 };
+
+    // Utilidades
+    const $ = (sel)=>document.querySelector(sel);
+    const $$ = (sel)=>Array.from(document.querySelectorAll(sel));
+    const fmt = (n)=>'$'+(Number(n)||0).toFixed(2);
+    const hideLoading = ()=>{ const el=$('#loading-overlay'); if(el) el.style.display='none'; };
+    const saveLS = ()=> localStorage.setItem('sr-sra-burger-data', JSON.stringify(appState));
+    const loadLS = ()=>{ try{ const s=localStorage.getItem('sr-sra-burger-data'); if(s) appState = { ...appState, ...JSON.parse(s) }; }catch(e){ console.warn('localStorage', e); } };
+
+    // Navegación
+    function setupNavigation(){ $$('.nav-link').forEach(a=> a.addEventListener('click', (e)=>{ e.preventDefault(); const id=a.getAttribute('href').slice(1); showView(id); })); }
+    function showView(id){ $$('.view').forEach(v=>v.classList.remove('active')); const target = $('#view-'+id); if(target) target.classList.add('active'); $$('.nav-link').forEach(a=> a.classList.toggle('active', a.getAttribute('href')==='#'+id)); if(id==='vender') renderPosProductList(); if(id==='reportes') renderCharts(); if(id==='pedidos-pendientes') renderPedidosPendientes(); }
+
+    // Render
+    function updateDashboard(){ const total = appState.ventas.reduce((s,v)=>s+v.total,0); $('#db-total-ventas').textContent = fmt(total); $('#db-total-transacciones').textContent = appState.ventas.length; $('#db-total-clientes').textContent = appState.clientes.length; const tbody = $('#db-ventas-recientes-body'); tbody.innerHTML=''; const rec = appState.ventas.slice().sort((a,b)=>new Date(b.fecha)-new Date(a.fecha)).slice(0,10); if(rec.length===0){ tbody.innerHTML='<tr><td colspan="4" class="p-3 text-center opacity-60">Sin ventas</td></tr>'; return; } rec.forEach(v=>{ const c = appState.clientes.find(x=>x.id===v.clienteId); const tr = document.createElement('tr'); tr.innerHTML = `<td class="p-2">#${String(v.id).slice(0,6)}</td><td class="p-2">${c?c.nombre:'General'}</td><td class="p-2">${new Date(v.fecha).toLocaleString()}</td><td class="p-2 text-right font-bold">${fmt(v.total)}</td>`; tbody.appendChild(tr); }); }
+    function renderProductosTabla(){ const tb=$('#productos-list-body'); if(!tb) return; tb.innerHTML=''; if(appState.productos.length===0){ tb.innerHTML='<tr><td colspan="3" class="p-3 text-center opacity-60">Sin productos</td></tr>'; return;} appState.productos.forEach(p=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td class="p-2">${p.nombre}</td><td class="p-2">${fmt(p.precio)}</td><td class="p-2 text-sm opacity-80">${p.descripcion||''}</td>`; tb.appendChild(tr); }); }
+    function renderIngredientesTabla(){ const tb=$('#ingredientes-list-body'); if(!tb) return; tb.innerHTML=''; if(appState.ingredientes.length===0){ tb.innerHTML='<tr><td colspan="4" class="p-3 text-center opacity-60">Sin ingredientes</td></tr>'; return;} appState.ingredientes.forEach(i=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td class="p-2">${i.nombre}</td><td class="p-2">${i.unidad||''}</td><td class="p-2">${fmt(i.precioPaquete||0)}</td><td class="p-2">${i.unidadesPaquete||0}</td>`; tb.appendChild(tr); }); }
+    function renderClientesTabla(){ const tb=$('#clientes-list-body'); if(!tb) return; tb.innerHTML=''; if(appState.clientes.length===0){ tb.innerHTML='<tr><td colspan="4" class="p-3 text-center opacity-60">Sin clientes</td></tr>'; return;} appState.clientes.forEach(c=>{ const tr=document.createElement('tr'); tr.innerHTML=`<td class="p-2">${c.nombre}</td><td class="p-2">${c.telefono||''}</td><td class="p-2">${c.direccion||''}</td><td class="p-2">${c.puntos||0}</td>`; tb.appendChild(tr); }); }
+    function renderVentasTabla(){ const tb=$('#ventas-list-body'); if(!tb) return; tb.innerHTML=''; if(appState.ventas.length===0){ tb.innerHTML='<tr><td colspan="5" class="p-3 text-center opacity-60">Sin ventas</td></tr>'; return;} appState.ventas.slice().sort((a,b)=>new Date(b.fecha)-new Date(a.fecha)).forEach(v=>{ const c=appState.clientes.find(x=>x.id===v.clienteId); const unidades=v.items.reduce((s,i)=>s+i.cantidad,0); const tr=document.createElement('tr'); tr.innerHTML=`<td class="p-2">#${String(v.id).slice(0,6)}</td><td class="p-2">${new Date(v.fecha).toLocaleString()}</td><td class="p-2">${c?c.nombre:'General'}</td><td class="p-2">${unidades}</td><td class="p-2 text-right font-bold">${fmt(v.total)}</td>`; tb.appendChild(tr); }); }
+    function renderCustomerSelect(){ const sel=$('#pos-customer-select'); if(!sel) return; sel.innerHTML='<option value="">Cliente General</option>'; appState.clientes.forEach(c=>{ const o=document.createElement('option'); o.value=c.id; o.textContent=c.nombre; sel.appendChild(o); }); }
+    function renderPosProductList(){ const cont=$('#pos-product-list'); if(!cont) return; cont.innerHTML=''; if(appState.productos.length===0){ cont.innerHTML='<div class="col-span-full p-6 text-center opacity-60">No hay productos</div>'; return;} appState.productos.forEach(p=>{ const card=document.createElement('div'); card.className='p-4 rounded-xl shadow bg-white cursor-pointer hover:shadow-lg'; card.innerHTML=`<h3 class="font-bold">${p.nombre}</h3><p class="text-sm opacity-70">${p.descripcion||''}</p><div class="mt-2 font-bold">${fmt(p.precio)}</div>`; card.onclick=()=>addToOrder(p); cont.appendChild(card); }); }
+    function renderPedidosPendientes(){ const n=appState.pedidosPendientes.length; const count=$('#pedidos-count'); if(count) count.textContent=n; const cont=$('#pedidos-pendientes-container'); const empty=$('#no-pedidos-message'); if(!cont) return; cont.innerHTML=''; if(n===0){ empty?.classList.remove('hidden'); return;} else { empty?.classList.add('hidden'); } appState.pedidosPendientes.forEach(p=>{ const c=appState.clientes.find(x=>x.id===p.clienteId); const items=p.items.map(i=>`${i.cantidad}x ${i.nombre}`).join(', '); const card=document.createElement('div'); card.className='p-4 rounded-xl shadow bg-white'; card.innerHTML=`<div class="font-bold">Pedido #${String(p.id).slice(0,6)} - ${c?c.nombre:'General'}</div><div class="text-sm opacity-70 mb-2">${new Date(p.fecha).toLocaleString()}</div><div class="text-sm">${items}</div><div class="mt-2 font-bold">${fmt(p.total)}</div>`; cont.appendChild(card); }); }
+    function renderAll(){ updateDashboard(); renderProductosTabla(); renderIngredientesTabla(); renderClientesTabla(); renderVentasTabla(); renderCustomerSelect(); }
+
+    // POS
+    function addToOrder(p){ const it=currentOrder.items.find(i=>i.productoId===p.id); if(it) it.cantidad+=1; else currentOrder.items.push({ productoId:p.id, nombre:p.nombre, precio:p.precio, cantidad:1 }); updateOrderUI(); }
+    function changeQuantity(id, d){ const it=currentOrder.items.find(i=>i.productoId===id); if(!it) return; it.cantidad+=d; if(it.cantidad<=0) currentOrder.items=currentOrder.items.filter(i=>i.productoId!==id); updateOrderUI(); }
+    function updateOrderUI(){ const list=$('#pos-order-items'); const btn=$('#process-sale-btn'); list.innerHTML=''; if(currentOrder.items.length===0){ list.innerHTML='<div class="text-center py-6 text-sm opacity-70">Añade productos para empezar</div>'; if(btn) btn.disabled=true; updateOrderTotals(); return; } currentOrder.items.forEach(item=>{ const row=document.createElement('div'); row.className='flex justify-between items-center p-2 rounded border'; row.innerHTML=`<div><div class="font-medium">${item.nombre}</div><div class="text-sm opacity-70">${fmt(item.precio)} c/u</div></div><div class="flex items-center gap-2"><button class="px-2 py-1 btn-danger rounded" onclick="changeQuantity('${item.productoId}',-1)">-</button><span class="w-8 text-center font-bold">${item.cantidad}</span><button class="px-2 py-1 btn-success rounded" onclick="changeQuantity('${item.productoId}',1)">+</button></div>`; list.appendChild(row); }); if(btn) btn.disabled=false; updateOrderTotals(); }
+    function updateOrderTotals(){ const subtotal=currentOrder.items.reduce((s,i)=>s+i.precio*i.cantidad,0); const d=parseFloat($('#pos-discount-input').value)||0; const chk=$('#pos-shipping-checkbox'); const ship=parseFloat($('#pos-shipping-cost').value)||0; const envio=chk.checked?ship:0; currentOrder.subtotal=subtotal; currentOrder.descuento=d; currentOrder.costoEnvio=envio; currentOrder.total=Math.max(0, subtotal - d + envio); $('#pos-subtotal').textContent=fmt(subtotal); $('#pos-total').textContent=fmt(currentOrder.total); }
+    function wirePosInputs(){ const disc=$('#pos-discount-input'); const chk=$('#pos-shipping-checkbox'); const cost=$('#pos-shipping-cost'); disc?.addEventListener('input', updateOrderTotals); chk?.addEventListener('change', ()=>{ cost.classList.toggle('hidden', !chk.checked); updateOrderTotals(); }); cost?.addEventListener('input', updateOrderTotals); $('#process-sale-btn')?.addEventListener('click', processSale); }
+    function processSale(){ if(currentOrder.items.length===0){ alert('No hay items en la orden'); return; } const clienteId=$('#pos-customer-select').value||null; const venta={ id:'v_'+Date.now(), fecha:new Date().toISOString(), clienteId, items: currentOrder.items.map(i=>({ productoId:i.productoId, nombre:i.nombre, cantidad:i.cantidad, precio:i.precio })), subtotal:currentOrder.subtotal, descuento:currentOrder.descuento, costoEnvio:currentOrder.costoEnvio, total:currentOrder.total }; appState.ventas.push(venta); const pedido={ id:'p_'+Date.now(), fecha:new Date().toISOString(), clienteId, items:venta.items, total:venta.total }; appState.pedidosPendientes.push(pedido); if(clienteId){ const c=appState.clientes.find(x=>x.id===clienteId); if(c){ c.gastoTotal=(c.gastoTotal||0)+venta.total; c.puntos=(c.puntos||0)+Math.floor(venta.total); } } currentOrder={ items:[], clienteId:null, subtotal:0, total:0, descuento:0, costoEnvio:0 }; $('#pos-discount-input').value=''; $('#pos-shipping-checkbox').checked=false; $('#pos-shipping-cost').value=''; $('#pos-shipping-cost').classList.add('hidden'); $('#pos-customer-select').value=''; updateOrderUI(); saveLS(); renderAll(); renderPedidosPendientes(); alert('✅ Venta procesada y pedido enviado a cocina.'); }
+
+    // Charts mínimos
+    let charts={ sales:null, products:null };
+    function renderCharts(){ try{ const sCtx=document.getElementById('sales-chart')?.getContext('2d'); if(sCtx){ charts.sales?.destroy(); const byDay={}; appState.ventas.forEach(v=>{ const d=v.fecha?new Date(v.fecha).toISOString().split('T')[0]:''; if(!d) return; byDay[d]=(byDay[d]||0)+v.total; }); const labels=Object.keys(byDay).sort(); charts.sales=new Chart(sCtx,{ type:'line', data:{ labels, datasets:[{ label:'Ventas', data:labels.map(l=>byDay[l]), borderColor:'#FF6B35', backgroundColor:'rgba(255,107,53,.15)', tension:.3 }]}, options:{ responsive:true, maintainAspectRatio:false }}); } const pCtx=document.getElementById('products-chart')?.getContext('2d'); if(pCtx){ charts.products?.destroy(); const cnt={}; appState.ventas.forEach(v=> v.items.forEach(i=>{ const p=appState.productos.find(pp=>pp.id===i.productoId); const name=p?p.nombre:i.nombre; cnt[name]=(cnt[name]||0)+i.cantidad; })); const entries=Object.entries(cnt).sort((a,b)=>b[1]-a[1]).slice(0,10); charts.products=new Chart(pCtx,{ type:'bar', data:{ labels:entries.map(e=>e[0]), datasets:[{ label:'Unidades', data:entries.map(e=>e[1]), backgroundColor:'#228B22' }]}, options:{ responsive:true, maintainAspectRatio:false }}); } }catch(e){ console.warn('charts', e); } }
+
+    // Sidebar móvil
+    function setupSidebar(){ const btn=$('#mobile-menu-btn'); const sidebar=document.querySelector('.sidebar'); btn?.addEventListener('click', ()=> sidebar.classList.toggle('open')); document.addEventListener('click', (e)=>{ if(window.innerWidth<=1024 && sidebar.classList.contains('open')){ const inside=sidebar.contains(e.target)||btn.contains(e.target); if(!inside) sidebar.classList.remove('open'); } }); }
+
+    // Auth opcional
+    function initializeAuth(){ try{ if(!window.firebaseModules||!window.auth) return; const { signInAnonymously, onAuthStateChanged } = window.firebaseModules; onAuthStateChanged(window.auth, (user)=>{ if(user){ $('#user-id-display').textContent=user.uid; } else { signInAnonymously(window.auth); } }); }catch(e){ console.warn('auth', e); } }
+
+    // Datos demo
+    function seedIfEmpty(){ if(appState.productos.length===0){ appState.productos=[ {id:'p_burger_clas',nombre:'Hamburguesa Clásica',precio:85,descripcion:'Carne 100% res, queso y vegetales frescos'}, {id:'p_burger_bacon',nombre:'Hamburguesa con Tocino',precio:95,descripcion:'Con crujiente tocino y queso'}, {id:'p_papas',nombre:'Papas Fritas',precio:45,descripcion:'Crocantes y doradas'} ]; } if(appState.clientes.length===0){ appState.clientes=[ {id:'cli_general',nombre:'Cliente General',telefono:'',direccion:'',puntos:0,gastoTotal:0} ]; } }
+
+    // Init
+    document.addEventListener('DOMContentLoaded', ()=>{
+      setTimeout(hideLoading, 2000);
+      loadLS();
+      seedIfEmpty();
+      setupSidebar();
+      setupNavigation();
+      wirePosInputs();
+      renderAll();
+      renderPosProductList();
+      renderPedidosPendientes();
+      renderCharts();
+      initializeAuth();
+      hideLoading();
+    });
+  </script>
+</body>
+</html>
