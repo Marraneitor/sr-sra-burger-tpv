@@ -1,11 +1,8 @@
 {
-  "buildCommand": null,
-  "devCommand": null,
-  "installCommand": null,
-  "outputDirectory": ".",
-  "public": true,
-  "rewrites": [
-  { "source": "/:path*", "destination": "/index.html", "missing": [ { "type": "file" } ] }
+  "version": 2,
+  "routes": [
+    { "handle": "filesystem" },
+    { "src": "/.*", "dest": "/index.html" }
   ],
   "headers": [
     {
