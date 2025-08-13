@@ -15,7 +15,7 @@
   import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, getDocs, getDoc, query, where, enableIndexedDbPersistence } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
     import { getAuth, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, EmailAuthProvider, linkWithCredential } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
-    // Support overriding config via window.FIREBASE_CONFIG or optional './firebase-config.js'
+  // Support overriding config via window.FIREBASE_CONFIG, localStorage, or './firebase-config.json'
     const DEFAULT_CONFIG = {
       apiKey: "AIzaSyCPZtWKgkQORsYEP85V9mQD8tAk6gjLZwM",
       authDomain: "sr-sra-burger-tpv.firebaseapp.com",
@@ -27,19 +27,7 @@
     async function loadFirebaseConfig(){
       if(window.FIREBASE_CONFIG) return window.FIREBASE_CONFIG;
       try{ const ls = localStorage.getItem('FIREBASE_CONFIG'); if(ls){ const obj = JSON.parse(ls); if(obj?.apiKey) return obj; } }catch(_){ }
-      // Try to detect a real JS config file without triggering a module error in consoles (MIME, rewrites, etc.)
-      try{
-        const res = await fetch('./firebase-config.js', { method:'HEAD' });
-        const type = res.headers.get('content-type')||'';
-        if(res.ok && type.includes('javascript')){
-          try{
-            const mod = await import('./firebase-config.js');
-            if(mod?.firebaseConfig) return mod.firebaseConfig;
-            if(mod?.default) return mod.default;
-          }catch(_){ /* ignore and fallback */ }
-        }
-      }catch(_){ /* ignore and fallback */ }
-      // Also support a simple JSON config file (no modules) for static hosting
+      // Prefer a simple JSON config file for static hosting
       try{
         const r = await fetch('./firebase-config.json', { cache:'no-store' });
         if(r.ok){ const json = await r.json(); if(json?.apiKey) return json; }
