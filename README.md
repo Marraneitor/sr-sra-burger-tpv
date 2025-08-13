@@ -176,6 +176,12 @@ git push -u origin main
 3. **¡Listo!** Tu TPV estará disponible en una URL como:
    `https://sr-sra-burger-tpv.vercel.app`
 
+### Nota de build/output (Vercel)
+
+- Este repo genera una carpeta `public/` durante el build con `npm run build`.
+- En la UI de Vercel, establece Output Directory = `public` si te lo pide.
+- No hay pasos de compilación adicionales; es un SPA estático.
+
 ## 📁 Estructura del Proyecto
 
 ```

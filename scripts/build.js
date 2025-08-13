@@ -1,0 +1,39 @@
+// Simple build: ensure ./public exists and contains index.html for Vercel
+const fs = require('fs');
+const path = require('path');
+
+function ensureDir(p) {
+  if (!fs.existsSync(p)) fs.mkdirSync(p, { recursive: true });
+}
+
+function copy(src, dest) {
+  fs.copyFileSync(src, dest);
+  console.log(`Copied ${path.basename(src)} -> ${dest}`);
+}
+
+(async () => {
+  const root = process.cwd();
+  const outDir = path.join(root, 'public');
+  ensureDir(outDir);
+
+  // Primary SPA entry
+  const indexSrc = path.join(root, 'index.html');
+  if (!fs.existsSync(indexSrc)) {
+    console.error('index.html not found at project root.');
+    process.exit(1);
+  }
+  copy(indexSrc, path.join(outDir, 'index.html'));
+
+  // Optional: copy a favicon if present
+  const favNames = ['favicon.ico', 'favicon.png'];
+  for (const f of favNames) {
+    const src = path.join(root, f);
+    if (fs.existsSync(src)) copy(src, path.join(outDir, f));
+  }
+
+  // Optionally include a placeholder robots.txt for static hosting
+  const robots = path.join(outDir, 'robots.txt');
+  if (!fs.existsSync(robots)) fs.writeFileSync(robots, 'User-agent: *\nAllow: /\n');
+
+  console.log('Build complete: public/ ready');
+})();
