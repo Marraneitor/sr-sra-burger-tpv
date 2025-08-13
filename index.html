@@ -25,13 +25,25 @@
       appId: "1:392520899249:web:d5f1dd02ab1c77bb042090"
     };
     async function loadFirebaseConfig(){
+      // 1) Inline global (window)
       if(window.FIREBASE_CONFIG) return window.FIREBASE_CONFIG;
+      // 2) LocalStorage override
       try{ const ls = localStorage.getItem('FIREBASE_CONFIG'); if(ls){ const obj = JSON.parse(ls); if(obj?.apiKey) return obj; } }catch(_){ }
-      // Prefer a simple JSON config file for static hosting
+      // 3) Localhost-only dynamic import of firebase-config.js (kept out of production to avoid MIME issues)
+      try{
+        const isLocal = /^(http:\/\/localhost|http:\/\/127\.0\.0\.1)/.test(location.origin);
+        if(isLocal){
+          const mod = await import('./firebase-config.js');
+          const cfg = (mod && (mod.default || mod.firebaseConfig)) || null;
+          if(cfg?.apiKey) return cfg;
+        }
+      }catch(_){ /* ignore if not present */ }
+      // 4) JSON config file (works in static hosts like Vercel)
       try{
         const r = await fetch('./firebase-config.json', { cache:'no-store' });
         if(r.ok){ const json = await r.json(); if(json?.apiKey) return json; }
       }catch(_){ }
+      // 5) Fallback default (demo)
       return DEFAULT_CONFIG;
     }
     const firebaseConfig = await loadFirebaseConfig();

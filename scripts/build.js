@@ -24,11 +24,23 @@ function copy(src, dest) {
   }
   copy(indexSrc, path.join(outDir, 'index.html'));
 
+  // Copy Firebase config JSON if present (useful for local or if user decides to ship it)
+  const fbJson = path.join(root, 'firebase-config.json');
+  if (fs.existsSync(fbJson)) {
+    copy(fbJson, path.join(outDir, 'firebase-config.json'));
+  }
+
   // Optional: copy a favicon if present
   const favNames = ['favicon.ico', 'favicon.png'];
   for (const f of favNames) {
     const src = path.join(root, f);
     if (fs.existsSync(src)) copy(src, path.join(outDir, f));
+  }
+
+  // Copy firebase-config.json if present so static hosting can fetch it
+  const firebaseJson = path.join(root, 'firebase-config.json');
+  if (fs.existsSync(firebaseJson)) {
+    copy(firebaseJson, path.join(outDir, 'firebase-config.json'));
   }
 
   // Optionally include a placeholder robots.txt for static hosting
