@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="es" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <title>Gestia - Sistema POS</title>
+  <title>Gestia — POS para Restaurantes</title>
   <link rel="icon" href="./icono.ico" type="image/x-icon" />
   <link rel="shortcut icon" href="./icono.ico" type="image/x-icon" />
   <!-- @ts-nocheck -->
@@ -11,7 +11,9 @@
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   <link href="https://cdnjs.cloudflare.com/ajax/libs/heroicons/2.0.18/24/solid/css/heroicons.min.css" rel="stylesheet" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="./styles/responsive.css" />
 
   <!-- Firebase SDKs (opcional) -->
@@ -107,7 +109,7 @@
   // Helpful LAN hint
   try{
     const hint = document.createElement('div');
-    hint.style.cssText = 'position:fixed;right:10px;bottom:10px;background:#00000080;color:#fff;padding:6px 10px;border-radius:8px;font-size:11px;z-index:9999';
+    hint.style.cssText = 'position:fixed;right:12px;bottom:80px;background:rgba(10,9,4,.85);color:rgba(255,255,255,.55);padding:5px 10px;border-radius:8px;font-size:10px;z-index:9999;border:1px solid rgba(230,179,37,.25);backdrop-filter:blur(8px);font-family:ui-monospace,monospace';
     hint.textContent = `Origen: ${location.origin}`;
     document.body.appendChild(hint);
     setTimeout(()=>{ hint.remove(); }, 6000);
@@ -116,57 +118,65 @@
   </script>
 
   <style>
-  /* Brand base Gestia */
-  body{ font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; color:var(--burger-dark); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale }
-    :root {
-      /* Reutilizamos los mismos tokens pero con la paleta Gestia */
-      --burger-bun:#E5E7EB; /* bordes suaves gris claro */
-      --burger-meat:#1D4ED8; /* azul intenso para gradientes laterales */
-      --burger-cheese:#2563EB; /* azul primario Gestia */
-      --burger-lettuce:#10B981; /* verde éxito Gestia */
-      --burger-tomato:#0EA5E9; /* acento adicional frío */
-      --burger-cream:#F8FAFC; /* fondo neutro principal */
-      --burger-dark:#1E293B; /* texto principal gris pizarra */
-      --burger-light:#F1F5F9; /* superficies suaves */
-      --burger-accent:#2563EB; /* acento de marca (botones, links) */
-      --ring: 0 0 0 3px rgba(37,99,235,.35);
-      --shadow-1:0 8px 20px rgba(15,23,42,.06);
-      --shadow-2:0 20px 45px rgba(15,23,42,.14);
+  /* Brand base GESTIA (premium dark) */
+  html{ scroll-behavior: smooth; }
+  :root{
+      /* Brand */
+      --brand-bg: #121212;
+      --brand-accent: #E6B325;
+      --brand-white: #FFFFFF;
+      --brand-text: var(--brand-white);
+      --brand-muted: color-mix(in srgb, var(--brand-white) 86%, var(--brand-accent));
 
-      /* App surfaces (light) */
-      --app-bg:#F8FAFC;
-      --app-surface:#FFFFFF;
-      --app-surface-2:#F9FAFB;
-      --app-border:#E2E8F0;
-      --app-text: var(--burger-dark);
-      --app-muted:#64748B;
+      /* Typography */
+      --font-display: "Bebas Neue", system-ui, -apple-system, "Segoe UI", sans-serif;
+      --font-body: "Montserrat", system-ui, -apple-system, "Segoe UI", sans-serif;
 
-      /* Readability helpers */
-      --grid-line: color-mix(in srgb, var(--app-border) 65%, transparent);
-      /* Excel-like strong grid (dark in light mode, light in dark mode) */
-      --grid-strong: color-mix(in srgb, var(--app-text) 86%, transparent);
-    }
+      /* Compatibility tokens (existing code relies on these) */
+      --burger-accent: var(--brand-accent);
+      --burger-tomato: color-mix(in srgb, var(--brand-accent) 74%, #000);
+      --burger-cheese: var(--brand-accent);
+      --burger-bun: rgba(255,255,255,.12);
+      --burger-cream: var(--brand-bg);
+      --burger-light: color-mix(in srgb, var(--brand-bg) 78%, var(--brand-white));
+      --burger-dark: var(--brand-text);
 
-    /* Dark mode (global) */
-    html[data-theme="dark"]{
-      color-scheme: dark;
-      --burger-bun:#334155;
-      --burger-cream:#0B1220;
-      --burger-light:#111827;
-      --burger-dark:#E5E7EB;
+      /* App surfaces */
+      --app-bg: var(--brand-bg);
+      --app-surface: rgba(18,18,18,.72);
+      --app-surface-2: rgba(18,18,18,.88);
+      --app-border: rgba(255,255,255,.12);
+      --app-text: var(--brand-text);
+      --app-muted: rgba(255,255,255,.74);
 
-      --app-bg:#0B1220;
-      --app-surface:#0F172A;
-      --app-surface-2:#111827;
-      --app-border:#334155;
-      --app-text:#E5E7EB;
-      --app-muted:#94A3B8;
+      /* Elevation */
+      --ring: 0 0 0 3px color-mix(in srgb, var(--brand-accent) 40%, transparent);
+      --shadow-1: 0 14px 40px rgba(0,0,0,.45);
+      --shadow-2: 0 26px 80px rgba(0,0,0,.55);
 
-      --grid-line: color-mix(in srgb, var(--app-border) 55%, transparent);
-      --grid-strong: color-mix(in srgb, var(--app-text) 78%, transparent);
-    }
+      /* Grid helpers */
+      --grid-line: rgba(255,255,255,.08);
+      --grid-strong: rgba(255,255,255,.16);
+  }
 
-    body{ background: var(--app-bg) !important; color: var(--app-text); }
+  /* Optional light mode (kept for toggle) */
+  html[data-theme="light"]{
+      color-scheme: light;
+      --app-bg: #FFFFFF;
+      --app-surface: rgba(255,255,255,.86);
+      --app-surface-2: rgba(255,255,255,.96);
+      --app-border: rgba(0,0,0,.10);
+      --app-text: rgba(0,0,0,.92);
+      --app-muted: rgba(0,0,0,.70);
+
+        --burger-bun: rgba(0,0,0,.12);
+        --grid-line: rgba(0,0,0,.06);
+        --grid-strong: rgba(0,0,0,.12);
+  }
+
+  body{ font-family: var(--font-body); color: var(--app-text); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; background: var(--app-bg) !important; }
+  .font-sans{ font-family: var(--font-body) !important; }
+  h1,h2,h3,h4,.hero-title{ font-family: var(--font-display) !important; letter-spacing: .02em; }
 
     html[data-theme="dark"] .panel,
     html[data-theme="dark"] .stat-card,
@@ -288,9 +298,9 @@
       .sidebar.open{left:0;display:block}
     }
 
-  /* Sections */
+  /* ─── Section Titles ────────────────────────────────────────── */
   .section-title{ display:flex; align-items:center; gap:.5rem; letter-spacing:.2px; padding-bottom:.55rem; margin-bottom:.9rem; border-bottom:1px solid var(--grid-strong); }
-  .section-title::after{ content:''; flex:1; height:4px; border-radius:999px; margin-left:.5rem; background:linear-gradient(90deg, rgba(255,107,53,.25), rgba(212,165,116,.15)); }
+  .section-title::after{ content:''; flex:1; height:3px; border-radius:999px; margin-left:.5rem; background:linear-gradient(90deg, var(--brand-accent), transparent); }
 
   /* Global separators for readability */
   hr{ border:0; border-top:1px solid var(--grid-strong); margin: .85rem 0; opacity:1; }
@@ -440,7 +450,7 @@
 
   /* POS grid and cards (desktop and tablet, estilo bento minimal) */
   #pos-product-list { gap: .75rem; }
-    // Auth (por correo). Importante: no usamos sesión anónima automática.
+  #pos-product-list .product-card{
     aspect-ratio: 3/2;
     min-height: 100px;
     padding:.65rem;
@@ -453,69 +463,11 @@
   }
   #pos-product-list .product-card:hover{
     border-color:var(--burger-accent);
-        const { onAuthStateChanged } = window.firebaseModules;
     transform:translateY(-1px);
   }
   #pos-product-list .product-card:active{
     transform:translateY(0);
     background: rgba(37,99,235,.07);
-  }
-  #pos-product-list .product-card .prod-name{
-          const nextUid = (user && !user.isAnonymous) ? user.uid : null;
-          const userChanged = nextUid !== __activeUid;
-
-          // Siempre cortar listeners del usuario anterior antes de cambiar UI/estado
-          if(userChanged){
-            if(typeof unsubscribeProducts === 'function' && unsubscribeProducts){ try{ unsubscribeProducts(); }catch(_){ }
-              unsubscribeProducts = null; }
-            if(typeof unsubscribeIngredientes === 'function' && unsubscribeIngredientes){ try{ unsubscribeIngredientes(); }catch(_){ } unsubscribeIngredientes = null; }
-            if(typeof unsubscribeClientes === 'function' && unsubscribeClientes){ try{ unsubscribeClientes(); }catch(_){ } unsubscribeClientes = null; }
-            if(typeof unsubscribeVentas === 'function' && unsubscribeVentas){ try{ unsubscribeVentas(); }catch(_){ } unsubscribeVentas = null; }
-            if(typeof unsubscribeCompras === 'function' && unsubscribeCompras){ try{ unsubscribeCompras(); }catch(_){ } unsubscribeCompras = null; }
-            if(typeof unsubscribeInsumos === 'function' && unsubscribeInsumos){ try{ unsubscribeInsumos(); }catch(_){ } unsubscribeInsumos = null; }
-            if(typeof unsubscribePedidos === 'function' && unsubscribePedidos){ try{ unsubscribePedidos(); }catch(_){ } unsubscribePedidos = null; }
-            if(typeof unsubscribeMeta === 'function' && unsubscribeMeta){ try{ unsubscribeMeta(); }catch(_){ } unsubscribeMeta = null; }
-            if(typeof unsubscribeEmpleados === 'function' && unsubscribeEmpleados){ try{ unsubscribeEmpleados(); }catch(_){ } unsubscribeEmpleados = null; }
-            if(typeof unsubscribeServicios === 'function' && unsubscribeServicios){ try{ unsubscribeServicios(); }catch(_){ } unsubscribeServicios = null; }
-            if(typeof unsubscribeUserExtras === 'function' && unsubscribeUserExtras){ try{ unsubscribeUserExtras(); }catch(_){ } unsubscribeUserExtras = null; }
-          }
-
-          // UI: si no hay usuario con correo, dejar todo en blanco
-          if(!nextUid){
-            __activeUid = null;
-            el && (el.textContent = 'Sin sesión');
-            badge && (badge.textContent = 'UID: —');
-            authControls && authControls.classList.remove('hidden');
-            authStatus && authStatus.classList.add('hidden');
-            if(emailOut) emailOut.textContent = '';
-            if(uidOut) uidOut.textContent = '';
-            // Estado en blanco (no persistimos nada cuando no hay sesión)
-            try{ resetAppState({ persist:false }); }catch(_){ }
-            return;
-          }
-
-          // Usuario con correo
-          __activeUid = nextUid;
-          el && (el.textContent = user.uid);
-          badge && (badge.textContent = 'UID: '+user.uid.slice(0,8));
-          authControls && authControls.classList.add('hidden');
-          authStatus && authStatus.classList.remove('hidden');
-          if(emailOut) emailOut.textContent = user.email || '(sin correo)';
-          if(uidOut) uidOut.textContent = user.uid.slice(0,10)+'…';
-
-          // Cargar cache local de ESTE usuario (si existe) y renderizar antes de Firestore
-          if(userChanged){
-            try{ resetAppState({ persist:false }); }catch(_){ }
-            try{ loadLSForUid(nextUid); }catch(_){ }
-            try{ sanitizeState(); }catch(_){ }
-            try{ assignSaleNumbersIfMissing(); }catch(_){ }
-            try{ recomputeInsumosFromVentas(); }catch(_){ }
-            try{ renderAll(); renderPosProductList(); renderPedidosPendientes(); renderFinanzas(); }catch(_){ }
-          }
-
-          // Activar sincronización Firestore por usuario
-          if(typeof startFirestoreAllSync==='function') startFirestoreAllSync(); else startFirestoreProductSync?.();
-    display:inline-flex;align-items:center;gap:.3rem;
   }
   .prod-class-pill{
     display:inline-flex;align-items:center;gap:.3rem;
@@ -626,25 +578,45 @@
     font-weight:600;
     letter-spacing:.02em;
     cursor:pointer;
-    .input-modern { padding: .45rem .55rem; }
-    #pos-product-list { gap: .75rem; }
+  }
+
+  .insumos-tab-btn.active{
+    background:rgba(230,179,37,.18);
+    border-color:rgba(230,179,37,.55);
+    color:#111827;
+  }
+
+  /* Panels por tab: mostrar solo el activo */
+  .insumos-tab-panel{ display:none; }
+  .insumos-tab-panel.active{ display:block; }
+
+  /* Ajustes generales de inputs y POS (se salieron de llaves por error) */
+  .input-modern { padding: .45rem .55rem; }
+  #pos-product-list { gap: .75rem; }
   /* Mobile: 3-column square tiles for POS product grid */
   #pos-product-list{ grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: .5rem; }
-  #pos-product-list .product-card{ aspect-ratio: 1/1; min-height: 110px; padding:.6rem; border:2px solid var(--burger-bun); border-radius:.75rem; background:#fff; overflow:hidden; display:flex; flex-direction:column; justify-content:space-between; }
+  #pos-product-list .product-card{ aspect-ratio: 1/1; min-height: 110px; padding:.6rem; border:1px solid var(--app-border); border-radius:.75rem; background:var(--app-surface); overflow:hidden; display:flex; flex-direction:column; justify-content:space-between; box-shadow: var(--shadow-1); }
   #pos-product-list .product-card .prod-desc{ display:none; }
   #pos-product-list .product-card .prod-name{ font-size:.9rem; line-height:1.1rem; font-weight:800; display:-webkit-box; -webkit-line-clamp:2; line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
   #pos-product-list .product-card .btn-add-to-order{ padding:.35rem .5rem; font-size:.75rem; }
   #pos-product-list .product-card .text-lg{ font-size: .95rem; }
-    .loader { width: 44px; height: 44px; border-width: 5px; }
-  }
+  .loader { width: 44px; height: 44px; border-width: 5px; }
   </style>
   <link rel="stylesheet" href="./styles/saas2026.css" />
+  <link rel="stylesheet" href="./styles/enhancements.css" />
 </head>
-<body class="font-sans min-h-screen" style="background:#F8FAFC;">
+<body class="font-sans min-h-screen">
+  <!-- Navigation Progress Bar -->
+  <div id="nav-progress" aria-hidden="true"></div>
+
   <!-- Loading -->
-  <div id="loading-overlay" class="fixed inset-0 z-[100] flex flex-col justify-center items-center" style="background:linear-gradient(135deg,var(--burger-cream),var(--burger-light))">
-    <div class="loader"></div>
-    <p class="mt-4 font-bold" style="color:var(--burger-dark)">Cargando TPV...</p>
+  <div id="loading-overlay" class="fixed inset-0 z-[100] flex flex-col justify-center items-center gap-4"
+    style="background:radial-gradient(ellipse at center,rgba(28,22,8,.99) 0%,#0e0e0e 100%)">
+    <div class="loader" style="border-color:rgba(230,179,37,.22);border-top-color:#E6B325;width:52px;height:52px;border-width:5px"></div>
+    <div class="text-center">
+      <p class="text-sm font-bold tracking-[0.20em] uppercase" style="color:#E6B325">Cargando TPV</p>
+      <p class="text-xs mt-1" style="color:rgba(255,255,255,.35)">gestia.rest</p>
+    </div>
   </div>
 
   <div class="flex h-screen">
@@ -663,153 +635,257 @@
     </button>
 
     <!-- Sidebar -->
-  <aside class="sidebar w-72 text-white flex flex-col flex-shrink-0 lg:block" style="background:linear-gradient(180deg,#1D4ED8 0%,#0F172A 100%);border-right:1px solid rgba(148,163,184,.35)">
-      <div class="p-6 border-b border-white/10">
-        <div class="flex items-center gap-3">
-          <div class="w-9 h-9 rounded-2xl flex items-center justify-center text-white font-black text-xl shadow-lg" style="background:linear-gradient(135deg,#2563EB,#1D4ED8);">
-            G
-          </div>
-          <div>
-            <div class="text-[10px] uppercase tracking-[0.22em] text-white/60">Gestia POS</div>
-            <h1 class="text-xl font-extrabold tracking-tight">Gestia</h1>
-            <div class="text-[10px] uppercase tracking-[0.18em] text-white/70">GESTIA CONTROL EN LA PALMA DE TU MANO</div>
-          </div>
+  <aside class="sidebar w-72 text-white flex flex-col flex-shrink-0 lg:block">
+
+    <!-- Brand Header -->
+    <div class="p-5 border-b border-white/10 flex-shrink-0">
+      <div class="flex items-center gap-3">
+        <div class="w-20 h-12 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center" style="background:#fff; border:2px solid rgba(230,179,37,.38); box-shadow:0 0 18px rgba(230,179,37,.20); padding:4px 8px">
+          <img src="./gestia.jpg.png" alt="Gestia" class="w-full h-full object-contain" loading="lazy" />
+        </div>
+        <div class="min-w-0">
+          <div class="text-[9px] uppercase tracking-[0.24em] font-semibold" style="color:rgba(230,179,37,.75)">gestia.rest</div>
+          <div class="text-xl font-extrabold tracking-[.06em] leading-none my-0.5">Gestia</div>
+          <div class="text-[9px] uppercase tracking-[0.18em]" style="color:rgba(255,255,255,.40)">POS · Restaurantes</div>
         </div>
       </div>
-      <nav class="flex-1 p-4 space-y-2">
-  <a href="#inicio" class="nav-link active">🏁 Inicio</a>
-  <a href="#dashboard" class="nav-link">📊 Dashboard</a>
-  <a href="#reportes" class="nav-link">📈 Reportes</a>
-  <a href="#caja" class="nav-link">💵 Caja</a>
-  <a href="#finanzas" class="nav-link">💰 Finanzas</a>
-        <a href="#vender" class="nav-link">🛒 Punto de Venta</a>
-        <a href="#pedidos-pendientes" class="nav-link">👨‍🍳 Pedidos</a>
-          <a href="#ventas" class="nav-link">🧾 Ventas</a>
-          <a href="#productos" class="nav-link">🍔 Productos</a>
-          <a href="#estaciones" class="nav-link">🔥 Estaciones</a>
-        <a href="#ingredientes" class="nav-link">🥬 Ingredientes</a>
-  <a href="#insumos" class="nav-link">📦 Insumos Gastados</a>
-  <a href="#inventario" class="nav-link">🗃️ Inventario</a>
-  <a href="#recomendaciones" class="nav-link">🛒 Recomendación de Compras</a>
-  <a href="#clientes" class="nav-link">👥 Clientes</a>
-      </nav>
-      <div class="p-4 border-t border-white/10 text-xs opacity-80">&nbsp;</div>
-    </aside>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="flex-1 px-3 py-2 overflow-y-auto space-y-0.5">
+
+      <!-- Home -->
+      <a href="#inicio" class="nav-link active">
+        <span class="nav-icon">🏠</span>
+        <span>Inicio</span>
+      </a>
+
+      <!-- Análisis -->
+      <p class="nav-section-label">Análisis</p>
+      <a href="#dashboard" class="nav-link">
+        <span class="nav-icon">📊</span>
+        <span>Dashboard</span>
+      </a>
+      <a href="#reportes" class="nav-link">
+        <span class="nav-icon">📈</span>
+        <span>Reportes</span>
+      </a>
+
+      <!-- Caja & Finanzas -->
+      <p class="nav-section-label">Finanzas</p>
+      <a href="#caja" class="nav-link">
+        <span class="nav-icon">💵</span>
+        <span>Caja</span>
+      </a>
+      <a href="#finanzas" class="nav-link">
+        <span class="nav-icon">💰</span>
+        <span>Finanzas</span>
+      </a>
+
+      <!-- Operación -->
+      <p class="nav-section-label">Operación</p>
+      <a href="#vender" class="nav-link">
+        <span class="nav-icon">🛒</span>
+        <span>Punto de Venta</span>
+      </a>
+      <a href="#pedidos-pendientes" class="nav-link">
+        <span class="nav-icon">🍳</span>
+        <span>Pedidos</span>
+      </a>
+      <a href="#ventas" class="nav-link">
+        <span class="nav-icon">🧾</span>
+        <span>Ventas</span>
+      </a>
+
+      <!-- Catálogo -->
+      <p class="nav-section-label">Catálogo</p>
+      <a href="#productos" class="nav-link">
+        <span class="nav-icon">🍔</span>
+        <span>Productos</span>
+      </a>
+      <a href="#estaciones" class="nav-link">
+        <span class="nav-icon">🔥</span>
+        <span>Estaciones</span>
+      </a>
+      <a href="#ingredientes" class="nav-link">
+        <span class="nav-icon">🥬</span>
+        <span>Ingredientes</span>
+      </a>
+
+      <!-- Inventario -->
+      <p class="nav-section-label">Inventario</p>
+      <a href="#insumos" class="nav-link">
+        <span class="nav-icon">📦</span>
+        <span>Insumos Gastados</span>
+      </a>
+      <a href="#inventario" class="nav-link">
+        <span class="nav-icon">🗃️</span>
+        <span>Inventario</span>
+      </a>
+      <a href="#recomendaciones" class="nav-link">
+        <span class="nav-icon">🛍️</span>
+        <span>Recomendaciones</span>
+      </a>
+
+      <!-- CRM -->
+      <p class="nav-section-label">CRM</p>
+      <a href="#clientes" class="nav-link">
+        <span class="nav-icon">👥</span>
+        <span>Clientes</span>
+      </a>
+
+      <!-- Config -->
+      <p class="nav-section-label">Config</p>
+      <a href="#personalizar" class="nav-link">
+        <span class="nav-icon">🎨</span>
+        <span>Personalizar</span>
+      </a>
+
+    </nav>
+
+    <!-- Footer -->
+    <div class="flex-shrink-0 px-4 py-3 border-t" style="border-color:rgba(255,255,255,.08)">
+      <div class="flex items-center gap-2" style="color:rgba(255,255,255,.30)">
+        <span style="font-size:.85rem">�️</span>
+        <span class="text-[10px] font-semibold tracking-wider uppercase">v2026</span>
+      </div>
+    </div>
+
+  </aside>
 
     <!-- Main -->
-  <main class="flex-1 p-3 overflow-y-auto mx-auto max-w-[1200px] w-full">
+  <main class="flex-1 p-3 md:p-4 overflow-y-auto mx-auto max-w-[1240px] w-full">
       <!-- Inicio -->
         <section id="view-inicio" class="view active">
       <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-6 items-stretch">
-    <!-- Lado izquierdo: logo + mensaje principal -->
-    <div class="panel flex flex-col justify-center gap-6">
-    <div class="mb-1">
-      <div class="rounded-2xl border border-slate-200 bg-white overflow-hidden">
-        <img src="gestia.jpg.png" alt="Gestia" class="w-full h-auto object-contain" loading="lazy" />
-      </div>
-    </div>
-    <p class="text-xs md:text-sm font-semibold uppercase tracking-[0.34em] text-slate-500">Plataforma de punto de venta</p>
-    <h2 class="hero-title text-5xl md:text-6xl lg:text-7xl xl:text-8xl font-extrabold leading-[1.02]" style="color:var(--burger-dark)">
-      Gestia te ayuda a
-      <span class="block mt-1 bg-yellow-200/80 px-1 rounded-sm inline-block">controlar ventas e inventario<br class="hidden md:block" />con total claridad</span>
-    </h2>
-    <p class="text-lg md:text-xl text-slate-600 max-w-2xl leading-relaxed">
-      Centraliza tickets, productos, ingredientes, compras y clientes en un solo tablero
-      minimalista. Diseñado para negocios que quieren números claros, no complicaciones.
-    </p>
-    <div class="flex flex-wrap items-center gap-3">
-      <button id="btn-hero-login" class="px-8 py-4 rounded-full text-base md:text-lg font-semibold text-white shadow-sm" style="background:linear-gradient(135deg,var(--burger-accent),var(--burger-tomato))">Iniciar sesión</button>
-      <button id="btn-hero-signup" class="px-8 py-4 rounded-full text-base md:text-lg font-semibold border border-slate-300 text-slate-800 bg-white">Crear cuenta</button>
-      <button id="btn-hero-guide" class="px-6 py-3.5 rounded-full text-sm md:text-base font-semibold border border-slate-300 text-slate-700 bg-slate-50 hover:bg-slate-100 flex items-center gap-1">
-        <span>📘</span><span>Ver guía rápida</span>
-      </button>
-      <span class="text-sm md:text-base text-slate-500">Sin límites de usuarios. Tus datos se quedan contigo.</span>
-    </div>
-    </div>
+        <!-- Hero (80% viewport height) -->
+        <div class="panel hero-sr relative overflow-hidden flex flex-col justify-end">
+          <div class="hero-sr__bg" aria-hidden="true"></div>
+          <div class="hero-sr__overlay" aria-hidden="true"></div>
+          <div class="hero-sr__content relative z-10">
+            <img src="./gestia.jpg.png" alt="Gestia" class="hero-sr__logo" loading="lazy" />
+            <p class="text-xs font-bold uppercase tracking-[0.34em] mb-1" style="color:rgba(230,179,37,.90)">POS para Restaurantes</p>
+            <h2 class="hero-title text-5xl md:text-7xl lg:text-8xl font-extrabold leading-[.92] mb-3">
+              GESTIA
+            </h2>
+            <p class="text-sm md:text-base max-w-md leading-relaxed mb-5" style="color:rgba(255,255,255,.75)">
+              Operación rápida, control claro y experiencia premium para cualquier restaurante.
+            </p>
+            <div class="flex flex-wrap items-center gap-3">
+              <button id="btn-hero-login"
+                class="px-7 py-3.5 rounded-full text-sm md:text-base font-bold tracking-wide"
+                style="background:var(--amber);color:rgba(0,0,0,.90);box-shadow:0 6px 22px rgba(230,179,37,.35)">
+                Iniciar sesión →
+              </button>
+              <button id="btn-hero-signup"
+                class="px-7 py-3.5 rounded-full text-sm md:text-base font-semibold"
+                style="border:1px solid rgba(255,255,255,.22);color:#fff;background:rgba(255,255,255,.08);backdrop-filter:blur(8px)">
+                Crear cuenta
+              </button>
+              <button id="btn-hero-guide"
+                class="px-5 py-3 rounded-full text-sm font-semibold flex items-center gap-1.5"
+                style="border:1px solid rgba(255,255,255,.14);color:rgba(255,255,255,.60);background:rgba(0,0,0,.20)">
+                <span>📘</span><span>Guía rápida</span>
+              </button>
+            </div>
+          </div>
+        </div>
 
     <!-- Lado derecho: mini resumen visual -->
-    <div class="panel bg-slate-50 flex flex-col justify-between">
-    <div class="mb-3">
-      <p class="text-xs md:text-sm font-semibold tracking-[0.24em] text-slate-500 mb-1">QUE CONTROLA GESTIA</p>
-      <p class="text-base md:text-lg text-slate-600">Una vista rápida de los módulos que tendrás siempre a la mano.</p>
-    </div>
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 mb-4">
-      <div class="stat-card">
-      <div class="text-[11px] uppercase opacity-70">Ventas</div>
-      <div class="text-xl md:text-2xl font-extrabold">Tickets y cortes</div>
-      <div class="text-sm md:text-base text-slate-600 leading-snug">Registra cada venta y genera resúmenes claros.</div>
+    <div class="panel flex flex-col justify-between gap-4">
+      <div>
+        <p class="text-[10px] font-bold uppercase tracking-[0.24em] mb-1" style="color:rgba(230,179,37,.80)">Tu operación, bajo control</p>
+        <p class="text-sm leading-relaxed" style="color:var(--app-muted)">Módulos clave listos para usar desde cualquier dispositivo.</p>
       </div>
-      <div class="stat-card">
-      <div class="text-[11px] uppercase opacity-70">Inventario</div>
-      <div class="text-xl md:text-2xl font-extrabold">Stock preciso</div>
-      <div class="text-sm md:text-base text-slate-600 leading-snug">Insumos, recetas y compras conectadas a tu venta.</div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 flex-1">
+
+        <div class="stat-card flex flex-col gap-1.5">
+          <div class="text-2xl">🧾</div>
+          <div class="text-[10px] uppercase font-bold tracking-widest opacity-60">Ventas</div>
+          <div class="text-base font-extrabold leading-tight">Tickets y cortes</div>
+          <div class="text-xs leading-snug" style="color:var(--app-muted)">Registra cada venta y genera resúmenes claros.</div>
+        </div>
+
+        <div class="stat-card flex flex-col gap-1.5">
+          <div class="text-2xl">🗃️</div>
+          <div class="text-[10px] uppercase font-bold tracking-widest opacity-60">Inventario</div>
+          <div class="text-base font-extrabold leading-tight">Stock preciso</div>
+          <div class="text-xs leading-snug" style="color:var(--app-muted)">Insumos, recetas y compras conectadas a tu venta.</div>
+        </div>
+
+        <div class="stat-card flex flex-col gap-1.5">
+          <div class="text-2xl">👥</div>
+          <div class="text-[10px] uppercase font-bold tracking-widest opacity-60">Clientes</div>
+          <div class="text-base font-extrabold leading-tight">Historial completo</div>
+          <div class="text-xs leading-snug" style="color:var(--app-muted)">Seguimiento de consumo y lealtad sin esfuerzo.</div>
+        </div>
+
+        <div class="stat-card flex flex-col gap-1.5">
+          <div class="text-2xl">📡</div>
+          <div class="text-[10px] uppercase font-bold tracking-widest opacity-60">Modo offline</div>
+          <div class="text-base font-extrabold leading-tight">Siempre operando</div>
+          <div class="text-xs leading-snug" style="color:var(--app-muted)">Trabaja sin conexión; sincroniza al reconectarte.</div>
+        </div>
+
       </div>
-      <div class="stat-card">
-      <div class="text-[11px] uppercase opacity-70">Clientes</div>
-      <div class="text-xl md:text-2xl font-extrabold">Historial completo</div>
-      <div class="text-sm md:text-base text-slate-600 leading-snug">Seguimiento de consumo y lealtad sin esfuerzo.</div>
-      </div>
-      <div class="stat-card">
-      <div class="text-[11px] uppercase opacity-70">Modo offline</div>
-      <div class="text-xl md:text-2xl font-extrabold">Siempre operando</div>
-      <div class="text-sm md:text-base text-slate-600 leading-snug">Trabaja sin conexión; Gestia sincroniza cuando vuelves a estar en línea.</div>
-      </div>
-    </div>
-    <p class="text-sm md:text-base text-slate-500 border-t border-slate-200 pt-4 mt-auto leading-snug">Conecta tu cuenta una vez, abre el POS y deja que Gestia mantenga tus números en orden.</p>
+
+      <p class="text-xs leading-snug pt-3 border-t" style="color:var(--app-muted);border-color:rgba(255,255,255,.09)">
+        Inicia sesión y empieza a vender con una interfaz elegante, rápida y consistente.
+      </p>
     </div>
   </div>
 
-  <div class="panel mt-6">
-    <div class="flex items-center justify-between gap-3">
+  <div class="panel mt-5">
+    <div class="flex items-center justify-between gap-3 pb-3 mb-3" style="border-bottom:1px solid rgba(255,255,255,.09)">
       <div>
-        <div class="text-xs font-semibold uppercase tracking-[0.22em] text-slate-500">Respaldo y sesión</div>
-        <div class="text-sm text-slate-600">Acceso, sincronización y copias de seguridad</div>
+        <div class="text-[10px] font-bold uppercase tracking-[0.22em] mb-0.5" style="color:rgba(230,179,37,.80)">Respaldo y Sesión</div>
+        <div class="text-xs" style="color:var(--app-muted)">Acceso, sincronización y copias de seguridad</div>
       </div>
       <div class="text-right">
-        <div class="text-xs text-slate-500">ID Sesión</div>
-        <div id="user-id-display" class="text-[11px] text-slate-700 break-all"></div>
+        <div class="text-[10px] opacity-50 uppercase tracking-wider">ID Sesión</div>
+        <div id="user-id-display" class="text-[11px] break-all" style="color:rgba(255,255,255,.50)"></div>
       </div>
     </div>
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-4 mt-4">
-      <div class="panel bg-slate-50">
-        <div class="font-extrabold mb-2" style="color:var(--burger-dark)">Respaldo</div>
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-3">
+      <div class="panel" style="background:rgba(230,179,37,.05) !important;border-color:rgba(230,179,37,.18) !important">
+        <div class="text-xs font-bold uppercase tracking-wider mb-3" style="color:rgba(230,179,37,.85)">📤 Respaldo</div>
         <div class="grid grid-cols-1 gap-2">
-          <button id="btn-backup" class="btn-soft w-full px-3 py-2 rounded text-sm">📤 Respaldar datos</button>
-          <button id="btn-restore" class="btn-soft w-full px-3 py-2 rounded text-sm">📥 Restaurar</button>
+          <button id="btn-backup" class="btn-soft w-full px-3 py-2.5 rounded-xl text-sm">📤 Respaldar datos</button>
+          <button id="btn-restore" class="btn-soft w-full px-3 py-2.5 rounded-xl text-sm">📥 Restaurar</button>
           <input id="restore-file-input" type="file" accept="application/json" class="hidden" />
         </div>
       </div>
-      <div class="panel bg-slate-50">
-        <div class="font-extrabold mb-2" style="color:var(--burger-dark)">Proyecto Firebase</div>
-        <div id="firebase-project-indicator" class="text-xs text-slate-600 break-all">—</div>
-        <div class="text-xs text-slate-500 mt-2">Si está vacío, revisa tu configuración.</div>
+      <div class="panel" style="background:rgba(255,255,255,.03) !important">
+        <div class="text-xs font-bold uppercase tracking-wider mb-2" style="color:rgba(255,255,255,.50)">🔥 Proyecto Firebase</div>
+        <div id="firebase-project-indicator" class="text-xs break-all" style="color:rgba(255,255,255,.60)">—</div>
+        <div class="text-xs mt-2 opacity-40">Si está vacío, revisa tu configuración.</div>
       </div>
-      <div class="panel bg-slate-50">
+      <div class="panel" style="background:rgba(255,255,255,.03) !important">
         <div class="flex items-center justify-between mb-2">
-          <div class="font-extrabold" style="color:var(--burger-dark)">Sesión</div>
-          <button id="btn-auth-toggle" class="btn-soft px-3 py-2 rounded text-sm flex items-center justify-between gap-2">
+          <div class="text-xs font-bold uppercase tracking-wider" style="color:rgba(255,255,255,.50)">🔐 Sesión</div>
+          <button id="btn-auth-toggle" class="btn-soft px-3 py-1.5 rounded-lg text-xs flex items-center gap-1.5">
             <span>Gestionar</span>
-            <span id="auth-toggle-icon" class="text-xs opacity-80">▼</span>
+            <span id="auth-toggle-icon" class="opacity-60">▼</span>
           </button>
         </div>
-        <div id="auth-controls" class="hidden">
-          <input id="auth-email" type="email" placeholder="Email" class="w-full input-modern p-2 rounded" />
-          <input id="auth-pass" type="password" placeholder="Contraseña" class="w-full mt-2 input-modern p-2 rounded" />
-          <div class="grid grid-cols-2 gap-2 mt-2">
-            <button id="btn-login" class="btn-soft px-2 py-2 rounded text-sm">Iniciar</button>
-            <button id="btn-signup" class="btn-soft px-2 py-2 rounded text-sm">Crear cuenta</button>
+        <div id="auth-controls" class="hidden space-y-2">
+          <input id="auth-email" type="email" placeholder="Email" class="w-full input-modern px-3 py-2 rounded-xl text-sm" />
+          <input id="auth-pass" type="password" placeholder="Contraseña" class="w-full input-modern px-3 py-2 rounded-xl text-sm" />
+          <div class="grid grid-cols-2 gap-2">
+            <button id="btn-login" class="btn-gradient px-2 py-2.5 rounded-xl text-sm w-full">Iniciar</button>
+            <button id="btn-signup" class="btn-soft px-2 py-2.5 rounded-xl text-sm w-full">Crear cuenta</button>
           </div>
-          <button id="btn-reset-pass" class="btn-soft w-full mt-2 px-3 py-2 rounded text-sm">¿Olvidaste tu contraseña?</button>
-          <div class="text-xs text-slate-500 mt-1">Te enviaremos un enlace de recuperación a tu email.</div>
+          <button id="btn-reset-pass" class="btn-soft w-full px-3 py-2.5 rounded-xl text-xs">¿Olvidaste tu contraseña?</button>
         </div>
-        <div id="auth-status-card" class="hidden mt-3 rounded-xl border-2 p-3" style="border-color:var(--grid-strong); background:var(--app-surface);">
-          <div class="flex items-center justify-between gap-2">
-            <div class="font-extrabold" style="color:var(--burger-dark)">✅ SESIÓN INICIADA</div>
-            <button id="btn-logout" class="btn-soft px-3 py-1.5 rounded text-xs">Cerrar sesión</button>
+        <div id="auth-status-card" class="hidden mt-2 rounded-xl border p-3" style="border-color:rgba(230,179,37,.28);background:rgba(230,179,37,.08)">
+          <div class="flex items-center justify-between gap-2 mb-2">
+            <div class="text-xs font-bold" style="color:var(--amber)">✅ SESIÓN ACTIVA</div>
+            <button id="btn-logout" class="btn-soft px-2.5 py-1 rounded-lg text-xs">Salir</button>
           </div>
-          <div class="mt-2 text-sm" style="color:var(--app-muted)">
-            <div class="flex items-center gap-2"><span class="opacity-80">Correo:</span> <span id="auth-status-email" class="font-semibold break-all" style="color:var(--burger-dark)"></span></div>
-            <div class="flex items-center gap-2"><span class="opacity-80">UID:</span> <span id="auth-status-uid" class="text-xs break-all"></span></div>
+          <div class="text-xs space-y-1" style="color:var(--app-muted)">
+            <div class="flex items-center gap-1.5"><span class="opacity-60">Correo:</span> <span id="auth-status-email" class="font-semibold break-all" style="color:var(--app-text)"></span></div>
+            <div class="flex items-center gap-1.5"><span class="opacity-60">UID:</span> <span id="auth-status-uid" class="text-[10px] break-all opacity-60"></span></div>
           </div>
         </div>
       </div>
@@ -819,12 +895,12 @@
 
       <!-- Dashboard -->
       <section id="view-dashboard" class="view">
-        <h2 class="text-2xl font-extrabold mb-4 section-title" style="color:var(--burger-dark)">📊 Dashboard</h2>
+        <h2 class="text-2xl font-extrabold mb-4 section-title">📊 Dashboard</h2>
         <div class="flex items-center justify-between gap-3 mb-4">
-          <div class="text-sm opacity-80">Vista general de tu negocio con Gestia</div>
+          <div class="text-sm opacity-70 font-medium">Vista general de tu negocio</div>
           <div class="flex items-center gap-2">
-            <label class="text-sm font-bold">Periodo</label>
-            <select id="db-period-select" class="input-modern p-2 rounded">
+            <label class="text-xs font-bold uppercase tracking-wider opacity-60">Periodo</label>
+            <select id="db-period-select" class="input-modern px-3 py-2 rounded-xl text-sm">
               <option value="7d">Últimos 7 días</option>
               <option value="today">Hoy</option>
               <option value="30d">Últimos 30 días</option>
@@ -833,47 +909,63 @@
             </select>
           </div>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4 mb-4">
+        <div class="grid grid-cols-2 md:grid-cols-2 xl:grid-cols-4 gap-3 mb-4">
           <div class="panel">
-            <div class="flex items-center justify-between"><div class="text-sm opacity-80">Ingresos</div><div id="kpi-revenue-trend" class="kpi-trend"></div></div>
-            <div id="kpi-revenue" class="text-3xl font-extrabold">$0.00</div>
+            <div class="flex items-start justify-between mb-1">
+              <div class="text-[10px] uppercase font-bold tracking-widest opacity-55">Ingresos</div>
+              <div id="kpi-revenue-trend" class="kpi-trend"></div>
+            </div>
+            <div id="kpi-revenue" class="text-2xl md:text-3xl font-extrabold num">$0.00</div>
           </div>
           <div class="panel">
-            <div class="flex items-center justify-between"><div class="text-sm opacity-80">Órdenes</div><div id="kpi-orders-trend" class="kpi-trend"></div></div>
-            <div id="kpi-orders" class="text-3xl font-extrabold">0</div>
+            <div class="flex items-start justify-between mb-1">
+              <div class="text-[10px] uppercase font-bold tracking-widest opacity-55">Órdenes</div>
+              <div id="kpi-orders-trend" class="kpi-trend"></div>
+            </div>
+            <div id="kpi-orders" class="text-2xl md:text-3xl font-extrabold num">0</div>
           </div>
           <div class="panel">
-            <div class="flex items-center justify-between"><div class="text-sm opacity-80">Ticket promedio</div><div id="kpi-aov-trend" class="kpi-trend"></div></div>
-            <div id="kpi-aov" class="text-3xl font-extrabold">$0.00</div>
+            <div class="flex items-start justify-between mb-1">
+              <div class="text-[10px] uppercase font-bold tracking-widest opacity-55">Ticket promedio</div>
+              <div id="kpi-aov-trend" class="kpi-trend"></div>
+            </div>
+            <div id="kpi-aov" class="text-2xl md:text-3xl font-extrabold num">$0.00</div>
           </div>
           <div class="panel">
-            <div class="flex items-center justify-between"><div class="text-sm opacity-80">Items vendidos</div><div id="kpi-items-trend" class="kpi-trend"></div></div>
-            <div id="kpi-items" class="text-3xl font-extrabold">0</div>
+            <div class="flex items-start justify-between mb-1">
+              <div class="text-[10px] uppercase font-bold tracking-widest opacity-55">Items vendidos</div>
+              <div id="kpi-items-trend" class="kpi-trend"></div>
+            </div>
+            <div id="kpi-items" class="text-2xl md:text-3xl font-extrabold num">0</div>
           </div>
           <div class="panel">
-            <div class="text-sm opacity-80">Descuento aplicado</div>
-            <div id="kpi-discount" class="text-3xl font-extrabold">$0.00</div>
+            <div class="text-[10px] uppercase font-bold tracking-widest opacity-55 mb-1">Descuento aplicado</div>
+            <div id="kpi-discount" class="text-2xl md:text-3xl font-extrabold num">$0.00</div>
           </div>
           <div class="panel">
-            <div class="text-sm opacity-80">Envío cobrado</div>
-            <div id="kpi-shipping" class="text-3xl font-extrabold">$0.00</div>
+            <div class="text-[10px] uppercase font-bold tracking-widest opacity-55 mb-1">Envío cobrado</div>
+            <div id="kpi-shipping" class="text-2xl md:text-3xl font-extrabold num">$0.00</div>
           </div>
           <div class="panel">
-            <div class="text-sm opacity-80">Mejor producto</div>
-            <div id="kpi-top-product" class="text-lg font-extrabold">—</div>
+            <div class="text-[10px] uppercase font-bold tracking-widest opacity-55 mb-1">Mejor producto</div>
+            <div id="kpi-top-product" class="text-base font-extrabold leading-snug">—</div>
           </div>
           <div class="panel">
-            <div class="text-sm opacity-80">Mejor cliente</div>
-            <div id="kpi-top-client" class="text-lg font-extrabold">—</div>
+            <div class="text-[10px] uppercase font-bold tracking-widest opacity-55 mb-1">Mejor cliente</div>
+            <div id="kpi-top-client" class="text-base font-extrabold leading-snug">—</div>
           </div>
         </div>
         <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-4">
           <div class="panel xl:col-span-2">
-            <h3 class="font-bold mb-2">Ventas recientes</h3>
+            <h3 class="font-bold mb-3 flex items-center gap-2">
+              <span style="color:var(--amber)">●</span> Ventas recientes
+            </h3>
             <table class="w-full text-left table-nice"><thead><tr><th class="p-2">ID</th><th class="p-2">Cliente</th><th class="p-2">Fecha</th><th class="p-2 text-right">Total</th></tr></thead><tbody id="db-ventas-recientes-body"></tbody></table>
           </div>
           <div class="panel">
-            <h3 class="font-bold mb-2">Ventas por hora (hoy)</h3>
+            <h3 class="font-bold mb-3 flex items-center gap-2">
+              <span style="color:var(--amber)">●</span> Ventas por hora (hoy)
+            </h3>
             <canvas id="sales-hourly-chart" height="150"></canvas>
             <div id="sales-hourly-empty" class="text-sm opacity-60 hidden">Sin datos de hoy</div>
           </div>
@@ -933,20 +1025,92 @@
           <div class="stat-card"><div class="text-xs opacity-70">Margen bruto (est.)</div><div id="rep-gp" class="text-xl font-extrabold">$0.00</div></div>
         </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-          <div class="panel"><h3 class="font-bold mb-2">Ventas por período</h3><canvas id="sales-chart"></canvas></div>
-          <div class="panel"><h3 class="font-bold mb-2">Productos más vendidos</h3><canvas id="products-chart"></canvas></div>
+          <div class="panel">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h3 class="font-extrabold text-sm tracking-wide">Ventas por período</h3>
+                <p class="text-[10px] mt-0.5" style="color:var(--app-muted)">Ingresos diarios acumulados</p>
+              </div>
+              <span class="text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-full" style="background:rgba(16,185,129,.15);color:#10B981">Línea</span>
+            </div>
+            <canvas id="sales-chart" height="200"></canvas>
+          </div>
+          <div class="panel">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h3 class="font-extrabold text-sm tracking-wide">Productos más vendidos</h3>
+                <p class="text-[10px] mt-0.5" style="color:var(--app-muted)">Top 10 por unidades vendidas</p>
+              </div>
+              <span class="text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-full" style="background:rgba(59,130,246,.15);color:#3B82F6">Barras</span>
+            </div>
+            <canvas id="products-chart" height="200"></canvas>
+          </div>
         </div>
         <div class="grid grid-cols-1 xl:grid-cols-3 gap-4 mb-4">
-          <div class="panel"><h3 class="font-bold mb-2">Tipos de orden</h3><canvas id="order-type-chart"></canvas></div>
-          <div class="panel"><h3 class="font-bold mb-2">Métodos de pago</h3><canvas id="payment-method-chart"></canvas></div>
-          <div class="panel"><h3 class="font-bold mb-2">Por día de la semana</h3><canvas id="weekday-chart"></canvas></div>
+          <div class="panel">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h3 class="font-extrabold text-sm tracking-wide">Tipos de orden</h3>
+                <p class="text-[10px] mt-0.5" style="color:var(--app-muted)">Distribución por canal</p>
+              </div>
+              <span class="text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-full" style="background:rgba(16,185,129,.15);color:#10B981">Dona</span>
+            </div>
+            <canvas id="order-type-chart" height="200"></canvas>
+          </div>
+          <div class="panel">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h3 class="font-extrabold text-sm tracking-wide">Métodos de pago</h3>
+                <p class="text-[10px] mt-0.5" style="color:var(--app-muted)">Ingresos por forma de cobro</p>
+              </div>
+              <span class="text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-full" style="background:rgba(230,179,37,.15);color:#E6B325">Pastel</span>
+            </div>
+            <canvas id="payment-method-chart" height="200"></canvas>
+          </div>
+          <div class="panel">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h3 class="font-extrabold text-sm tracking-wide">Por día de la semana</h3>
+                <p class="text-[10px] mt-0.5" style="color:var(--app-muted)">Patrón de demanda semanal</p>
+              </div>
+              <span class="text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-full" style="background:rgba(168,85,247,.15);color:#A855F7">Barras</span>
+            </div>
+            <canvas id="weekday-chart" height="200"></canvas>
+          </div>
         </div>
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
-          <div class="panel"><h3 class="font-bold mb-2">Top clientes</h3><canvas id="top-clients-chart"></canvas></div>
-          <div class="panel"><h3 class="font-bold mb-2">Margen por producto (Top 10)</h3><canvas id="margin-chart"></canvas></div>
+          <div class="panel">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h3 class="font-extrabold text-sm tracking-wide">Top clientes</h3>
+                <p class="text-[10px] mt-0.5" style="color:var(--app-muted)">Top 10 por ingresos generados</p>
+              </div>
+              <span class="text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-full" style="background:rgba(230,179,37,.15);color:#E6B325">H-Barras</span>
+            </div>
+            <canvas id="top-clients-chart" height="220"></canvas>
+          </div>
+          <div class="panel">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h3 class="font-extrabold text-sm tracking-wide">Margen por producto</h3>
+                <p class="text-[10px] mt-0.5" style="color:var(--app-muted)">Top 10 por margen bruto estimado</p>
+              </div>
+              <span class="text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-full" style="background:rgba(16,185,129,.15);color:#10B981">H-Barras</span>
+            </div>
+            <canvas id="margin-chart" height="220"></canvas>
+          </div>
         </div>
         <div class="grid grid-cols-1 gap-4">
-          <div class="panel"><h3 class="font-bold mb-2">Ingresos por hora</h3><canvas id="hourly-report-chart"></canvas></div>
+          <div class="panel">
+            <div class="flex items-center justify-between mb-3">
+              <div>
+                <h3 class="font-extrabold text-sm tracking-wide">Ingresos por hora del día</h3>
+                <p class="text-[10px] mt-0.5" style="color:var(--app-muted)">Distribución de ventas en las 24 horas</p>
+              </div>
+              <span class="text-[9px] font-bold uppercase tracking-widest px-2 py-1 rounded-full" style="background:rgba(230,179,37,.15);color:#E6B325">Área</span>
+            </div>
+            <canvas id="hourly-report-chart" height="160"></canvas>
+          </div>
         </div>
 
           <!-- Promedio de artículos vendidos por semana/mes -->
@@ -1288,7 +1452,7 @@
                 <label class="block text-sm font-bold mb-2">🪑 Mesa</label>
                 <div class="flex gap-2">
                   <select id="pos-table-select" class="flex-1 input-modern p-3 rounded-lg text-base"></select>
-                  <button id="pos-new-table" class="px-4 py-3 rounded-lg bg-gradient-to-r from-orange-500 to-orange-600 text-white font-bold transition-all" title="Nueva mesa">➕ Nueva</button>
+                    <button id="pos-new-table" class="px-4 py-3 rounded-lg text-black font-bold transition-all" style="background:var(--burger-accent)" title="Nueva mesa">➕ Nueva</button>
                 </div>
               </div>
             </div>
@@ -1349,7 +1513,7 @@
                   <label for="pos-customer-select" class="block text-sm font-bold mb-2">👤 Cliente</label>
                   <div class="flex gap-2">
                     <select id="pos-customer-select" class="flex-1 input-modern p-3 rounded-lg text-base"></select>
-                    <button id="pos-add-customer" class="px-4 py-3 rounded-lg bg-gradient-to-r from-blue-500 to-blue-600 text-white font-bold transition-all" title="Nuevo cliente">➕</button>
+                    <button id="pos-add-customer" class="px-4 py-3 rounded-lg text-black font-bold transition-all" style="background:var(--burger-accent)" title="Nuevo cliente">➕</button>
                   </div>
                 </div>
                 
@@ -1371,7 +1535,7 @@
   <div class="panel">
           <div class="flex items-center gap-4 mb-3">
             <div class="text-sm opacity-70">En cola: <span id="pedidos-count">0</span></div>
-            <button id="debug-data" class="px-3 py-1 bg-blue-500 text-white rounded text-sm">🔍 Debug Data</button>
+            <button id="debug-data" class="px-3 py-1 rounded text-sm" style="background:var(--burger-accent); color:#000; font-weight:700">🔍 Debug Data</button>
           </div>
           <div id="pedidos-pendientes-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
           <div id="no-pedidos-message" class="text-center py-8 opacity-70 hidden">No hay pedidos pendientes</div>
@@ -1410,6 +1574,7 @@
           <div class="flex flex-wrap gap-2 justify-end">
             <button id="open-productos-modal" class="btn-gradient px-4 py-2 rounded flex items-center gap-1"><span>➕</span><span class="hidden sm:inline">Nuevo producto</span><span class="sm:hidden">Nuevo</span></button>
             <button id="export-productos-btn" class="px-3 py-2 rounded border btn-outline text-sm flex items-center gap-1" title="Exportar productos a JSON">💾 <span class="hidden md:inline">Exportar</span></button>
+            <button id="export-productos-csv-btn" class="px-3 py-2 rounded border btn-outline text-sm flex items-center gap-1" title="Exportar productos a CSV">📄 <span class="hidden md:inline">Exportar CSV</span></button>
           </div>
         </div>
 
@@ -1559,7 +1724,7 @@
               </div>
               <div class="stat-card">
                 <div class="text-xs opacity-70">ROI Promedio</div>
-                <div id="avg-roi" class="text-xl font-extrabold text-blue-600">0%</div>
+                <div id="avg-roi" class="text-xl font-extrabold" style="color:var(--burger-accent)">0%</div>
               </div>
             </div>
           </div>
@@ -1659,6 +1824,12 @@
             </button>
             <button id="import-ingredientes-preset" class="px-3 py-2 rounded border bg-white hover:bg-amber-50 text-sm flex items-center gap-1" title="Importar lista predefinida">
               <span>📥</span><span class="hidden md:inline">Importar base</span>
+            </button>
+            <button id="export-ingredientes-btn" class="btn-outline px-3 py-2 rounded text-sm flex items-center gap-1" title="Exportar ingredientes a CSV">
+              <span>📄</span><span class="hidden md:inline">Exportar</span>
+            </button>
+            <button id="export-ingredientes-json-btn" class="btn-outline px-3 py-2 rounded text-sm flex items-center gap-1" title="Exportar ingredientes a JSON">
+              <span>🧾</span><span class="hidden md:inline">Exportar JSON</span>
             </button>
           </div>
         </div>
@@ -2097,6 +2268,77 @@
           </div>
         </div>
       </section>
+
+      <!-- ─── PERSONALIZAR ─────────────────────────────────────── -->
+      <section id="view-personalizar" class="view">
+        <h2 class="text-2xl font-extrabold mb-1 section-title" style="color:var(--burger-dark)">🎨 Personalización</h2>
+        <p class="text-sm mb-6" style="color:var(--app-muted)">Elige el color de acento de la interfaz. El cambio se aplica al instante y se guarda automáticamente.</p>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+          <!-- Paleta de colores -->
+          <div class="panel">
+            <h3 class="font-extrabold text-sm mb-1 tracking-wide">Paleta de colores</h3>
+            <p class="text-[11px] mb-5" style="color:var(--app-muted)">Selecciona un preset o define tu color exacto con el selector.</p>
+
+            <div id="theme-palette" class="grid grid-cols-5 gap-3 mb-6">
+              <!-- swatches rendered by JS -->
+            </div>
+
+            <div class="flex flex-col gap-2">
+              <label class="text-[11px] font-bold uppercase tracking-widest" style="color:var(--app-muted)">Color personalizado</label>
+              <div class="flex items-center gap-3">
+                <input id="theme-custom-color" type="color" value="#E6B325"
+                  class="rounded-xl cursor-pointer flex-shrink-0"
+                  style="width:52px;height:52px;border:2px solid var(--bdr-strong);background:transparent;padding:3px;border-radius:12px" />
+                <div>
+                  <p class="text-sm font-bold" id="theme-custom-label">Personalizado</p>
+                  <p class="text-[11px]" style="color:var(--app-muted)">Cualquier color HEX</p>
+                </div>
+                <button id="btn-apply-custom" class="btn-gradient px-4 py-2 rounded-lg text-sm font-bold ml-auto">Aplicar</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Vista previa -->
+          <div class="panel flex flex-col gap-5">
+            <h3 class="font-extrabold text-sm tracking-wide">Vista previa</h3>
+
+            <div class="flex flex-wrap gap-2">
+              <button class="btn-gradient px-5 py-2 rounded-full text-sm font-bold">Botón primario</button>
+              <button class="px-5 py-2 rounded-full text-sm font-semibold" style="border:1.5px solid var(--amber);color:var(--amber);background:transparent">Botón outline</button>
+            </div>
+
+            <div class="flex flex-wrap gap-2 items-center">
+              <span class="px-3 py-1 rounded-full text-xs font-bold" style="background:var(--amber-soft);color:var(--amber)">Badge acento</span>
+              <span class="px-3 py-1 rounded-full text-xs font-bold" style="background:rgba(255,255,255,.08);color:rgba(255,255,255,.70)">Badge neutro</span>
+            </div>
+
+            <div class="flex flex-col gap-1.5">
+              <label class="text-[11px] font-bold uppercase tracking-widest" style="color:var(--app-muted)">Campo de texto</label>
+              <input type="text" class="input-modern p-2 rounded" placeholder="Enfoca para ver el borde de acento" />
+            </div>
+
+            <div style="height:6px;border-radius:999px;background:var(--amber-soft);overflow:hidden">
+              <div id="preview-bar" style="height:100%;width:62%;background:linear-gradient(90deg,var(--amber),var(--amber-dark));border-radius:999px;transition:background .4s"></div>
+            </div>
+
+            <div class="flex items-center gap-3 p-3 rounded-xl" style="background:var(--amber-soft);border:1px solid var(--amber-soft)">
+              <div class="w-9 h-9 rounded-lg flex items-center justify-center flex-shrink-0" style="background:var(--amber)">
+                <span style="font-size:1.1rem;color:#000">★</span>
+              </div>
+              <div>
+                <p class="text-sm font-bold">Color activo</p>
+                <p class="text-[11px]" style="color:var(--app-muted)" id="preview-hex-label">#E6B325 — Ámbar</p>
+              </div>
+            </div>
+
+            <button id="btn-reset-theme" class="text-xs font-semibold self-start" style="color:rgba(255,255,255,.35)" >↺ Restablecer color por defecto</button>
+          </div>
+
+        </div>
+      </section>
+
     </main>
   </div>
 
@@ -2104,7 +2346,7 @@
   <div id="modal-backdrop" class="fixed inset-0 backdrop-blur-sm hidden z-40" style="background:rgba(0,0,0,.5); pointer-events:none;"></div>
   <div id="modal-container" class="fixed inset-0 hidden z-50 flex items-center justify-center p-6" style="pointer-events:auto;"></div>
 
-  <!-- Modal: Inicio de sesión / Registro Gestia -->
+  <!-- Modal: Inicio de sesión / Registro -->
   <div id="hero-auth-overlay" class="fixed inset-0 hidden z-[60] flex items-center justify-center px-4" style="background:rgba(15,23,42,.70);">
     <div class="bg-white rounded-2xl border border-slate-300 max-w-md w-full p-6 md:p-8 shadow-lg">
       <div class="flex items-center justify-between mb-4">
@@ -2118,11 +2360,11 @@
       <div class="space-y-3 mb-4">
         <div>
           <label class="text-xs font-semibold text-slate-600 block mb-1">Correo</label>
-          <input id="hero-auth-email" type="email" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="tucorreo@negocio.com" />
+          <input id="hero-auth-email" type="email" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1" style="--tw-ring-color: color-mix(in srgb, var(--burger-accent) 45%, transparent);" placeholder="tucorreo@negocio.com" />
         </div>
         <div>
           <label class="text-xs font-semibold text-slate-600 block mb-1">Contraseña</label>
-          <input id="hero-auth-pass" type="password" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1 focus:ring-blue-500" placeholder="••••••••" />
+          <input id="hero-auth-pass" type="password" class="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-1" style="--tw-ring-color: color-mix(in srgb, var(--burger-accent) 45%, transparent);" placeholder="••••••••" />
         </div>
       </div>
       <div class="flex flex-col gap-2 mb-2">
@@ -2867,7 +3109,7 @@
             <button id="guide-close-btn" class="text-slate-400 hover:text-slate-600 text-xl leading-none" aria-label="Cerrar">×</button>
           </div>
           <div class="p-5 md:p-6 space-y-4 text-sm md:text-base text-slate-700 max-h-[70vh] overflow-y-auto">
-            <p class="text-xs md:text-sm text-slate-500">Resumen corto de qué hace cada sección de Gestia.</p>
+            <p class="text-xs md:text-sm text-slate-500">Resumen corto de qué hace cada sección del sistema.</p>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <h4 class="font-bold mb-1">🏁 Inicio</h4>
@@ -4005,11 +4247,34 @@
     function exportProductosToJSON(){
       try{
         const productos = (appState.productos||[]).filter(p=> !p.archivado);
+        const byIdIng = {};
+        (appState.ingredientes||[]).forEach(i=>{ if(i?.id) byIdIng[i.id] = i; });
+
+        // Exporta productos, pero la receta se serializa con nombres (no IDs)
+        const productosExport = (productos||[]).map(p=>{
+          const out = { ...(p||{}) };
+          if(Array.isArray(out.receta)){
+            out.receta = out.receta
+              .map(r=>{
+                if(!r) return null;
+                const ing = byIdIng[r.ingredienteId];
+                const nombre = (ing?.nombre || r.ingredienteId || '').toString();
+                const cantidad = Number(r.cantidad)||0;
+                if(!nombre) return null;
+                const rr = { ingrediente: nombre, cantidad };
+                if(ing?.unidad) rr.unidad = ing.unidad;
+                return rr;
+              })
+              .filter(Boolean);
+          }
+          return out;
+        });
+
         const data = {
-          productos: productos,
+          productos: productosExport,
           ingredientes: appState.ingredientes||[],
           exportDate: new Date().toISOString(),
-          version: '1.0'
+          version: '1.1'
         };
         const json = JSON.stringify(data, null, 2);
         const blob = new Blob([json], {type: 'application/json'});
@@ -4019,10 +4284,114 @@
         a.download = `productos_${new Date().toISOString().slice(0,10)}.json`;
         a.click();
         URL.revokeObjectURL(url);
-        alert(`Exportados ${productos.length} productos con sus ingredientes.`);
+        alert(`Exportados ${productos.length} productos (recetas con nombres de ingredientes).`);
       }catch(err){
         console.error('Error exportando productos', err);
         alert('Error al exportar productos.');
+      }
+    }
+
+    // --- Exportar catálogo de productos a CSV ---
+    function exportProductosCatalogCSV(){
+      try{
+        const productos = (appState.productos||[]).filter(p=> !p.archivado);
+        const rows = [[
+          'ID',
+          'Nombre',
+          'Tipo',
+          'Categoría',
+          'Precio',
+          'Costo Est.',
+          'Margen Est.',
+          'Estaciones',
+          'Receta'
+        ]];
+        const byIdIng = {};
+        (appState.ingredientes||[]).forEach(i=>{ if(i?.id) byIdIng[i.id]=i; });
+        productos.forEach(p=>{
+          const precio = Number(p.precio)||0;
+          const costo = Number(p.costo!=null ? p.costo : computeRecipeCost(p.receta||[])) || 0;
+          const margen = Math.max(0, precio - costo);
+          const estaciones = Array.isArray(p.estaciones) ? p.estaciones.join('|') : (p.estacion||'');
+          const recetaStr = Array.isArray(p.receta) && p.receta.length>0
+            ? p.receta.map(r=>{
+                const ing = byIdIng[r.ingredienteId];
+                const name = ing?.nombre || r.ingredienteId || 'ing';
+                const qty = r.cantidad||0;
+                const unit = ing?.unidad||'';
+                return `${name}:${qty}${unit?(' '+unit):''}`;
+              }).join('; ')
+            : (p.tipo==='combo' ? '[combo]' : '');
+          rows.push([
+            p.id||'',
+            p.nombre||'',
+            p.tipo||'individual',
+            p.categoria||'',
+            (precio).toFixed(2),
+            (costo).toFixed(2),
+            (margen).toFixed(2),
+            estaciones,
+            recetaStr
+          ]);
+        });
+        downloadCSV(`productos_catalogo_${new Date().toISOString().slice(0,10)}.csv`, rows);
+        alert(`Exportados ${productos.length} productos (CSV).`);
+      }catch(err){
+        console.error('Error exportando productos CSV', err);
+        alert('Error al exportar productos (CSV).');
+      }
+    }
+
+    // --- Exportar ingredientes a CSV ---
+    function exportIngredientesToCSV(){
+      try{
+        const rows = [[
+          'Ingrediente',
+          'Unidad',
+          'Precio paquete',
+          'Unidades por paquete',
+          'Costo unitario'
+        ]];
+        (appState.ingredientes||[]).forEach(i=>{
+          const unit = getUnitCost(i) || 0;
+          rows.push([
+            i.nombre||'',
+            i.unidad||'',
+            (Number(i.precioPaquete)||0).toFixed(2),
+            String(Number(i.unidadesPaquete)||0),
+            unit.toFixed(2)
+          ]);
+        });
+        downloadCSV(`ingredientes_${new Date().toISOString().slice(0,10)}.csv`, rows);
+        alert(`Exportados ${(appState.ingredientes||[]).length} ingredientes.`);
+      }catch(err){
+        console.error('Error exportando ingredientes', err);
+        alert('Error al exportar ingredientes.');
+      }
+    }
+
+    // --- Exportar ingredientes a JSON (compatible con preset/import) ---
+    function exportIngredientesToJSON(){
+      try{
+        const list = (appState.ingredientes||[]).map(i=>({
+          nombre: i?.nombre||'',
+          unidad: i?.unidad||'',
+          precioPaquete: Number(i?.precioPaquete)||0,
+          unidadesPaquete: Number(i?.unidadesPaquete)||0
+        }));
+        const payload = { ingredientes: list, version: '1.0', exportDate: new Date().toISOString() };
+        const json = JSON.stringify(payload, null, 2);
+        const blob = new Blob([json], {type: 'application/json'});
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `ingredientes_${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        alert(`Exportados ${list.length} ingredientes en JSON.`);
+      }catch(err){
+        console.error('Error exportando ingredientes JSON', err);
+        alert('Error al exportar ingredientes (JSON).');
       }
     }
 
@@ -4125,14 +4494,36 @@
       try{
         console.log('[NAV] showView ->', id);
         try{ document.body.setAttribute('data-view', id); }catch(_){ }
-        const targetId = 'view-' + id; // fix: incluir guión
+        const targetId = 'view-' + id;
         const views = $$('.view');
         let found = false;
+
+        // — Progress bar —
+        const prog = document.getElementById('nav-progress');
+        if(prog){ prog.style.width='0%'; prog.style.opacity='1'; prog.classList.remove('prog-complete'); void prog.offsetWidth; prog.style.width='72%'; }
+
+        // — Scroll main to top —
+        try{ document.querySelector('main').scrollTo({ top:0, behavior:'smooth' }); }catch(_){ }
+
         views.forEach(v=>{
-          if(v.id===targetId){ v.classList.add('active'); v.style.display='block'; found = true; }
-          else { v.classList.remove('active'); v.style.display='none'; }
+          if(v.id===targetId){
+            v.style.display='block';
+            v.classList.remove('view-leaving','view-entering');
+            void v.offsetWidth; // force reflow to restart animation
+            v.classList.add('active','view-entering');
+            found = true;
+            setTimeout(()=>{ try{ v.classList.remove('view-entering'); }catch(_){} }, 420);
+          } else {
+            v.classList.remove('active','view-entering');
+            v.style.display='none';
+          }
         });
+
         if(!found){ console.warn('[NAV] Vista no encontrada:', targetId); }
+
+        // — Finish progress bar —
+        setTimeout(()=>{ if(prog){ prog.classList.add('prog-complete'); } }, 180);
+
         $$('.nav-link').forEach(a=> a.classList.toggle('active', a.getAttribute('href')==='#'+id));
         if(id==='dashboard') updateDashboard();
         if(id==='vender'){
@@ -4156,6 +4547,7 @@
   if(id==='clientes') renderClientesTabla();
   if(id==='finanzas') renderFinanzas();
         if(id==='ventas') renderVentasTabla();
+  if(id==='personalizar') renderThemePicker();
       }catch(e){ console.error('[NAV] showView error', e); }
     }
 
@@ -4282,7 +4674,7 @@
       return fallback;
     }
     function getPdfTheme(){
-      const accent = cssColorToRgb(getCssVar('--burger-accent', '#2563EB'), { r:37, g:99, b:235 });
+      const accent = cssColorToRgb(getCssVar('--burger-accent', '#E6B325'), { r:230, g:179, b:37 });
       const surface2 = cssColorToRgb(getCssVar('--app-surface-2', '#F9FAFB'), { r:249, g:250, b:251 });
       const border = cssColorToRgb(getCssVar('--app-border', '#E2E8F0'), { r:226, g:232, b:240 });
       const muted = cssColorToRgb(getCssVar('--app-muted', '#64748B'), { r:100, g:116, b:139 });
@@ -4412,26 +4804,101 @@
         }
       }catch(_){ }
     }
-    // Estimar COGS por ingrediente a partir de ventas y recetas
+    // Estimar COGS por ingrediente a partir de ventas y recetas.
+    // Importante: para combos, expandimos la selección (customization) a productos reales
+    // para no perder consumo/costo (evita COGS=0 en Finanzas/Reportes cuando se vende un combo).
     function estimateCOGSByIngredientFromVentas(ventas){
       const byIng = new Map();
       const sum = (arr,f)=> arr.reduce((s,x)=> s + (f?f(x):x), 0);
-      (ventas||[]).forEach(v=>{
-        (v.items||[]).forEach(it=>{
-          const p = appState.productos.find(pp=>pp.id===it.productoId);
-          const qty = Number(it.cantidad)||0;
-          const receta = Array.isArray(p?.receta)? p.receta : [];
-          receta.forEach(r=>{
-            const ing = getIngredientById(r.ingredienteId);
-            if(!ing) return;
-            const unitCost = getUnitCost(ing);
-            const used = (Number(r.cantidad)||0) * qty;
-            const cost = used * unitCost;
-            const curr = byIng.get(ing.id) || { ingredienteId: ing.id, nombre: ing.nombre, unidad: ing.unidad||'', cantidad:0, costo:0 };
-            curr.cantidad += used; curr.costo += cost; byIng.set(ing.id, curr);
+
+      const addIngredientUsage = (ingredienteId, used)=>{
+        const ing = getIngredientById(ingredienteId);
+        if(!ing) return;
+        const qtyUsed = Number(used)||0;
+        if(qtyUsed<=0) return;
+        const unitCost = getUnitCost(ing);
+        const cost = qtyUsed * unitCost;
+        const curr = byIng.get(ing.id) || { ingredienteId: ing.id, nombre: ing.nombre, unidad: ing.unidad||'', cantidad:0, costo:0 };
+        curr.cantidad += qtyUsed;
+        curr.costo += cost;
+        byIng.set(ing.id, curr);
+      };
+
+      const applyRecipeForProduct = (productId, factor)=>{
+        const prod = (appState.productos||[]).find(p=> p.id === productId);
+        if(!prod) return;
+        const receta = Array.isArray(prod.receta) ? prod.receta : [];
+        const mult = Number(factor)||0;
+        if(mult<=0 || receta.length===0) return;
+        receta.forEach(r=>{
+          addIngredientUsage(r.ingredienteId, (Number(r.cantidad)||0) * mult);
+        });
+      };
+
+      const applyModifiersConsumption = (mods, qty)=>{
+        const arr = Array.isArray(mods) ? mods : [];
+        arr.forEach(m=>{
+          let key = m?.key;
+          if(!key && m?.name){
+            const n = String(m.name||'').toLowerCase();
+            if(n.includes('carne')) key = 'carneExtra';
+            else if(n.includes('manchego')) key = 'manchegoExtra';
+            else if(n.includes('americano')) key = 'americanoExtra';
+            else if(n.includes('tocino')) key = 'tocinoExtra';
+            else if(n.includes('chile')) key = 'chilesExtra';
+            else if(n.includes('botecito') || n.includes('queso extra')) key = 'botecitoQueso';
+          }
+          const additions = key ? (typeof MODIFIER_CONSUMPTION_MAP!=='undefined' ? MODIFIER_CONSUMPTION_MAP[key] : null) : null;
+          if(!additions) return;
+          additions.forEach(add=>{
+            const ingObj = (typeof findIngredientByNameInsensitive==='function') ? findIngredientByNameInsensitive(add.nombre) : null;
+            if(!ingObj) return;
+            addIngredientUsage(ingObj.id, (Number(add.cantidad)||0) * (Number(qty)||0));
           });
         });
+      };
+
+      (ventas||[]).forEach(v=>{
+        (v.items||[]).forEach(it=>{
+          const qty = Number(it.cantidad)||0;
+          if(qty<=0) return;
+
+          // 1) Combos con customization (incluye combos por categorías)
+          if(it.customization && it.customization.type === 'combo'){
+            const c = it.customization;
+            const baseMult = qty || 1;
+
+            if(Array.isArray(c.categorias)){
+              c.categorias.forEach(cat=>{
+                (cat?.items||[]).forEach(sel=>{ if(sel?.productId) applyRecipeForProduct(sel.productId, baseMult); });
+              });
+            }
+            if(Array.isArray(c.hamburguesas)) c.hamburguesas.forEach(b=>{ if(b?.productId) applyRecipeForProduct(b.productId, baseMult); });
+            if(Array.isArray(c.hotdogs)) c.hotdogs.forEach(h=>{ if(h?.productId) applyRecipeForProduct(h.productId, baseMult); });
+            if(Array.isArray(c.complementos)) c.complementos.forEach(comp=>{ if(comp?.productId) applyRecipeForProduct(comp.productId, baseMult); });
+            if(Array.isArray(c.bebidas)) c.bebidas.forEach(beb=>{ if(beb?.productId) applyRecipeForProduct(beb.productId, baseMult); });
+
+            // En combos, normalmente no hay modifiers, pero por si acaso
+            applyModifiersConsumption(it.modifiers, qty);
+            return;
+          }
+
+          // 2) Productos normales y combos legacy
+          const p = (appState.productos||[]).find(pp=> pp.id === it.productoId);
+          if(!p) return;
+          if(p.tipo === 'combo' && Array.isArray(p.comboProductos)){
+            p.comboProductos.forEach(cp=>{
+              const compQty = (Number(cp?.cantidad)||1) * qty;
+              if(cp?.productId) applyRecipeForProduct(cp.productId, compQty);
+            });
+          } else {
+            applyRecipeForProduct(p.id, qty);
+          }
+
+          applyModifiersConsumption(it.modifiers, qty);
+        });
       });
+
       const arr = Array.from(byIng.values());
       const total = sum(arr, x=> x.costo||0);
       arr.sort((a,b)=> (b.costo||0) - (a.costo||0));
@@ -4774,6 +5241,74 @@
       }catch(e){ console.warn('renderCaja', e); }
     }
 
+    // ===== COGS helpers (costo real por venta) =====
+    // Objetivo: que Finanzas/Reportes usen el mismo costo que Ventas,
+    // incluyendo combos (customization) y combos legacy.
+    function productUnitCostForCOGS(prod){
+      try{
+        if(!prod) return 0;
+        const c = (typeof prod.costo === 'number') ? prod.costo : computeRecipeCost(prod?.receta||[]);
+        return Number(c)||0;
+      }catch(_){ return 0; }
+    }
+    function comboUnitCostFromCustomization(customization){
+      try{
+        if(!customization || customization.type !== 'combo') return 0;
+        let total = 0;
+        const addProduct = (productId, mult=1)=>{
+          const prod = (appState.productos||[]).find(p=> p.id===productId);
+          if(!prod) return;
+          total += productUnitCostForCOGS(prod) * (Number(mult)||1);
+        };
+
+        // Combos por categorías (selección dinámica)
+        if(Array.isArray(customization.categorias)){
+          customization.categorias.forEach(cat=>{
+            (cat?.items||[]).forEach(sel=>{ if(sel?.productId) addProduct(sel.productId, 1); });
+          });
+        }
+        if(Array.isArray(customization.hamburguesas)) customization.hamburguesas.forEach(b=>{ if(b?.productId) addProduct(b.productId, 1); });
+        if(Array.isArray(customization.hotdogs)) customization.hotdogs.forEach(h=>{ if(h?.productId) addProduct(h.productId, 1); });
+        if(Array.isArray(customization.complementos)) customization.complementos.forEach(c=>{ if(c?.productId) addProduct(c.productId, Number(c?.cantidad)||1); });
+        if(Array.isArray(customization.bebidas)) customization.bebidas.forEach(b=>{ if(b?.productId) addProduct(b.productId, 1); });
+
+        return Number(total)||0;
+      }catch(_){ return 0; }
+    }
+    function itemUnitCostForCOGS(it){
+      try{
+        if(!it) return 0;
+        // 1) Si el item ya trae costo (ej. combo), usarlo
+        const direct = Number(it.costo);
+        if(Number.isFinite(direct) && direct > 0) return direct;
+
+        // 2) Combo con customization: sumar costos de los productos seleccionados
+        if(it.customization && it.customization.type === 'combo'){
+          const comboCost = comboUnitCostFromCustomization(it.customization);
+          if(comboCost > 0) return comboCost;
+        }
+
+        // 3) Producto normal o combo legacy
+        const prod = (appState.productos||[]).find(p=> p.id===it.productoId);
+        if(!prod) return 0;
+        if(prod.tipo === 'combo' && Array.isArray(prod.comboProductos)){
+          let total = 0;
+          prod.comboProductos.forEach(cp=>{
+            const child = (appState.productos||[]).find(p=> p.id===cp?.productId);
+            total += productUnitCostForCOGS(child) * (Number(cp?.cantidad)||1);
+          });
+          return Number(total)||0;
+        }
+        return productUnitCostForCOGS(prod);
+      }catch(_){ return 0; }
+    }
+    function ventaCOGS(venta){
+      try{
+        const items = venta?.items || [];
+        return (items||[]).reduce((s,it)=> s + itemUnitCostForCOGS(it) * (Number(it.cantidad)||0), 0);
+      }catch(_){ return 0; }
+    }
+
     function renderFinanzas(){
       try{
         const { start, end } = getFinancePeriod();
@@ -4782,11 +5317,7 @@
         const sum = (arr,f)=> arr.reduce((s,x)=> s + (f?f(x):x), 0);
   const revenue = sum(ventas, v=> v.total||0); // incluye envío
   const productRevenue = sum(ventas, v=> (v.subtotal||0) - (v.descuento||0)); // excluye envío
-  const cogs = sum(ventas, v=> sum(v.items||[], it=>{
-          const p = appState.productos.find(pp=>pp.id===it.productoId);
-          const cost = (p && typeof p.costo==='number') ? p.costo : computeRecipeCost(p?.receta||[]);
-          return (cost||0) * (it.cantidad||0);
-        }));
+  const cogs = sum(ventas, v=> ventaCOGS(v));
   const gp = productRevenue - cogs;
         const payroll = payrollForRange(start, end);
         const services = servicesForRange(start, end);
@@ -4911,7 +5442,25 @@
           if(!has){ empty?.classList.remove('hidden'); }
           else { empty?.classList.add('hidden'); }
           const ctx = canvas.getContext('2d');
-          window.__finWeekly = new Chart(ctx, { type:'bar', data:{ labels, datasets:[{ label:'Utilidad neta (est.)', data: netData, backgroundColor: '#FF6B35' }] }, options:{ responsive:true, plugins:{ legend:{ display:false } }, scales:{ y:{ ticks:{ callback:(v)=>'$'+v } } } } });
+          window.__finWeekly = new Chart(ctx, {
+            type: 'bar',
+            data: { labels, datasets: [{
+              label: 'Utilidad neta (est.)',
+              data: netData,
+              backgroundColor: netData.map(v=> v >= 0 ? 'rgba(16,185,129,0.80)' : 'rgba(239,68,68,0.75)'),
+              borderRadius: 8,
+              borderSkipped: false,
+              borderWidth: 0
+            }]},
+            options: {
+              responsive: true,
+              plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: ctx => ' $' + (ctx.parsed.y||0).toFixed(2) } }
+              },
+              scales: { y: { beginAtZero:true, ticks: { callback: v=>'$'+v } } }
+            }
+          });
         }
       }catch(e){ console.warn('renderFinanzas', e); }
     }
@@ -5372,16 +5921,37 @@
         const ctx = hourlyCanvas.getContext('2d');
         if(window.__hourlyChart){ window.__hourlyChart.destroy(); window.__hourlyChart = undefined; }
         const hourLabels = Array.from({ length: 24 }, (_, i) => (i<10?('0'+i):String(i)) + ':00');
+        const hrDashGrad = chartGradient(ctx, 'rgba(255,107,53,0.55)', 'rgba(255,107,53,0.03)');
         window.__hourlyChart = new Chart(ctx, {
-          type: 'bar',
+          type: 'line',
           data: {
             labels: hourLabels,
-            datasets: [ { label: 'Ingresos', data: byHour, backgroundColor: '#FF6B35' } ]
+            datasets: [{
+              label: 'Ingresos',
+              data: byHour,
+              borderColor: '#FF6B35',
+              backgroundColor: hrDashGrad,
+              borderWidth: 2.5,
+              tension: 0.42,
+              fill: true,
+              pointRadius: 2.5,
+              pointHoverRadius: 6,
+              pointBackgroundColor: '#FF6B35',
+              pointBorderColor: '#fff',
+              pointBorderWidth: 1.5
+            }]
           },
           options: {
             responsive: true,
-            plugins: { legend: { display: false } },
-            scales: { y: { ticks: { callback: (v)=> '$'+v } } }
+            interaction: { mode:'index', intersect:false },
+            plugins: {
+              legend: { display: false },
+              tooltip: { callbacks: { label: ctx => ' $' + (ctx.parsed.y||0).toFixed(2) } }
+            },
+            scales: {
+              x: { ticks: { maxRotation:0, autoSkip:true, maxTicksLimit:12 } },
+              y: { beginAtZero:true, ticks: { callback: v=>'$'+v } }
+            }
           }
         });
       }
@@ -5564,14 +6134,12 @@
           data: {
             datasets: [{
               label: 'Productos',
-              data: profitData.map(p => ({
-                x: p.totalVendido,
-                y: p.margenPct,
-                label: p.nombre
-              })),
-              backgroundColor: 'rgba(16, 185, 129, 0.6)',
-              borderColor: '#10B981',
-              pointRadius: 6
+              data: profitData.map(p => ({ x: p.totalVendido, y: p.margenPct, label: p.nombre })),
+              backgroundColor: profitData.map(p => p.margenPct >= 50 ? 'rgba(16,185,129,0.75)' : p.margenPct >= 25 ? 'rgba(230,179,37,0.75)' : 'rgba(239,68,68,0.70)'),
+              borderColor: 'rgba(255,255,255,0.20)',
+              borderWidth: 1,
+              pointRadius: 7,
+              pointHoverRadius: 10
             }]
           },
           options: {
@@ -5580,13 +6148,17 @@
               legend: { display: false },
               tooltip: {
                 callbacks: {
-                  label: (ctx) => `${ctx.raw.label}: ${ctx.raw.y.toFixed(1)}% margen, ${ctx.raw.x} vendidos`
+                  label: ctx => [
+                    ' ' + ctx.raw.label,
+                    ' Margen: ' + ctx.raw.y.toFixed(1) + '%',
+                    ' Vendidos: ' + ctx.raw.x
+                  ]
                 }
               }
             },
             scales: {
-              x: { title: { display: true, text: 'Unidades Vendidas' } },
-              y: { title: { display: true, text: 'Margen %' } }
+              x: { title: { display: true, text: 'Unidades Vendidas', color: 'rgba(255,255,255,0.45)' } },
+              y: { title: { display: true, text: 'Margen %', color: 'rgba(255,255,255,0.45)' }, ticks: { callback: v => v + '%' } }
             }
           }
         });
@@ -5605,19 +6177,28 @@
               {
                 label: 'Ingresos',
                 data: topProducts.map(p => p.totalIngresos),
-                backgroundColor: '#3B82F6'
+                backgroundColor: 'rgba(59,130,246,0.80)',
+                borderRadius: 6,
+                borderSkipped: false,
+                borderWidth: 0
               },
               {
                 label: 'Costos',
                 data: topProducts.map(p => p.totalCostos),
-                backgroundColor: '#EF4444'
+                backgroundColor: 'rgba(239,68,68,0.70)',
+                borderRadius: 6,
+                borderSkipped: false,
+                borderWidth: 0
               }
             ]
           },
           options: {
             responsive: true,
-            plugins: { legend: { position: 'top' } },
-            scales: { y: { ticks: { callback: (v) => '$' + v } } }
+            plugins: {
+              legend: { position: 'top' },
+              tooltip: { callbacks: { label: ctx => ' $' + (ctx.parsed.y||0).toFixed(2) } }
+            },
+            scales: { y: { beginAtZero:true, ticks: { callback: v=>'$'+v } } }
           }
         });
       }
@@ -5634,14 +6215,20 @@
             datasets: [{
               label: 'Ganancia Total',
               data: topProfit.map(p => p.gananciaTotal),
-              backgroundColor: '#10B981'
+              backgroundColor: topProfit.map((_,i)=> `rgba(16,185,129,${1 - i*0.07})`),
+              borderRadius: 6,
+              borderSkipped: false,
+              borderWidth: 0
             }]
           },
           options: {
             indexAxis: 'y',
             responsive: true,
-            plugins: { legend: { display: false } },
-            scales: { x: { ticks: { callback: (v) => '$' + v } } }
+            plugins: {
+              legend: { display: false },
+              tooltip: { callbacks: { label: ctx => ' $' + (ctx.parsed.x||0).toFixed(2) } }
+            },
+            scales: { x: { beginAtZero:true, ticks: { callback: v=>'$'+v } } }
           }
         });
       }
@@ -5665,20 +6252,20 @@
             labels: categories,
             datasets: [{
               data: categories.map(cat => byCategory[cat].ganancia),
-              backgroundColor: [
-                '#FF6B35', '#3B82F6', '#10B981', '#F59E0B', 
-                '#8B5CF6', '#EF4444', '#06B6D4', '#84CC16'
-              ]
+              backgroundColor: CHART_PALETTE.slice(0, categories.length),
+              hoverBackgroundColor: CHART_PALETTE.slice(0, categories.length).map(c=> c + 'CC'),
+              borderWidth: 3,
+              borderColor: 'rgba(0,0,0,0)',
+              hoverOffset: 10
             }]
           },
           options: {
             responsive: true,
+            cutout: '64%',
             plugins: {
               legend: { position: 'bottom' },
               tooltip: {
-                callbacks: {
-                  label: (ctx) => `${ctx.label}: ${fmt(ctx.raw)} ganancia`
-                }
+                callbacks: { label: ctx => ' ' + ctx.label + ': $' + (ctx.raw||0).toFixed(2) }
               }
             }
           }
@@ -5753,7 +6340,12 @@
           btn.appendChild(close);
         }
         if(filter === currentProductosFilter || (filter==='all' && currentProductosFilter==='all')){
-          btn.classList.add('active','border-blue-500','bg-blue-50','text-blue-700');
+          btn.classList.add('active');
+          try{
+            btn.style.borderColor = 'var(--burger-accent)';
+            btn.style.background = 'color-mix(in srgb, var(--burger-accent) 18%, transparent)';
+            btn.style.color = 'var(--app-text)';
+          }catch(_){ }
         }
         btn.addEventListener('click', ()=>{
           currentProductosFilter = filter;
@@ -6018,8 +6610,11 @@
       document.getElementById('open-ingredientes-modal')?.addEventListener('click', openIngredientModal);
       document.getElementById('open-productos-modal')?.addEventListener('click', openProductModal);
       document.getElementById('export-productos-btn')?.addEventListener('click', exportProductosToJSON);
+      document.getElementById('export-productos-csv-btn')?.addEventListener('click', exportProductosCatalogCSV);
       document.getElementById('open-clientes-modal')?.addEventListener('click', openClienteModal);
       document.getElementById('import-ingredientes-preset')?.addEventListener('click', importPresetIngredients);
+      document.getElementById('export-ingredientes-btn')?.addEventListener('click', exportIngredientesToCSV);
+      document.getElementById('export-ingredientes-json-btn')?.addEventListener('click', exportIngredientesToJSON);
   document.getElementById('import-clientes-preset')?.addEventListener('click', importUserClientsPreset);
     }
 
@@ -6458,6 +7053,15 @@
           if(it.customization && it.customization.type === 'combo'){
             const c = it.customization;
             const baseMult = qty || 1;
+
+            // Combos por categorías (selección dinámica)
+            if(Array.isArray(c.categorias)){
+              c.categorias.forEach(cat=>{
+                (cat?.items||[]).forEach(sel=>{
+                  if(sel?.productId) applyRecipeForProduct(sel.productId, baseMult);
+                });
+              });
+            }
 
             if(Array.isArray(c.hamburguesas)){
               c.hamburguesas.forEach(b=>{
@@ -7953,10 +8557,10 @@
               <div id="papas-tipo-selector" class="hidden mt-3 space-y-2">
                 <label class="block text-sm font-bold mb-2">Selecciona el tipo:</label>
                 <div class="grid grid-cols-2 gap-3">
-                  <button type="button" class="papas-tipo-btn border-2 rounded-lg p-3 font-bold hover:bg-blue-50 transition" data-tipo="francesas">
+                  <button type="button" class="papas-tipo-btn border-2 rounded-lg p-3 font-bold transition" data-tipo="francesas">
                     🍟 Francesas
                   </button>
-                  <button type="button" class="papas-tipo-btn border-2 rounded-lg p-3 font-bold hover:bg-blue-50 transition" data-tipo="gajo">
+                  <button type="button" class="papas-tipo-btn border-2 rounded-lg p-3 font-bold transition" data-tipo="gajo">
                     🥔 Gajo
                   </button>
                 </div>
@@ -7994,7 +8598,10 @@
         } else {
           papasTipoSelector.classList.add('hidden');
           papasTipo = '';
-          papasTipoButtons.forEach(btn => btn.classList.remove('bg-blue-500', 'text-white', 'border-blue-500'));
+          papasTipoButtons.forEach(btn => {
+            btn.classList.remove('bg-blue-500', 'text-white', 'border-blue-500');
+            try{ btn.style.background=''; btn.style.borderColor=''; btn.style.color=''; }catch(_){ }
+          });
           papasTipoSelectedText.classList.add('hidden');
         }
         updateTotals();
@@ -8009,8 +8616,14 @@
           // Actualizar estilos de botones
           papasTipoButtons.forEach(b => {
             b.classList.remove('bg-blue-500', 'text-white', 'border-blue-500');
+            try{ b.style.background=''; b.style.borderColor=''; b.style.color=''; }catch(_){ }
           });
-          btn.classList.add('bg-blue-500', 'text-white', 'border-blue-500');
+          // Visual state is handled via inline style (brand accent)
+          try{
+            btn.style.background = 'var(--burger-accent)';
+            btn.style.borderColor = 'var(--burger-accent)';
+            btn.style.color = 'rgba(0,0,0,.92)';
+          }catch(_){ }
           
           // Mostrar selección
           papasTipoSelectedText.textContent = `✓ Seleccionado: ${tipo === 'francesas' ? 'Papas Francesas' : 'Papas Gajo'}`;
@@ -8469,7 +9082,7 @@
           const ganancia = precio - costo;
           
           if (format === 'html') {
-            const item = `• ${burger.productName || 'Hamburguesa'} - <span style="color: #16a34a; font-weight: 700;">Venta: $${precio.toFixed(2)}</span> | <span style="color: #dc2626; font-weight: 700;">Costo: $${costo.toFixed(2)}</span> | <span style="color: #2563eb; font-weight: 700;">Ganancia: $${ganancia.toFixed(2)}</span>`;
+            const item = `• ${burger.productName || 'Hamburguesa'} - <span style="color: #16a34a; font-weight: 700;">Venta: $${precio.toFixed(2)}</span> | <span style="color: #dc2626; font-weight: 700;">Costo: $${costo.toFixed(2)}</span> | <span style="color: var(--burger-accent); font-weight: 800;">Ganancia: $${ganancia.toFixed(2)}</span>`;
             breakdown.push(item);
           } else {
             breakdown.push(`  • ${burger.productName || 'Hamburguesa'} (Venta: $${precio.toFixed(2)} | Costo: $${costo.toFixed(2)} | Ganancia: $${ganancia.toFixed(2)})`);
@@ -8507,7 +9120,7 @@
           const ganancia = precio - costo;
           
           if (format === 'html') {
-            const item = `• ${hotdog.productName || 'Hotdog'} - <span style="color: #16a34a; font-weight: 700;">Venta: $${precio.toFixed(2)}</span> | <span style="color: #dc2626; font-weight: 700;">Costo: $${costo.toFixed(2)}</span> | <span style="color: #2563eb; font-weight: 700;">Ganancia: $${ganancia.toFixed(2)}</span>`;
+            const item = `• ${hotdog.productName || 'Hotdog'} - <span style="color: #16a34a; font-weight: 700;">Venta: $${precio.toFixed(2)}</span> | <span style="color: #dc2626; font-weight: 700;">Costo: $${costo.toFixed(2)}</span> | <span style="color: var(--burger-accent); font-weight: 800;">Ganancia: $${ganancia.toFixed(2)}</span>`;
             breakdown.push(item);
           } else {
             breakdown.push(`  • ${hotdog.productName || 'Hotdog'} (Venta: $${precio.toFixed(2)} | Costo: $${costo.toFixed(2)} | Ganancia: $${ganancia.toFixed(2)})`);
@@ -8527,7 +9140,7 @@
           const cantidad = comp.cantidad > 1 ? `${comp.cantidad}× ` : '';
           
           if (format === 'html') {
-            const item = `• ${cantidad}${comp.productName || 'Complemento'} - <span style="color: #16a34a; font-weight: 700;">Venta: $${precio.toFixed(2)}</span> | <span style="color: #dc2626; font-weight: 700;">Costo: $${costo.toFixed(2)}</span> | <span style="color: #2563eb; font-weight: 700;">Ganancia: $${ganancia.toFixed(2)}</span>`;
+            const item = `• ${cantidad}${comp.productName || 'Complemento'} - <span style="color: #16a34a; font-weight: 700;">Venta: $${precio.toFixed(2)}</span> | <span style="color: #dc2626; font-weight: 700;">Costo: $${costo.toFixed(2)}</span> | <span style="color: var(--burger-accent); font-weight: 800;">Ganancia: $${ganancia.toFixed(2)}</span>`;
             breakdown.push(item);
           } else {
             breakdown.push(`  • ${cantidad}${comp.productName || 'Complemento'} (Venta: $${precio.toFixed(2)} | Costo: $${costo.toFixed(2)} | Ganancia: $${ganancia.toFixed(2)})`);
@@ -8546,7 +9159,7 @@
           const ganancia = precio - costo;
           
           if (format === 'html') {
-            const item = `• ${beb.productName || 'Bebida'} - <span style="color: #16a34a; font-weight: 700;">Venta: $${precio.toFixed(2)}</span> | <span style="color: #dc2626; font-weight: 700;">Costo: $${costo.toFixed(2)}</span> | <span style="color: #2563eb; font-weight: 700;">Ganancia: $${ganancia.toFixed(2)}</span>`;
+            const item = `• ${beb.productName || 'Bebida'} - <span style="color: #16a34a; font-weight: 700;">Venta: $${precio.toFixed(2)}</span> | <span style="color: #dc2626; font-weight: 700;">Costo: $${costo.toFixed(2)}</span> | <span style="color: var(--burger-accent); font-weight: 800;">Ganancia: $${ganancia.toFixed(2)}</span>`;
             breakdown.push(item);
           } else {
             breakdown.push(`  • ${beb.productName || 'Bebida'} (Venta: $${precio.toFixed(2)} | Costo: $${costo.toFixed(2)} | Ganancia: $${ganancia.toFixed(2)})`);
@@ -8573,7 +9186,7 @@
             const ganancia = precio - costo;
             const name = it.productName || producto?.nombre || 'Producto';
             if (format === 'html') {
-              const line = `• ${categoria}: ${name} - <span style="color: #16a34a; font-weight: 700;">Venta: $${precio.toFixed(2)}</span> | <span style="color: #dc2626; font-weight: 700;">Costo: $${costo.toFixed(2)}</span> | <span style="color: #2563eb; font-weight: 700;">Ganancia: $${ganancia.toFixed(2)}</span>`;
+              const line = `• ${categoria}: ${name} - <span style="color: #16a34a; font-weight: 700;">Venta: $${precio.toFixed(2)}</span> | <span style="color: #dc2626; font-weight: 700;">Costo: $${costo.toFixed(2)}</span> | <span style="color: var(--burger-accent); font-weight: 800;">Ganancia: $${ganancia.toFixed(2)}</span>`;
               breakdown.push(line);
             } else {
               breakdown.push(`  • ${categoria}: ${name} (Venta: $${precio.toFixed(2)} | Costo: $${costo.toFixed(2)} | Ganancia: $${ganancia.toFixed(2)})`);
@@ -9412,13 +10025,69 @@
 
     // Charts
     let salesChart, productsChart;
+    // ── Chart quality helpers ───────────────────────────────────────
+    let __chartDefaultsReady = false;
+    function setupChartDefaults(){
+      if(!window.Chart || __chartDefaultsReady) return;
+      __chartDefaultsReady = true;
+      const amber      = '#E6B325';
+      const mutedText  = 'rgba(255,255,255,0.50)';
+      const gridColor  = 'rgba(255,255,255,0.07)';
+      // Global font
+      Chart.defaults.color = mutedText;
+      Chart.defaults.font.family = "'Montserrat', 'Inter', sans-serif";
+      Chart.defaults.font.size   = 11;
+      // Animation
+      Chart.defaults.animation = { duration: 650, easing: 'easeOutQuart' };
+      // Legend
+      Chart.defaults.plugins.legend.labels.color          = mutedText;
+      Chart.defaults.plugins.legend.labels.usePointStyle  = true;
+      Chart.defaults.plugins.legend.labels.pointStyleWidth = 8;
+      Chart.defaults.plugins.legend.labels.padding        = 14;
+      // Tooltip glass style
+      Chart.defaults.plugins.tooltip.backgroundColor  = 'rgba(14,14,14,0.94)';
+      Chart.defaults.plugins.tooltip.borderColor      = amber;
+      Chart.defaults.plugins.tooltip.borderWidth      = 1;
+      Chart.defaults.plugins.tooltip.titleColor       = amber;
+      Chart.defaults.plugins.tooltip.bodyColor        = 'rgba(255,255,255,0.82)';
+      Chart.defaults.plugins.tooltip.padding          = 11;
+      Chart.defaults.plugins.tooltip.cornerRadius     = 10;
+      Chart.defaults.plugins.tooltip.boxPadding       = 4;
+      Chart.defaults.plugins.tooltip.caretSize        = 5;
+      // Scale defaults (grid + ticks for dark theme)
+      try{
+        ['linear','category'].forEach(type=>{
+          const s = (Chart.defaults.scales||{})[type];
+          if(!s) return;
+          s.grid  = Object.assign(s.grid  ||{}, { color: gridColor, drawBorder: false });
+          s.ticks = Object.assign(s.ticks ||{}, { color: mutedText, padding: 6 });
+        });
+      }catch(_){ }
+    }
+    // Returns a vertical linear gradient or the fallback color if ctx unavailable
+    function chartGradient(ctx, colorTop, colorBottom, h){
+      try{
+        const height = h || ctx.canvas.offsetHeight || 200;
+        const g = ctx.createLinearGradient(0, 0, 0, height);
+        g.addColorStop(0, colorTop);
+        g.addColorStop(1, colorBottom);
+        return g;
+      }catch(_){ return colorTop; }
+    }
+    // Palette for multi-series charts
+    const CHART_PALETTE = [
+      '#E6B325','#10B981','#3B82F6','#A855F7','#EF4444',
+      '#F97316','#06B6D4','#EC4899','#84CC16','#8B5CF6'
+    ];
+    // ─────────────────────────────────────────────────────────────────
+
     function renderCharts(){
-      // Tweak Chart defaults on small screens
+      setupChartDefaults();
+      // Responsive font tweak
       try{
         if(window.Chart){
           const small = window.matchMedia('(max-width: 640px)').matches;
-          Chart.defaults.font.size = small ? 10 : 12;
-          Chart.defaults.plugins.legend.labels.boxWidth = small ? 10 : 12;
+          Chart.defaults.font.size = small ? 10 : 11;
         }
       }catch(_){ }
       const period = document.getElementById('rep-period-select')?.value || '30d';
@@ -9457,11 +10126,7 @@
       const aov = orders>0 ? revenue/orders : 0;
       // Margen bruto estimado = ventas - costo receta
       const prodLookup = new Map((uniqueByProductName? uniqueByProductName(appState.productos||[]): (appState.productos||[])).map(p=>[p.id,p]));
-      const estCost = sum(ventas, v=> sum(v.items||[], it=>{
-        const prod = prodLookup.get(it.productoId) || appState.productos.find(p=>p.id===it.productoId);
-        const cost = (prod && typeof prod.costo==='number') ? prod.costo : computeRecipeCost(prod?.receta||[]);
-        return (cost || 0) * (it.cantidad||0);
-      }));
+      const estCost = sum(ventas, v=> ventaCOGS(v));
   // Margen bruto estimado = ingresos de productos - costo estimado de recetas
   const gp = productRevenue - estCost;
       const setTxt = (id, txt)=>{ const el=document.getElementById(id); if(el) el.textContent = txt; };
@@ -9502,33 +10167,133 @@
         const byDay = {};
         ventas.forEach(v=>{ const k = new Date(v.fecha).toISOString().slice(0,10); byDay[k] = (byDay[k]||0) + (v.total||0); });
         const labelsSales = Object.keys(byDay).sort();
+        const salesGrad = chartGradient(salesCtx, 'rgba(16,185,129,0.45)', 'rgba(16,185,129,0.02)');
         salesChart = new Chart(salesCtx, {
           type: 'line',
-          data: { labels: labelsSales, datasets: [ { label: 'Ventas', data: labelsSales.map(k=>byDay[k]), borderColor: '#10B981', backgroundColor: 'rgba(16,185,129,.2)', tension:.3 } ] },
-          options: { responsive: true, plugins: { legend: { display: false } }, scales:{ x:{ ticks:{ maxRotation:0, autoSkip:true, maxTicksLimit: (window.innerWidth<640?5:10) } }, y:{ ticks:{ callback:(v)=>'$'+v } } } }
+          data: { labels: labelsSales, datasets: [{
+            label: 'Ventas',
+            data: labelsSales.map(k=>byDay[k]),
+            borderColor: '#10B981',
+            backgroundColor: salesGrad,
+            borderWidth: 2.5,
+            tension: 0.42,
+            fill: true,
+            pointRadius: 3,
+            pointHoverRadius: 7,
+            pointBackgroundColor: '#10B981',
+            pointBorderColor: '#fff',
+            pointBorderWidth: 1.5
+          }]},
+          options: {
+            responsive: true,
+            interaction: { mode:'index', intersect:false },
+            plugins: {
+              legend: { display: false },
+              tooltip: { callbacks: { label: ctx => ' $' + (ctx.parsed.y||0).toFixed(2) } }
+            },
+            scales:{
+              x:{ ticks:{ maxRotation:0, autoSkip:true, maxTicksLimit:(window.innerWidth<640?5:10) } },
+              y:{ ticks:{ callback: v=>'$'+v }, beginAtZero:true }
+            }
+          }
         });
       }
       if (prodCtx) {
         const counts = {};
         ventas.forEach(v=> (v.items||[]).forEach(it=>{ counts[it.nombre] = (counts[it.nombre]||0) + (it.cantidad||0); }));
         const labelsProducts = Object.keys(counts).sort((a,b)=> counts[b]-counts[a]).slice(0,10);
-        productsChart = new Chart(prodCtx, { type: 'bar', data: { labels: labelsProducts, datasets: [ { label: 'Cantidad', data: labelsProducts.map(k=>counts[k]), backgroundColor: '#3B82F6' } ] }, options: { responsive: true, plugins: { legend: { display: false } } } });
+        productsChart = new Chart(prodCtx, {
+          type: 'bar',
+          data: { labels: labelsProducts, datasets: [{
+            label: 'Unidades',
+            data: labelsProducts.map(k=>counts[k]),
+            backgroundColor: labelsProducts.map((_,i)=> CHART_PALETTE[i % CHART_PALETTE.length]),
+            borderRadius: 7,
+            borderSkipped: false,
+            borderWidth: 0
+          }]},
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: false },
+              tooltip: { callbacks: { label: ctx => ' ' + ctx.parsed.y + ' uds.' } }
+            },
+            scales: {
+              x: { ticks: { maxRotation: 30 } },
+              y: { beginAtZero: true }
+            }
+          }
+        });
       }
       if(typeCtx){
         const byType = { local:0, para_llevar:0, envio:0 };
         ventas.forEach(v=>{ byType[v.tipo||'local'] = (byType[v.tipo||'local']||0) + (v.total||0); });
-        window.__typeChart = new Chart(typeCtx, { type:'doughnut', data:{ labels:['Local','Para llevar','Envío'], datasets:[{ data:[byType.local||0, byType.para_llevar||0, byType.envio||0], backgroundColor:['#10B981','#F59E0B','#3B82F6'] }] }, options:{ responsive:true, plugins:{ legend:{ position:'bottom' } } } });
+        window.__typeChart = new Chart(typeCtx, {
+          type: 'doughnut',
+          data: { labels: ['Local','Para llevar','Envío'], datasets: [{
+            data: [byType.local||0, byType.para_llevar||0, byType.envio||0],
+            backgroundColor: ['#10B981','#F59E0B','#3B82F6'],
+            hoverBackgroundColor: ['#34D399','#FBBF24','#60A5FA'],
+            borderWidth: 3,
+            borderColor: 'rgba(0,0,0,0)',
+            hoverOffset: 10
+          }]},
+          options: {
+            responsive: true,
+            cutout: '66%',
+            plugins: {
+              legend: { position:'bottom' },
+              tooltip: { callbacks: { label: ctx => ' $' + (ctx.parsed||0).toFixed(2) + '  (' + ctx.label + ')' } }
+            }
+          }
+        });
       }
       if(payCtx){
         const byPay = {};
         ventas.forEach(v=>{ const m=v.pago?.metodo||'Efectivo'; byPay[m]=(byPay[m]||0)+(v.total||0); });
         const labels = Object.keys(byPay);
-        window.__payChart = new Chart(payCtx, { type:'pie', data:{ labels, datasets:[{ data: labels.map(k=>byPay[k]), backgroundColor:['#8B4513','#FF6B35','#10B981','#3B82F6','#F59E0B'] }] }, options:{ responsive:true, plugins:{ legend:{ position:'bottom' } } } });
+        window.__payChart = new Chart(payCtx, {
+          type: 'pie',
+          data: { labels, datasets: [{
+            data: labels.map(k=>byPay[k]),
+            backgroundColor: ['#E6B325','#10B981','#3B82F6','#A855F7','#EF4444'],
+            hoverBackgroundColor: ['#F5C842','#34D399','#60A5FA','#C084FC','#F87171'],
+            borderWidth: 3,
+            borderColor: 'rgba(0,0,0,0)',
+            hoverOffset: 10
+          }]},
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { position:'bottom' },
+              tooltip: { callbacks: { label: ctx => ' $' + (ctx.parsed||0).toFixed(2) } }
+            }
+          }
+        });
       }
       if(weekCtx){
         const byDay = [0,0,0,0,0,0,0]; // Domingo..Sábado
         ventas.forEach(v=>{ const d=new Date(v.fecha).getDay(); byDay[d] += (v.total||0); });
-        window.__weekChart = new Chart(weekCtx, { type:'bar', data:{ labels:['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'], datasets:[{ label:'Ingresos', data:byDay, backgroundColor:'#A855F7' }] }, options:{ responsive:true, plugins:{ legend:{ display:false } } } });
+        const weekColors = ['#A855F7','#8B5CF6','#7C3AED','#6D28D9','#7C3AED','#A855F7','#C084FC'];
+        window.__weekChart = new Chart(weekCtx, {
+          type: 'bar',
+          data: { labels:['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'], datasets: [{
+            label: 'Ingresos',
+            data: byDay,
+            backgroundColor: weekColors,
+            borderRadius: 8,
+            borderSkipped: false,
+            borderWidth: 0
+          }]},
+          options: {
+            responsive: true,
+            plugins: {
+              legend: { display: false },
+              tooltip: { callbacks: { label: ctx => ' $' + (ctx.parsed.y||0).toFixed(2) } }
+            },
+            scales: { y: { beginAtZero: true, ticks: { callback: v=>'$'+v } } }
+          }
+        });
       }
       if(topCliCtx){
         const byClient = {};
@@ -9536,7 +10301,26 @@
         const sorted = Object.entries(byClient).sort((a,b)=> b[1]-a[1]).slice(0,10);
         const labels = sorted.map(([id])=> appState.clientes.find(c=>c.id===id)?.nombre || 'General');
         const values = sorted.map(([,val])=> val);
-        window.__topCliChart = new Chart(topCliCtx, { type:'bar', data:{ labels, datasets:[{ label:'Ingresos', data:values, backgroundColor:'#DC143C' }] }, options:{ indexAxis:'y', responsive:true, plugins:{ legend:{ display:false } } } });
+        window.__topCliChart = new Chart(topCliCtx, {
+          type: 'bar',
+          data: { labels, datasets: [{
+            label: 'Ingresos',
+            data: values,
+            backgroundColor: values.map((_,i)=> `rgba(230,179,37,${1 - i*0.07})`),
+            borderRadius: 6,
+            borderSkipped: false,
+            borderWidth: 0
+          }]},
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            plugins: {
+              legend: { display: false },
+              tooltip: { callbacks: { label: ctx => ' $' + (ctx.parsed.x||0).toFixed(2) } }
+            },
+            scales: { x: { beginAtZero: true, ticks: { callback: v=>'$'+v } } }
+          }
+        });
       }
       if (marginCtx) {
         const totals = {};
@@ -9544,8 +10328,7 @@
           const vSubtotal = v.subtotal||0;
           const vDesc = v.descuento||0;
           (v.items||[]).forEach(it=>{
-            const prod = prodLookup.get(it.productoId) || appState.productos.find(p=>p.id===it.productoId);
-            const costUnit = (prod && typeof prod.costo==='number') ? prod.costo : computeRecipeCost(prod?.receta||[]);
+            const costUnit = itemUnitCostForCOGS(it);
             const key = it.nombre;
             if(!totals[key]) totals[key] = { qty:0, revenue:0, cost:0 };
             const lineRevenue = (it.precio||0) * (it.cantidad||0);
@@ -9558,12 +10341,65 @@
         });
         const entries = Object.entries(totals).map(([name, t])=> [name, Math.max(0, (t.revenue||0) - (t.cost||0))]);
         const top = entries.sort((a,b)=> b[1]-a[1]).slice(0,10);
-        window.__marginChart = new Chart(marginCtx, { type:'bar', data:{ labels: top.map(e=>e[0]), datasets:[{ label:'Margen bruto', data: top.map(e=>e[1]), backgroundColor:'#059669' }] }, options:{ indexAxis:'y', responsive:true, plugins:{ legend:{ display:false } } } });
+        window.__marginChart = new Chart(marginCtx, {
+          type: 'bar',
+          data: { labels: top.map(e=>e[0]), datasets: [{
+            label: 'Margen bruto',
+            data: top.map(e=>e[1]),
+            backgroundColor: top.map((_,i)=> `rgba(16,185,129,${1 - i*0.07})`),
+            borderRadius: 6,
+            borderSkipped: false,
+            borderWidth: 0
+          }]},
+          options: {
+            indexAxis: 'y',
+            responsive: true,
+            plugins: {
+              legend: { display: false },
+              tooltip: { callbacks: { label: ctx => ' $' + (ctx.parsed.x||0).toFixed(2) } }
+            },
+            scales: { x: { beginAtZero: true, ticks: { callback: v=>'$'+v } } }
+          }
+        });
       }
       if (hourlyCtx) {
         const byHour = new Array(24).fill(0);
         ventas.forEach(v=>{ const d=new Date(v.fecha); byHour[d.getHours()] += (v.total||0); });
-        window.__hourlyRepChart = new Chart(hourlyCtx, { type:'line', data:{ labels:[...Array(24)].map((_,h)=> h+':00'), datasets:[{ label:'Ingresos', data:byHour, borderColor:'#2563EB', backgroundColor:'rgba(37,99,235,.15)', tension:.3 }] }, options:{ responsive:true, plugins:{ legend:{ display:false } } } });
+        try{
+          const accent = getCssVar('--burger-accent', '#E6B325');
+          const hrGrad = chartGradient(hourlyCtx, 'rgba(230,179,37,0.45)', 'rgba(230,179,37,0.02)');
+          window.__hourlyRepChart = new Chart(hourlyCtx, {
+            type: 'line',
+            data: { labels: [...Array(24)].map((_,h)=> h+':00'), datasets: [{
+              label: 'Ingresos',
+              data: byHour,
+              borderColor: accent,
+              backgroundColor: hrGrad,
+              borderWidth: 2.5,
+              tension: 0.42,
+              fill: true,
+              pointRadius: 3,
+              pointHoverRadius: 7,
+              pointBackgroundColor: accent,
+              pointBorderColor: '#fff',
+              pointBorderWidth: 1.5
+            }]},
+            options: {
+              responsive: true,
+              interaction: { mode:'index', intersect:false },
+              plugins: {
+                legend: { display: false },
+                tooltip: { callbacks: { label: ctx => ' $' + (ctx.parsed.y||0).toFixed(2) } }
+              },
+              scales: {
+                x: { ticks: { maxRotation:0, autoSkip:true, maxTicksLimit:12 } },
+                y: { beginAtZero:true, ticks:{ callback: v=>'$'+v } }
+              }
+            }
+          });
+        }catch(_){
+          window.__hourlyRepChart = new Chart(hourlyCtx, { type:'line', data:{ labels:[...Array(24)].map((_,h)=> h+':00'), datasets:[{ label:'Ingresos', data:byHour, borderColor:'#E6B325', backgroundColor:'rgba(230,179,37,.18)', tension:.4, fill:true }] }, options:{ responsive:true, plugins:{ legend:{ display:false } } } });
+        }
       }
 
   // También actualizar desglose de gastos bajo Reportes
@@ -9628,8 +10464,7 @@
       const agg = {};
   ventas.forEach(v=> (v.items||[]).forEach(it=>{
   const key = it.nombre;
-  const prod = prodLookup.get(it.productoId) || appState.productos.find(p=>p.id===it.productoId);
-        const costUnit = (prod && typeof prod.costo==='number') ? prod.costo : computeRecipeCost(prod?.receta||[]);
+        const costUnit = itemUnitCostForCOGS(it);
         if(!agg[key]) agg[key] = { qty:0, revenue:0, cost:0 };
         agg[key].qty += it.cantidad||0;
         agg[key].revenue += (it.precio||0) * (it.cantidad||0);
@@ -9689,11 +10524,7 @@
       const sum = (arr,f)=> arr.reduce((s,x)=> s + (f?f(x):x), 0);
       const spend = sum(rows, r=> r.gasto||0);
       const revenue = sum(ventasFiltradas||[], v=> v.total||0);
-      const cogs = sum(ventasFiltradas||[], v=> sum(v.items||[], it=>{
-        const prod = appState.productos.find(p=>p.id===it.productoId);
-        const cost = (prod && typeof prod.costo==='number') ? prod.costo : computeRecipeCost(prod?.receta||[]);
-        return (cost || 0) * (it.cantidad||0);
-      }));
+      const cogs = sum(ventasFiltradas||[], v=> ventaCOGS(v));
       const gp = revenue - cogs;
       const setTxt = (id, txt)=>{ const el=document.getElementById(id); if(el) el.textContent = txt; };
       setTxt('exp-total-spend', fmt(spend));
@@ -9708,9 +10539,25 @@
       if(dough && dataVals.some(v=> v>0)){
         emptyMsg?.classList.add('hidden');
         window.__expenseChart = new Chart(dough, {
-          type:'doughnut',
-          data:{ labels, datasets:[{ data:dataVals, backgroundColor:['#1D4ED8','#059669','#DC2626','#F59E0B','#7C3AED','#2563EB','#10B981','#EF4444','#F59E0B','#6366F1'] }] },
-          options:{ responsive:true, plugins:{ legend:{ position:'bottom' } } }
+          type: 'doughnut',
+          data: {
+            labels,
+            datasets: [{
+              data: dataVals,
+              backgroundColor: CHART_PALETTE.slice(0, labels.length),
+              borderWidth: 3,
+              borderColor: 'rgba(0,0,0,0)',
+              hoverOffset: 10
+            }]
+          },
+          options: {
+            responsive: true,
+            cutout: '62%',
+            plugins: {
+              legend: { position: 'bottom' },
+              tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': $' + (ctx.raw||0).toFixed(2) } }
+            }
+          }
         });
       } else { emptyMsg?.classList.remove('hidden'); }
     }
@@ -11072,8 +11919,110 @@ En Firebase Console → Authentication:
     }
 
     // Init
+    // ── Theme / Personalización ──────────────────────────────────────
+    const THEME_PRESETS = [
+      { id:'amber',   name:'Ámbar',      emoji:'🟡', main:'#E6B325', dark:'#B8861A', r:230, g:179, b:37  },
+      { id:'emerald', name:'Esmeralda',  emoji:'🟢', main:'#10B981', dark:'#059669', r:16,  g:185, b:129 },
+      { id:'sky',     name:'Cielo',      emoji:'🔵', main:'#3B82F6', dark:'#1D4ED8', r:59,  g:130, b:246 },
+      { id:'purple',  name:'Violeta',    emoji:'🟣', main:'#A855F7', dark:'#7C3AED', r:168, g:85,  b:247 },
+      { id:'rose',    name:'Rosa',       emoji:'🌹', main:'#F43F5E', dark:'#BE123C', r:244, g:63,  b:94  },
+      { id:'orange',  name:'Naranja',    emoji:'🟠', main:'#F97316', dark:'#C2410C', r:249, g:115, b:22  },
+      { id:'cyan',    name:'Cian',       emoji:'🩵', main:'#06B6D4', dark:'#0E7490', r:6,   g:182, b:212 },
+      { id:'pink',    name:'Rosa chicle',emoji:'🌸', main:'#EC4899', dark:'#BE185D', r:236, g:72,  b:153 },
+      { id:'teal',    name:'Teal',       emoji:'🫐', main:'#14B8A6', dark:'#0F766E', r:20,  g:184, b:166 },
+      { id:'lime',    name:'Lima',       emoji:'🍏', main:'#84CC16', dark:'#4D7C0F', r:132, g:204, b:22  },
+    ];
+
+    function hexToRgbParts(hex){
+      try{
+        const h = hex.replace('#','');
+        const full = h.length===3 ? h.split('').map(c=>c+c).join('') : h;
+        const n = parseInt(full,16);
+        return { r:(n>>16)&255, g:(n>>8)&255, b:n&255 };
+      }catch(_){ return {r:230,g:179,b:37}; }
+    }
+
+    function applyThemeColor(main, dark, r, g, b, name){
+      const el = document.documentElement;
+      el.style.setProperty('--brand-accent', main);
+      el.style.setProperty('--amber',       main);
+      el.style.setProperty('--amber-dark',  dark);
+      el.style.setProperty('--amber-soft',  `rgba(${r},${g},${b},.16)`);
+      el.style.setProperty('--amber-glow',  `0 0 28px rgba(${r},${g},${b},.28)`);
+      // Update body background glow radials
+      document.body.style.background =
+        `radial-gradient(ellipse 80vw 55vh at 8%  8%,  rgba(${r},${g},${b},.10) 0%, transparent 55%),`+
+        `radial-gradient(ellipse 70vw 45vh at 92% 14%, rgba(${r},${g},${b},.07) 0%, transparent 60%),`+
+        `radial-gradient(ellipse 55vw 40vh at 50% 98%, rgba(${r},${g},${b},.05) 0%, transparent 55%),`+
+        `#111111`;
+      // Persist
+      try{
+        localStorage.setItem('gestia_theme', JSON.stringify({ main, dark, r, g, b, name: name||main }));
+      }catch(_){}
+      // Update preview label
+      const lbl = document.getElementById('preview-hex-label');
+      if(lbl) lbl.textContent = main + ' — ' + (name||'Personalizado');
+      // Sync custom color input
+      const ci = document.getElementById('theme-custom-color');
+      if(ci) ci.value = main;
+      // Refresh chart defaults if any charts exist
+      try{ __chartDefaultsReady = false; setupChartDefaults(); }catch(_){}
+      // Highlight active swatch
+      document.querySelectorAll('.theme-swatch').forEach(sw=>{
+        const isActive = sw.dataset.main === main;
+        sw.style.outline = isActive ? `3px solid #fff` : 'none';
+        sw.style.outlineOffset = isActive ? '3px' : '0';
+        sw.style.transform = isActive ? 'scale(1.18)' : 'scale(1)';
+      });
+    }
+
+    function loadSavedTheme(){
+      try{
+        const saved = localStorage.getItem('gestia_theme');
+        if(!saved) return;
+        const t = JSON.parse(saved);
+        if(t?.main) applyThemeColor(t.main, t.dark||t.main, t.r||230, t.g||179, t.b||37, t.name);
+      }catch(_){}
+    }
+
+    function renderThemePicker(){
+      const palette = document.getElementById('theme-palette');
+      if(!palette || palette.dataset.rendered) return;
+      palette.dataset.rendered = '1';
+
+      // Get current color to mark active
+      const current = (()=>{
+        try{ return JSON.parse(localStorage.getItem('gestia_theme')||'{}').main || '#E6B325'; }catch(_){ return '#E6B325'; }
+      })();
+
+      palette.innerHTML = THEME_PRESETS.map(p => `
+        <button class="theme-swatch flex flex-col items-center gap-1.5 group"
+          data-main="${p.main}" data-dark="${p.dark}"
+          data-r="${p.r}" data-g="${p.g}" data-b="${p.b}" data-name="${p.name}"
+          title="${p.name}"
+          style="background:none;border:none;cursor:pointer;padding:4px;border-radius:12px;transition:transform .18s ease, outline .18s ease;
+            outline:${p.main===current?'3px solid #fff':'none'};
+            outline-offset:${p.main===current?'3px':'0'};
+            transform:${p.main===current?'scale(1.18)':'scale(1)'}">
+          <div style="width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,${p.main},${p.dark});
+            box-shadow:0 6px 20px rgba(${p.r},${p.g},${p.b},.45)"></div>
+          <span style="font-size:10px;font-weight:700;letter-spacing:.04em;color:rgba(255,255,255,.65)">${p.name}</span>
+        </button>`
+      ).join('');
+
+      palette.querySelectorAll('.theme-swatch').forEach(btn=>{
+        btn.addEventListener('click', ()=>{
+          const { main, dark, r, g, b, name } = btn.dataset;
+          applyThemeColor(main, dark, +r, +g, +b, name);
+        });
+      });
+    }
+    // ─────────────────────────────────────────────────────────────────
+
     document.addEventListener('DOMContentLoaded', ()=>{
       console.log('[INIT] DOMContentLoaded');
+      try{ setupChartDefaults(); }catch(_){ }
+      loadSavedTheme();
       // Failsafe: nunca dejar el loader pegado si algo truena en el init
       setTimeout(()=>{ try{ hideLoading(); }catch(_){ } }, 2500);
       try{
@@ -11103,9 +12052,15 @@ En Firebase Console → Authentication:
           
           // Actualizar estilos de botones
           document.querySelectorAll('.productos-filter-btn').forEach(b => {
-            b.classList.remove('active', 'border-blue-500', 'bg-blue-50', 'text-blue-700');
+            b.classList.remove('active');
+            try{ b.style.borderColor = ''; b.style.background = ''; b.style.color = ''; }catch(_){ }
           });
-          btn.classList.add('active', 'border-blue-500', 'bg-blue-50', 'text-blue-700');
+          btn.classList.add('active');
+          try{
+            btn.style.borderColor = 'var(--burger-accent)';
+            btn.style.background = 'color-mix(in srgb, var(--burger-accent) 18%, transparent)';
+            btn.style.color = 'var(--app-text)';
+          }catch(_){ }
           
           // Re-renderizar tabla
           renderProductosTabla();
@@ -11121,6 +12076,22 @@ En Firebase Console → Authentication:
   document.getElementById('rep-period-select')?.addEventListener('change', renderCharts);
   setupReportFilters();
       setupCajaFilters();
+      // Theme picker wiring
+      document.addEventListener('click', e=>{
+        const applyBtn = e.target.closest('#btn-apply-custom');
+        if(applyBtn){
+          const ci = document.getElementById('theme-custom-color');
+          if(!ci) return;
+          const hex = ci.value;
+          const { r, g, b } = hexToRgbParts(hex);
+          const darkHex = '#' + [r,g,b].map(x=>Math.max(0,Math.floor(x*.75)).toString(16).padStart(2,'0')).join('');
+          applyThemeColor(hex, darkHex, r, g, b, 'Personalizado');
+        }
+        const resetBtn = e.target.closest('#btn-reset-theme');
+        if(resetBtn){
+          applyThemeColor('#E6B325','#B8861A',230,179,37,'Ámbar');
+        }
+      });
       wirePosInputs();
       setupCreateButtons();
       setupIngredientesActions();
@@ -11164,10 +12135,10 @@ En Firebase Console → Authentication:
 	if(!heroOverlay) return;
 	heroOverlay.classList.remove('hidden');
 	if(mode==='signup'){
-	  if(heroTitle) heroTitle.textContent = 'Crear cuenta en Gestia';
+    if(heroTitle) heroTitle.textContent = 'Crear cuenta en Gestia';
 	  if(heroSubtitle) heroSubtitle.textContent = 'Registra una cuenta para sincronizar tu punto de venta.';
 	} else {
-	  if(heroTitle) heroTitle.textContent = 'Iniciar sesión en Gestia';
+    if(heroTitle) heroTitle.textContent = 'Iniciar sesión en Gestia';
 	  if(heroSubtitle) heroSubtitle.textContent = 'Usa tu correo y contraseña para continuar donde te quedaste.';
 	}
 	setTimeout(()=> heroEmail?.focus(), 10);
@@ -11234,7 +12205,8 @@ En Firebase Console → Authentication:
           }
         };
         const initial = getTheme();
-        setTheme(initial==='dark' ? 'dark' : 'light');
+        // Brand default: premium dark mode
+        setTheme(initial==='light' ? 'light' : 'dark');
         const toggle = ()=>{
           const current = (document.documentElement.getAttribute('data-theme')||'light').toLowerCase();
           setTheme(current==='dark' ? 'light' : 'dark');
@@ -11360,6 +12332,130 @@ En Firebase Console → Authentication:
         reader.readAsText(file);
       }catch(e){ console.warn('restoreDataFromFile', e); alert('No se pudo restaurar.'); }
     }
+  </script>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       UX & Performance Enhancements — SYSRABURGER
+       - Ripple effect on buttons
+       - KPI number pop animation on change
+       - Intersection Observer for lazy-init sections
+       - IntersectionObserver for table row entrance
+       ═══════════════════════════════════════════════════════════ -->
+  <script>
+  (function(){
+    'use strict';
+
+    /* ── 1. Ripple Effect ──────────────────────────────────── */
+    function addRipple(e){
+      const btn = e.currentTarget;
+      // Skip if overflow is already used for something else
+      const style = getComputedStyle(btn);
+      if(style.position === 'static') btn.style.position = 'relative';
+
+      const rect   = btn.getBoundingClientRect();
+      const size   = Math.max(rect.width, rect.height) * 1.4;
+      const x      = e.clientX - rect.left;
+      const y      = e.clientY - rect.top;
+
+      const wave   = document.createElement('span');
+      wave.className = 'ripple-wave';
+      wave.style.cssText = `
+        width:${size}px; height:${size}px;
+        left:${x}px; top:${y}px;
+        margin:-${size/2}px 0 0 -${size/2}px;
+        position:absolute; border-radius:50%;
+        pointer-events:none;
+        animation-duration:${Math.max(420, size * 0.9)}ms;
+      `;
+      btn.classList.add('ripple-host');
+      btn.appendChild(wave);
+      wave.addEventListener('animationend', ()=>{ wave.remove(); }, { once:true });
+    }
+
+    function attachRipples(){
+      document.querySelectorAll(
+        'button.btn-gradient, button.btn-success, button.btn-danger, button.btn-outline, button.btn-soft, .nav-link'
+      ).forEach(btn => {
+        if(btn.dataset.ripple) return;
+        btn.dataset.ripple = '1';
+        btn.addEventListener('pointerdown', addRipple);
+      });
+    }
+
+    // Attach now and re-attach after any dynamic render
+    attachRipples();
+    const _rippleObserver = new MutationObserver(()=> attachRipples());
+    _rippleObserver.observe(document.body, { childList:true, subtree:true });
+
+
+    /* ── 2. KPI Number Pop ─────────────────────────────────── */
+    const kpiIds = [
+      'kpi-revenue','kpi-orders','kpi-aov','kpi-items',
+      'kpi-discount','kpi-shipping','kpi-top-product','kpi-top-client'
+    ];
+    const _kpiPrev = {};
+    function watchKPIs(){
+      kpiIds.forEach(id => {
+        const el = document.getElementById(id);
+        if(!el) return;
+        const val = el.textContent;
+        if(_kpiPrev[id] !== undefined && _kpiPrev[id] !== val){
+          el.classList.remove('num-updated');
+          void el.offsetWidth;
+          el.classList.add('num-updated');
+          el.addEventListener('animationend', ()=> el.classList.remove('num-updated'), { once:true });
+        }
+        _kpiPrev[id] = val;
+      });
+    }
+    // Poll KPI values periodically when dashboard is visible
+    setInterval(watchKPIs, 800);
+
+
+    /* ── 3. Intersection Observer: table rows ──────────────── */
+    if('IntersectionObserver' in window){
+      const rowObserver = new IntersectionObserver((entries)=>{
+        entries.forEach(entry => {
+          if(entry.isIntersecting){
+            entry.target.style.opacity = '1';
+            entry.target.style.transform = 'none';
+            rowObserver.unobserve(entry.target);
+          }
+        });
+      }, { rootMargin:'0px 0px -20px 0px', threshold:0.05 });
+
+      // Watch for new table rows
+      const tableObserver = new MutationObserver(()=>{
+        document.querySelectorAll('.table-nice tbody tr:not([data-observed])').forEach(row => {
+          row.dataset.observed = '1';
+          rowObserver.observe(row);
+        });
+      });
+      tableObserver.observe(document.body, { childList:true, subtree:true });
+    }
+
+
+    /* ── 4. Performance: requestIdleCallback pre-warms ──────── */
+    const idle = window.requestIdleCallback || (cb => setTimeout(cb, 60));
+    idle(()=>{
+      // Pre-warm fonts
+      try{ document.fonts.ready; }catch(_){ }
+    });
+
+
+    /* ── 5. Nav keyboard shortcut (Alt+1 … Alt+9) ─────────── */
+    const NAV_KEYS = ['inicio','dashboard','caja','vender','pedidos-pendientes','ventas','productos','clientes','reportes'];
+    document.addEventListener('keydown', e => {
+      if(e.altKey && !e.ctrlKey && !e.metaKey && e.key >= '1' && e.key <= '9'){
+        const idx = parseInt(e.key) - 1;
+        if(NAV_KEYS[idx] && typeof window.showView === 'function'){
+          e.preventDefault();
+          window.showView(NAV_KEYS[idx]);
+        }
+      }
+    });
+
+  })();
   </script>
 </body>
 </html>

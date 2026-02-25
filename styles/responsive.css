@@ -1,0 +1,166 @@
+/* Shared responsive + mobile fixes (safe overrides).
+   Intentionally minimal: only improves responsiveness/touch behavior. */
+
+:root{
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+}
+
+html{
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  scroll-behavior: smooth;
+}
+
+*, *::before, *::after{ box-sizing: border-box; }
+
+img, video, canvas{
+  max-width: 100%;
+  height: auto;
+}
+
+/* Prevent accidental horizontal overflow from wide tables/cards */
+body{ overflow-x: hidden; }
+
+/* iOS Safari: prefer dynamic viewport units when available */
+@supports (height: 100dvh){
+  .min-h-screen{ min-height: 100dvh !important; }
+  .h-screen{ height: 100dvh !important; }
+}
+
+/* Safe-area: keep floating buttons above home indicator */
+#btn-theme-fab{ bottom: calc(16px + var(--safe-bottom)) !important; }
+#mobile-menu-btn{ bottom: calc(1rem + var(--safe-bottom)) !important; }
+
+/* Sidebar width/position on mobile/tablet.
+   IMPORTANT: index.html hides the sidebar by moving it left.
+   If we change the width, we must also change the hidden left offset
+   to avoid a visible "peek" strip on the left. */
+@media (max-width: 1024px){
+  .sidebar{ width: min(86vw, 320px) !important; }
+  .sidebar:not(.open){ left: calc(-1 * min(86vw, 320px)) !important; }
+}
+
+/* Views and layout: avoid clipping content on small screens */
+@media (max-width: 768px){
+  .view{ overflow: visible !important; }
+
+  /* iOS: smooth scrolling inside the main pane (index layout) */
+  main{ -webkit-overflow-scrolling: touch; }
+}
+
+/* Section headers/toolbars: stack title + buttons on phones */
+@media (max-width: 640px){
+  /* Common pattern used across modules: <div class="flex justify-between items-center mb-4"> */
+  section.view > .flex.justify-between.items-center.mb-4{
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: .75rem !important;
+  }
+
+  /* The actions container (usually the last child div with buttons) */
+  section.view > .flex.justify-between.items-center.mb-4 > :last-child{
+    width: 100% !important;
+    justify-content: flex-start !important;
+    flex-wrap: wrap !important;
+  }
+
+  /* Some pages use a nested toolbar (e.g. Insumos period + actions) */
+  section.view .flex.justify-between.items-center{
+    flex-wrap: wrap;
+    gap: .5rem;
+  }
+}
+
+@media (max-width: 420px){
+  /* On very small phones, make action buttons readable and tappable */
+  section.view > .flex.justify-between.items-center.mb-4 > :last-child > button,
+  section.view > .flex.justify-between.items-center.mb-4 > :last-child > a{
+    width: 100% !important;
+  }
+
+  /* Index: category filters row (prevent squeeze/overflow) */
+  #add-categoria-btn{ width: 100% !important; justify-content: center !important; }
+  #productos-filter-container{ overflow-x: auto; -webkit-overflow-scrolling: touch; }
+}
+
+/* Modals: usable on phones (fit, scroll, no background scroll) */
+#modal-container{ overscroll-behavior: contain; }
+@media (max-width: 640px){
+  #modal-container{
+    align-items: flex-start !important;
+    justify-content: center !important;
+    padding: 12px !important;
+    padding-top: calc(12px + var(--safe-top)) !important;
+    padding-bottom: calc(12px + var(--safe-bottom)) !important;
+    overflow-y: auto;
+  }
+  /* modal root (the direct child injected into #modal-container) */
+  #modal-container > div{
+    max-height: calc(100dvh - 24px - var(--safe-top) - var(--safe-bottom));
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Tables: allow horizontal scroll on small screens */
+@media (max-width: 768px){
+  /* NOTE: per-page inline styles load after this file.
+     Use !important to ensure mobile behavior wins. */
+  table.table-nice,
+  table.ingredientes-table,
+  table.insumos-table{
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 12px !important;
+  }
+
+  /* Make dense tables readable on phones */
+  table.table-nice th, table.table-nice td,
+  table.ingredientes-table th, table.ingredientes-table td,
+  table.insumos-table th, table.insumos-table td{
+    padding: .4rem .45rem !important;
+    font-size: .78rem !important;
+    line-height: 1.05rem !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+  }
+
+  /* Productos (iPhone/móvil): evitar texto "letra por letra".
+     Es una tabla ancha: mejor scroll horizontal con palabras completas. */
+  #view-productos table.table-nice{
+    min-width: 980px !important;
+  }
+  #view-productos table.table-nice th,
+  #view-productos table.table-nice td{
+    white-space: nowrap !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+  }
+  /* Permitir que la descripción sí envuelva (y darle ancho razonable) */
+  #view-productos table.table-nice td.max-w-xs{
+    white-space: normal !important;
+    min-width: 260px !important;
+  }
+
+  /* Sticky headers/cols can behave oddly inside scroll containers on mobile */
+  table.table-nice thead th,
+  table.ingredientes-table thead th,
+  table.insumos-table thead th{
+    position: static !important;
+  }
+  .table-nice .sticky-col{ position: static !important; }
+}
+
+/* Touch devices: avoid iOS input zoom + increase target sizes */
+@media (pointer: coarse){
+  input, select, textarea{ font-size: 16px !important; }
+  button, .btn-outline, .btn-success, .btn-danger, .btn-gradient{ min-height: 44px; }
+}

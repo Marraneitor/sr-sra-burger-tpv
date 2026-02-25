@@ -1,0 +1,273 @@
+/* ============================================================
+   SYSRABURGER — Performance & UX Enhancements Layer
+   - View transitions (fade + slide)
+   - Top navigation progress bar
+   - Ripple effect styles
+   - CSS containment for GPU performance
+   - Stagger animations for cards & table rows
+   - Micro-interactions
+   ============================================================ */
+
+/* ─── GPU Performance: Containment ──────────────────────────── */
+.view {
+  contain: layout paint;
+  will-change: opacity, transform;
+}
+
+.panel,
+.stat-card,
+.client-card,
+.product-card {
+  contain: layout paint;
+}
+
+.panel:hover,
+.stat-card:hover,
+.client-card:hover,
+.product-card:hover {
+  will-change: transform, box-shadow;
+}
+
+/* ─── View Entrance Animation ────────────────────────────────── */
+@keyframes viewEnter {
+  from {
+    opacity: 0;
+    transform: translateY(14px) scale(.992);
+    filter: blur(1.5px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes viewFadeOut {
+  from { opacity: 1; transform: translateY(0); }
+  to   { opacity: 0; transform: translateY(-8px); }
+}
+
+.view.view-entering {
+  animation: viewEnter 0.26s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.view.view-leaving {
+  animation: viewFadeOut 0.14s ease-out both;
+  pointer-events: none;
+}
+
+/* ─── Top Navigation Progress Bar ───────────────────────────── */
+#nav-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  height: 3px;
+  width: 0%;
+  background: linear-gradient(90deg, #E6B325, #f0cc56, #E6B325);
+  background-size: 200% 100%;
+  z-index: 9999;
+  border-radius: 0 999px 999px 0;
+  box-shadow: 0 0 14px rgba(230, 179, 37, 0.65), 0 0 6px rgba(230, 179, 37, 0.40);
+  transition: width 0.22s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.3s ease;
+  pointer-events: none;
+  animation: progShine 1.4s linear infinite;
+}
+
+@keyframes progShine {
+  0%   { background-position: 0% 50%;   }
+  100% { background-position: 200% 50%; }
+}
+
+#nav-progress.prog-complete {
+  width: 100% !important;
+  opacity: 0;
+  transition: width 0.18s ease, opacity 0.38s ease 0.12s;
+}
+
+/* ─── Ripple Effect ──────────────────────────────────────────── */
+.ripple-host {
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes rippleSpread {
+  from {
+    transform: scale(0);
+    opacity: 0.55;
+  }
+  to {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.ripple-wave {
+  position: absolute;
+  border-radius: 50%;
+  width: 60px;
+  height: 60px;
+  margin-top: -30px;
+  margin-left: -30px;
+  background: rgba(255, 255, 255, 0.28);
+  animation: rippleSpread 0.60s ease-out forwards;
+  pointer-events: none;
+}
+
+/* Amber ripple for primary buttons */
+.btn-gradient .ripple-wave {
+  background: rgba(255, 255, 255, 0.22);
+}
+
+/* ─── Card Stagger Animation ─────────────────────────────────── */
+@keyframes cardIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.view.view-entering .panel,
+.view.view-entering .stat-card,
+.view.view-entering .product-card,
+.view.view-entering .client-card {
+  animation: cardIn 0.30s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+/* Stagger delays (first 12 items) */
+.view.view-entering .panel:nth-child(1),
+.view.view-entering .stat-card:nth-child(1) { animation-delay: 0.04s; }
+.view.view-entering .panel:nth-child(2),
+.view.view-entering .stat-card:nth-child(2) { animation-delay: 0.08s; }
+.view.view-entering .panel:nth-child(3),
+.view.view-entering .stat-card:nth-child(3) { animation-delay: 0.12s; }
+.view.view-entering .panel:nth-child(4),
+.view.view-entering .stat-card:nth-child(4) { animation-delay: 0.16s; }
+.view.view-entering .panel:nth-child(5),
+.view.view-entering .stat-card:nth-child(5) { animation-delay: 0.18s; }
+.view.view-entering .panel:nth-child(6),
+.view.view-entering .stat-card:nth-child(6) { animation-delay: 0.20s; }
+.view.view-entering .panel:nth-child(n+7) { animation-delay: 0.22s; }
+
+/* ─── Table Row Stagger ──────────────────────────────────────── */
+@keyframes rowIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.view.view-entering .table-nice tbody tr {
+  animation: rowIn 0.20s ease both;
+}
+
+.view.view-entering .table-nice tbody tr:nth-child(1)  { animation-delay: 0.10s; }
+.view.view-entering .table-nice tbody tr:nth-child(2)  { animation-delay: 0.14s; }
+.view.view-entering .table-nice tbody tr:nth-child(3)  { animation-delay: 0.17s; }
+.view.view-entering .table-nice tbody tr:nth-child(4)  { animation-delay: 0.20s; }
+.view.view-entering .table-nice tbody tr:nth-child(5)  { animation-delay: 0.22s; }
+.view.view-entering .table-nice tbody tr:nth-child(n+6){ animation-delay: 0.24s; }
+
+/* ─── Sidebar Active Indicator ───────────────────────────────── */
+.nav-link {
+  position: relative;
+}
+
+.nav-link.active::before {
+  content: '';
+  position: absolute;
+  left: -8px;
+  top: 50%;
+  transform: translateY(-50%) scaleY(0);
+  width: 3px;
+  height: 60%;
+  border-radius: 999px;
+  background: currentColor;
+  animation: pillIn 0.22s cubic-bezier(0.34, 1.56, 0.64, 1) 0.05s forwards;
+}
+
+@keyframes pillIn {
+  from { transform: translateY(-50%) scaleY(0); opacity: 0; }
+  to   { transform: translateY(-50%) scaleY(1); opacity: 1; }
+}
+
+/* ─── Skeleton Loader ────────────────────────────────────────── */
+@keyframes shimmer {
+  0%   { background-position: -600px 0; }
+  100% { background-position:  600px 0; }
+}
+
+.skeleton {
+  border-radius: 6px;
+  background: linear-gradient(
+    90deg,
+    rgba(255,255,255,.06) 25%,
+    rgba(255,255,255,.12) 50%,
+    rgba(255,255,255,.06) 75%
+  );
+  background-size: 600px 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* ─── Focus Ring (accessibility) ────────────────────────────── */
+:focus-visible {
+  outline: 2px solid rgba(230, 179, 37, 0.75) !important;
+  outline-offset: 2px !important;
+}
+
+/* ─── Smooth Number Counting (pulsed) ───────────────────────── */
+@keyframes numPop {
+  0%   { transform: scale(1);    color: inherit; }
+  40%  { transform: scale(1.07); color: #E6B325; }
+  100% { transform: scale(1);    color: inherit; }
+}
+
+.num-updated {
+  animation: numPop 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
+  display: inline-block;
+}
+
+/* ─── Scroll-to-top indicator flash ─────────────────────────── */
+@keyframes topFlash {
+  0%,100% { opacity: 0; }
+  30%,70% { opacity: 1; }
+}
+
+/* ─── Button Press Feedback ──────────────────────────────────── */
+button:active:not(:disabled) {
+  transform: scale(0.97) translateY(1px) !important;
+}
+
+/* ─── Page Layout Performance ────────────────────────────────── */
+main {
+  scroll-behavior: smooth;
+  overflow-anchor: none; /* prevent layout jumps during async renders */
+}
+
+/* ─── Reduced Motion: Respect User Preference ───────────────── */
+@media (prefers-reduced-motion: reduce) {
+  .view.view-entering,
+  .view.view-entering .panel,
+  .view.view-entering .stat-card,
+  .view.view-entering .table-nice tbody tr,
+  .ripple-wave,
+  #nav-progress,
+  .nav-link.active::before {
+    animation: none !important;
+    transition: none !important;
+  }
+
+  .view {
+    will-change: auto;
+    contain: none;
+  }
+}
