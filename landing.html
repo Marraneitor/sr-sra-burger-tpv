@@ -1,0 +1,1437 @@
+<!DOCTYPE html>
+<html lang="es" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestia POS — Sistema TPV Híbrido Cloud/Local</title>
+  <meta name="description" content="Sistema TPV inteligente para restaurantes. Funciona offline, sincroniza en tiempo real con Firebase. Gestión de recetas, reportes avanzados y fidelización de clientes." />
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=Montserrat:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.min.js"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+            display: ['Montserrat', 'Inter', 'sans-serif'],
+          },
+          colors: {
+            base: '#0d0d0d',
+            surface: '#141414',
+            border: 'rgba(255,255,255,0.08)',
+            amber: { DEFAULT: '#E6B325', light: '#f0cc56', dark: '#B8861A' },
+          },
+          backgroundImage: {
+            'gradient-radial': 'radial-gradient(var(--tw-gradient-stops))',
+            'gradient-conic': 'conic-gradient(from 180deg at 50% 50%, var(--tw-gradient-stops))',
+          },
+          animation: {
+            'fade-up': 'fadeUp 0.6s ease-out forwards',
+            'fade-in': 'fadeIn 0.8s ease-out forwards',
+            'glow-pulse': 'glowPulse 3s ease-in-out infinite',
+            'float': 'float 6s ease-in-out infinite',
+          },
+          keyframes: {
+            fadeUp: {
+              '0%': { opacity: '0', transform: 'translateY(30px)' },
+              '100%': { opacity: '1', transform: 'translateY(0)' },
+            },
+            fadeIn: {
+              '0%': { opacity: '0' },
+              '100%': { opacity: '1' },
+            },
+            glowPulse: {
+              '0%, 100%': { boxShadow: '0 0 20px rgba(230,179,37,0.3)' },
+              '50%': { boxShadow: '0 0 40px rgba(230,179,37,0.6), 0 0 80px rgba(230,179,37,0.2)' },
+            },
+            float: {
+              '0%, 100%': { transform: 'translateY(0px)' },
+              '50%': { transform: 'translateY(-12px)' },
+            },
+          },
+          backdropBlur: { xs: '2px' },
+        },
+      },
+    };
+  </script>
+
+  <style>
+    * { box-sizing: border-box; }
+    html { font-family: 'Inter', system-ui, sans-serif; }
+    body { background-color: #0d0d0d; color: #e2e8f0; overflow-x: hidden; }
+
+    /* ── Glassmorphism ── */
+    .glass {
+      background: rgba(20, 20, 20, 0.6);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+    .glass-sm {
+      background: rgba(10, 10, 10, 0.7);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+    }
+    .glass-card {
+      background: rgba(20, 20, 20, 0.5);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+    .glass-card:hover {
+      background: rgba(25, 22, 10, 0.75);
+      border-color: rgba(230, 179, 37, 0.4);
+      transform: translateY(-4px);
+      box-shadow: 0 20px 40px rgba(0,0,0,0.4), 0 0 24px rgba(230, 179, 37, 0.15);
+    }
+
+    /* ── Gradients ── */
+    .gradient-text {
+      background: linear-gradient(135deg, #f0cc56 0%, #E6B325 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+    .gradient-btn {
+      background: linear-gradient(135deg, #B8861A 0%, #E6B325 100%);
+      transition: all 0.3s ease;
+    }
+    .gradient-btn:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px rgba(230, 179, 37, 0.5), 0 0 0 1px rgba(230,179,37,0.3);
+    }
+    .gradient-border {
+      background: linear-gradient(#141414, #141414) padding-box,
+                  linear-gradient(135deg, #E6B325, #f0cc56) border-box;
+      border: 2px solid transparent;
+    }
+
+    /* ── Glow effects ── */
+    .glow-violet { box-shadow: 0 0 30px rgba(230, 179, 37, 0.25); }
+    .glow-cyan { box-shadow: 0 0 30px rgba(230, 179, 37, 0.20); }
+    .text-glow { text-shadow: 0 0 30px rgba(230, 179, 37, 0.4); }
+
+    /* ── Noise / grid bg ── */
+    .bg-grid {
+      background-image:
+        linear-gradient(rgba(148,163,184,0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(148,163,184,0.03) 1px, transparent 1px);
+      background-size: 60px 60px;
+    }
+    .bg-noise {
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.03'/%3E%3C/svg%3E");
+    }
+
+    /* ── Orbit decoration ── */
+    .orbit-ring {
+      border-radius: 50%;
+      border: 1px solid rgba(230, 179, 37, 0.12);
+      animation: spin 20s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Scroll reveal ── */
+    .reveal { opacity: 0; transform: translateY(30px); transition: opacity 0.6s ease, transform 0.6s ease; }
+    .reveal.visible { opacity: 1; transform: translateY(0); }
+    .reveal-delay-1 { transition-delay: 0.1s; }
+    .reveal-delay-2 { transition-delay: 0.2s; }
+    .reveal-delay-3 { transition-delay: 0.3s; }
+    .reveal-delay-4 { transition-delay: 0.4s; }
+    .reveal-delay-5 { transition-delay: 0.5s; }
+    .reveal-delay-6 { transition-delay: 0.6s; }
+
+    /* ── Tabs ── */
+    .tab-btn { transition: all 0.25s ease; }
+    .tab-btn.active {
+      background: linear-gradient(135deg, rgba(230,179,37,0.15), rgba(240,204,86,0.1));
+      border-color: rgba(230,179,37,0.5);
+      color: #f0cc56;
+    }
+    .tab-panel { display: none; animation: fadeIn 0.4s ease; }
+    .tab-panel.active { display: block; }
+
+    /* ── Navbar ── */
+    .nav-link {
+      position: relative;
+      color: #94a3b8;
+      transition: color 0.2s ease;
+    }
+    .nav-link::after {
+      content: '';
+      position: absolute;
+      bottom: -2px; left: 0;
+      width: 0; height: 2px;
+      background: linear-gradient(90deg, #B8861A, #E6B325, #f0cc56);
+      transition: width 0.3s ease;
+    }
+    .nav-link:hover { color: #e2e8f0; }
+    .nav-link:hover::after { width: 100%; }
+
+    /* ── Mobile menu ── */
+    #mobile-menu { max-height: 0; overflow: hidden; transition: max-height 0.4s cubic-bezier(0.4,0,0.2,1); }
+    #mobile-menu.open { max-height: 400px; }
+
+    /* ── Stat counter ── */
+    .stat-number {
+      background: linear-gradient(135deg, #f0cc56, #E6B325);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      font-variant-numeric: tabular-nums;
+    }
+
+    /* ── Custom scrollbar ── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: #0d0d0d; }
+    ::-webkit-scrollbar-thumb { background: #2a2a2a; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #E6B325; }
+
+    /* ── Badge pill ── */
+    .badge {
+      background: linear-gradient(135deg, rgba(230,179,37,0.15), rgba(240,204,86,0.10));
+      border: 1px solid rgba(230,179,37,0.35);
+      color: #f0cc56;
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.08em;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      text-transform: uppercase;
+    }
+
+    /* ── Tech stack badge ── */
+    .tech-badge {
+      background: rgba(10,10,10,0.9);
+      border: 1px solid rgba(255,255,255,0.08);
+      transition: all 0.3s ease;
+    }
+    .tech-badge:hover {
+      border-color: rgba(230,179,37,0.5);
+      box-shadow: 0 0 20px rgba(230,179,37,0.15);
+      transform: translateY(-2px);
+    }
+
+    /* ── POS mockup elements ── */
+    .pos-key {
+      background: rgba(20,18,8,0.8);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.75rem; font-weight: 500; color: #e2e8f0;
+      cursor: pointer; transition: all 0.15s ease;
+      padding: 0.5rem;
+    }
+    .pos-key:hover {
+      background: rgba(230,179,37,0.12);
+      border-color: rgba(230,179,37,0.4);
+    }
+    .pos-key.accent {
+      background: linear-gradient(135deg, rgba(230,179,37,0.2), rgba(240,204,86,0.12));
+      border-color: rgba(230,179,37,0.4);
+      color: #f0cc56;
+    }
+  </style>
+</head>
+<body class="bg-[#0d0d0d] bg-grid bg-noise">
+
+<!-- ═══════════════════════════════════════════════
+     NAVBAR
+═══════════════════════════════════════════════ -->
+<header id="navbar" class="fixed top-0 left-0 right-0 z-50 transition-all duration-300">
+  <nav class="glass-sm border-b border-white/5">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+
+        <!-- Logo -->
+        <a href="#" class="flex items-center gap-2.5 group">
+          <div class="w-8 h-8 rounded-lg gradient-btn flex items-center justify-center shadow-lg">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+          </div>
+          <span class="text-white font-bold text-lg tracking-tight">Gestia <span class="gradient-text">POS</span></span>
+        </a>
+
+        <!-- Desktop Links -->
+        <div class="hidden md:flex items-center gap-8">
+          <a href="#features" class="nav-link text-sm font-medium">Funciones</a>
+          <a href="#demo" class="nav-link text-sm font-medium">Demo</a>
+          <a href="#stack" class="nav-link text-sm font-medium">Stack</a>
+          <a href="#pricing" class="nav-link text-sm font-medium">Precios</a>
+        </div>
+
+        <!-- CTA -->
+        <div class="hidden md:flex items-center gap-3">
+          <a href="./index.html" class="text-sm font-medium text-slate-400 hover:text-white transition-colors px-4 py-2">
+            Iniciar Sesión
+          </a>
+          <a href="./index.html" class="gradient-btn text-white text-sm font-semibold px-5 py-2.5 rounded-lg shadow-lg">
+            Acceso al Sistema →
+          </a>
+        </div>
+
+        <!-- Hamburger -->
+        <button id="menu-toggle" class="md:hidden p-2 rounded-lg glass-sm text-slate-400 hover:text-white transition-colors">
+          <svg id="icon-menu" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/>
+          </svg>
+          <svg id="icon-close" class="hidden" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
+      </div>
+    </div>
+
+    <!-- Mobile menu -->
+    <div id="mobile-menu" class="md:hidden border-t border-white/5">
+      <div class="px-4 py-4 flex flex-col gap-3">
+        <a href="#features" class="text-slate-300 hover:text-white text-sm py-2 transition-colors mobile-link">Funciones</a>
+        <a href="#demo" class="text-slate-300 hover:text-white text-sm py-2 transition-colors mobile-link">Demo</a>
+        <a href="#stack" class="text-slate-300 hover:text-white text-sm py-2 transition-colors mobile-link">Stack</a>
+        <a href="#pricing" class="text-slate-300 hover:text-white text-sm py-2 transition-colors mobile-link">Precios</a>
+        <a href="./index.html" class="gradient-btn text-white text-sm font-semibold px-4 py-2.5 rounded-lg text-center mt-2">
+          Acceso al Sistema →
+        </a>
+      </div>
+    </div>
+  </nav>
+</header>
+
+
+<!-- ═══════════════════════════════════════════════
+     HERO SECTION
+═══════════════════════════════════════════════ -->
+<section id="hero" class="relative min-h-screen flex items-center pt-16 overflow-hidden">
+
+  <!-- Background glows -->
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute top-20 left-1/4 w-96 h-96 bg-[#E6B325]/10 rounded-full blur-[120px]"></div>
+    <div class="absolute bottom-20 right-1/4 w-80 h-80 bg-[#E6B325]/8 rounded-full blur-[100px]"></div>
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#B8861A]/6 rounded-full blur-[150px]"></div>
+  </div>
+
+  <!-- Orbit rings decoration -->
+  <div class="absolute top-1/2 right-[5%] -translate-y-1/2 hidden xl:block pointer-events-none">
+    <div class="orbit-ring w-[350px] h-[350px] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style="animation-duration:25s"></div>
+    <div class="orbit-ring w-[500px] h-[500px] absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" style="animation-duration:35s;animation-direction:reverse"></div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 w-full">
+    <div class="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+
+      <!-- Text column -->
+      <div class="relative z-10">
+        <div class="badge mb-6 inline-flex items-center gap-2">
+          <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
+          Híbrido Cloud / Local · Firebase v10.7.1
+        </div>
+
+        <h1 class="text-4xl sm:text-5xl lg:text-6xl font-black leading-[1.05] tracking-tight mb-6 text-glow">
+          El TPV que<br/>
+          <span class="gradient-text">nunca se detiene.</span><br/>
+          <span class="text-white">Ni offline.</span>
+        </h1>
+
+        <p class="text-slate-400 text-lg sm:text-xl leading-relaxed mb-8 max-w-xl">
+          Sincronización en tiempo real con Firebase y persistencia local total. Tu restaurante funciona aunque se corte internet. Cero pérdida de datos, máximo rendimiento.
+        </p>
+
+        <!-- Stats row -->
+        <div class="flex flex-wrap gap-6 mb-10">
+          <div>
+            <p class="stat-number text-3xl font-black" data-target="99.9">0</p>
+            <p class="text-slate-500 text-xs mt-0.5 font-medium">% Uptime</p>
+          </div>
+          <div class="w-px bg-slate-800"></div>
+          <div>
+            <p class="stat-number text-3xl font-black" data-target="0">~0ms</p>
+            <p class="text-slate-500 text-xs mt-0.5 font-medium">Pérdida de datos</p>
+          </div>
+          <div class="w-px bg-slate-800"></div>
+          <div>
+            <p class="stat-number text-3xl font-black" data-target="100">0</p>
+            <p class="text-slate-500 text-xs mt-0.5 font-medium">% Responsive</p>
+          </div>
+        </div>
+
+        <!-- CTA Buttons -->
+        <div class="flex flex-col sm:flex-row gap-3">
+          <a href="./index.html" class="gradient-btn text-white font-bold px-8 py-4 rounded-xl text-base shadow-2xl flex items-center justify-center gap-2">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10"/><polygon points="10 8 16 12 10 16 10 8"/>
+            </svg>
+            Acceder al Sistema
+          </a>
+          <a href="#demo" class="glass text-slate-300 hover:text-white font-semibold px-8 py-4 rounded-xl text-base flex items-center justify-center gap-2 hover:border-[#E6B325]/50 transition-all">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7z"/><circle cx="12" cy="12" r="3"/>
+            </svg>
+            Ver Demo
+          </a>
+        </div>
+      </div>
+
+      <!-- Dashboard mockup column -->
+      <div class="relative lg:block animate-float">
+        <div class="glass-card rounded-2xl p-4 sm:p-6 glow-violet max-w-lg mx-auto">
+
+          <!-- Mockup header -->
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-2">
+              <div class="w-2.5 h-2.5 bg-red-500 rounded-full"></div>
+              <div class="w-2.5 h-2.5 bg-yellow-500 rounded-full"></div>
+              <div class="w-2.5 h-2.5 bg-green-500 rounded-full"></div>
+            </div>
+            <span class="text-slate-500 text-xs font-medium font-mono">gestia-dashboard · live</span>
+            <div class="flex items-center gap-1.5 text-xs text-green-400">
+              <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
+              Online
+            </div>
+          </div>
+
+          <!-- Stats bar -->
+          <div class="grid grid-cols-3 gap-3 mb-4">
+            <div class="glass-sm rounded-xl p-3 text-center">
+              <p class="text-[#E6B325] text-xl font-black">$18,340</p>
+              <p class="text-slate-500 text-[10px] mt-0.5 font-medium">Ventas Hoy</p>
+            </div>
+            <div class="glass-sm rounded-xl p-3 text-center">
+              <p class="text-[#f0cc56] text-xl font-black">147</p>
+              <p class="text-slate-500 text-[10px] mt-0.5 font-medium">Órdenes</p>
+            </div>
+            <div class="glass-sm rounded-xl p-3 text-center">
+              <p class="text-emerald-400 text-xl font-black">94%</p>
+              <p class="text-slate-500 text-[10px] mt-0.5 font-medium">Margen</p>
+            </div>
+          </div>
+
+          <!-- Chart -->
+          <div class="glass-sm rounded-xl p-3 mb-4">
+            <div class="flex items-center justify-between mb-3">
+              <span class="text-slate-300 text-xs font-semibold">Ventas — Últimas 7 horas</span>
+              <span class="badge text-[9px]">LIVE</span>
+            </div>
+            <div class="relative h-24 sm:h-32">
+              <canvas id="heroChart"></canvas>
+            </div>
+          </div>
+
+          <!-- Recent orders mini list -->
+          <div class="glass-sm rounded-xl p-3">
+            <div class="flex items-center justify-between mb-2.5">
+              <span class="text-slate-300 text-xs font-semibold">Órdenes Recientes</span>
+              <span class="text-[#E6B325] text-[10px] font-medium cursor-pointer hover:text-[#f0cc56]">Ver todas →</span>
+            </div>
+            <div class="space-y-2">
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <div class="w-6 h-6 rounded-full bg-[#E6B325]/15 flex items-center justify-center text-[9px] text-[#E6B325] font-bold">T3</div>
+                  <span class="text-slate-400 text-xs">Mesa 3 · 4 items</span>
+                </div>
+                <span class="text-white text-xs font-semibold">$280</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <div class="w-6 h-6 rounded-full bg-[#f0cc56]/15 flex items-center justify-center text-[9px] text-[#f0cc56] font-bold">T7</div>
+                  <span class="text-slate-400 text-xs">Mesa 7 · 2 items</span>
+                </div>
+                <span class="text-white text-xs font-semibold">$145</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                  <div class="w-6 h-6 rounded-full bg-emerald-500/20 flex items-center justify-center text-[9px] text-emerald-400 font-bold">DE</div>
+                  <span class="text-slate-400 text-xs">Delivery · 3 items</span>
+                </div>
+                <span class="text-white text-xs font-semibold">$195</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Floating badge -->
+        <div class="absolute -top-3 -right-3 glass-card rounded-xl px-3 py-2 flex items-center gap-2 text-xs font-semibold border border-green-500/30 hidden sm:flex">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+          <span class="text-green-400">Sync · hace 2s</span>
+        </div>
+        <div class="absolute -bottom-3 -left-3 glass-card rounded-xl px-3 py-2 flex items-center gap-2 text-xs font-semibold border border-[#E6B325]/30 hidden sm:flex">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#E6B325" stroke-width="2.5"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+          <span class="text-[#E6B325]">Offline Ready</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- Bottom scroll indicator -->
+  <div class="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 animate-bounce">
+    <span class="text-slate-600 text-xs">Explorar</span>
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="6 9 12 15 18 9"/>
+    </svg>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════
+     FEATURES SECTION
+═══════════════════════════════════════════════ -->
+<section id="features" class="py-24 relative overflow-hidden">
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute top-0 left-1/2 -translate-x-1/2 w-px h-32 bg-gradient-to-b from-transparent via-[#E6B325]/30 to-transparent"></div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+
+    <!-- Section header -->
+    <div class="text-center mb-16 reveal">
+      <div class="badge mb-4 inline-block">Funcionalidades</div>
+      <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight mb-4">
+        Todo lo que tu restaurante<br/>
+        <span class="gradient-text">necesita en un solo sistema</span>
+      </h2>
+      <p class="text-slate-400 text-lg max-w-2xl mx-auto">
+        17 módulos integrados: TPV, Inventario, Reportes, Caja, Finanzas, Clientes, Estaciones y más. Todo en un sistema offline-first con sincronización en tiempo real.
+      </p>
+    </div>
+
+    <!-- Features grid -->
+    <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 lg:gap-6">
+
+      <!-- Feature 1: TPV Intuitivo -->
+      <div class="glass-card rounded-2xl p-6 reveal reveal-delay-1">
+        <div class="w-12 h-12 rounded-xl bg-[#E6B325]/12 border border-[#E6B325]/20 flex items-center justify-center mb-5">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#E6B325" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/>
+          </svg>
+        </div>
+        <h3 class="text-white font-bold text-lg mb-2">Punto de Venta Completo</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Órdenes locales con gestión de mesas, para llevar y envío a domicilio. Descuentos rápidos (5%, 10%, 15% o libre), costo de envío, suspensión de órdenes y múltiples métodos de pago.</p>
+        <div class="mt-4 flex flex-wrap gap-2">
+          <span class="text-xs bg-[#E6B325]/10 text-[#E6B325] border border-[#E6B325]/20 rounded-full px-2.5 py-0.5">Mesas</span>
+          <span class="text-xs bg-[#E6B325]/10 text-[#E6B325] border border-[#E6B325]/20 rounded-full px-2.5 py-0.5">Envío</span>
+          <span class="text-xs bg-[#E6B325]/10 text-[#E6B325] border border-[#E6B325]/20 rounded-full px-2.5 py-0.5">Descuentos</span>
+        </div>
+      </div>
+
+      <!-- Feature 2: Inventario -->
+      <div class="glass-card rounded-2xl p-6 reveal reveal-delay-2">
+        <div class="w-12 h-12 rounded-xl bg-[#E6B325]/10 border border-[#E6B325]/15 flex items-center justify-center mb-5">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f0cc56" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/>
+          </svg>
+        </div>
+        <h3 class="text-white font-bold text-lg mb-2">Inventario e Ingredientes</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Registra ingredientes con precio por paquete y costo unitario calculado automáticamente. Control de stock con historial de compras, consumo real desde ventas, mermas y recomendaciones de reposición por horizonte de días.</p>
+        <div class="mt-4 flex flex-wrap gap-2">
+          <span class="text-xs bg-[#f0cc56]/10 text-[#f0cc56] border border-[#f0cc56]/20 rounded-full px-2.5 py-0.5">Stock</span>
+          <span class="text-xs bg-[#f0cc56]/10 text-[#f0cc56] border border-[#f0cc56]/20 rounded-full px-2.5 py-0.5">Mermas</span>
+          <span class="text-xs bg-[#f0cc56]/10 text-[#f0cc56] border border-[#f0cc56]/20 rounded-full px-2.5 py-0.5">Recompras</span>
+        </div>
+      </div>
+
+      <!-- Feature 3: Dashboard & Reportes -->
+      <div class="glass-card rounded-2xl p-6 reveal reveal-delay-3">
+        <div class="w-12 h-12 rounded-xl bg-emerald-500/15 border border-emerald-500/20 flex items-center justify-center mb-5">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>
+          </svg>
+        </div>
+        <h3 class="text-white font-bold text-lg mb-2">Dashboard y Reportes</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">8 KPIs en tiempo real (ingresos, órdenes, ticket promedio, margen bruto…) con gráficas por periodo: ventas diarias, top productos, métodos de pago, por día de semana, top clientes y margen por producto. Exporta a PDF o CSV con un clic.</p>
+        <div class="mt-4 flex flex-wrap gap-2">
+          <span class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full px-2.5 py-0.5">Chart.js</span>
+          <span class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full px-2.5 py-0.5">PDF / CSV</span>
+          <span class="text-xs bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 rounded-full px-2.5 py-0.5">Filtros avanzados</span>
+        </div>
+      </div>
+
+      <!-- Feature 4: Finanzas & Caja -->
+      <div class="glass-card rounded-2xl p-6 reveal reveal-delay-4">
+        <div class="w-12 h-12 rounded-xl bg-orange-500/15 border border-orange-500/20 flex items-center justify-center mb-5">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fb923c" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+          </svg>
+        </div>
+        <h3 class="text-white font-bold text-lg mb-2">Finanzas y Caja</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">Caja con saldo disponible y no disponible desglosado por efectivo y tarjeta. Módulo de Finanzas con registro de empleados, sueldos semanales, servicios, gastos diarios, margen bruto, COGS y utilidad neta estimada por periodo.</p>
+        <div class="mt-4 flex flex-wrap gap-2">
+          <span class="text-xs bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-full px-2.5 py-0.5">Caja</span>
+          <span class="text-xs bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-full px-2.5 py-0.5">Sueldos</span>
+          <span class="text-xs bg-orange-500/10 text-orange-400 border border-orange-500/20 rounded-full px-2.5 py-0.5">Utilidad neta</span>
+        </div>
+      </div>
+
+      <!-- Feature 5: Offline + Firebase -->
+      <div class="glass-card rounded-2xl p-6 reveal reveal-delay-5">
+        <div class="w-12 h-12 rounded-xl bg-yellow-500/15 border border-yellow-500/20 flex items-center justify-center mb-5">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M1 6l11 12 11-12"/><path d="M5 10l7 7 7-7"/><path d="M9 14l3 3 3-3"/>
+          </svg>
+        </div>
+        <h3 class="text-white font-bold text-lg mb-2">Offline-First + Sync Firebase</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">El sistema opera al 100% sin internet usando LocalStorage como capa de persistencia. Al reconectarte, sincroniza automáticamente con Firebase Firestore v10.7.1. Acceso desde cualquier dispositivo sin perder un solo dato.</p>
+        <div class="mt-4 flex flex-wrap gap-2">
+          <span class="text-xs bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 rounded-full px-2.5 py-0.5">Offline</span>
+          <span class="text-xs bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 rounded-full px-2.5 py-0.5">Firebase v10</span>
+          <span class="text-xs bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 rounded-full px-2.5 py-0.5">Auto-sync</span>
+        </div>
+      </div>
+
+      <!-- Feature 6: Clientes & Productos -->
+      <div class="glass-card rounded-2xl p-6 reveal reveal-delay-6">
+        <div class="w-12 h-12 rounded-xl bg-pink-500/15 border border-pink-500/20 flex items-center justify-center mb-5">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#f472b6" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+          </svg>
+        </div>
+        <h3 class="text-white font-bold text-lg mb-2">Clientes y Catálogo</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">CRM de clientes con puntos, gasto total e historial de compras. Catálogo de productos con tipo (individual / combo), estaciones de preparación, análisis de rentabilidad por producto y categoría. Personalización del color de la interfaz.</p>
+        <div class="mt-4 flex flex-wrap gap-2">
+          <span class="text-xs bg-pink-500/10 text-pink-400 border border-pink-500/20 rounded-full px-2.5 py-0.5">CRM</span>
+          <span class="text-xs bg-pink-500/10 text-pink-400 border border-pink-500/20 rounded-full px-2.5 py-0.5">Estaciones</span>
+          <span class="text-xs bg-pink-500/10 text-pink-400 border border-pink-500/20 rounded-full px-2.5 py-0.5">Rentabilidad</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════
+     DEMO / TABS SECTION
+═══════════════════════════════════════════════ -->
+<section id="demo" class="py-24 relative overflow-hidden">
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute top-1/2 left-0 w-64 h-64 bg-[#E6B325]/6 rounded-full blur-[100px]"></div>
+    <div class="absolute top-1/2 right-0 w-64 h-64 bg-[#B8861A]/6 rounded-full blur-[100px]"></div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-12 reveal">
+      <div class="badge mb-4 inline-block">Demostración Visual</div>
+      <h2 class="text-3xl sm:text-4xl lg:text-5xl font-black tracking-tight mb-4">
+        Mira el sistema en<br/>
+        <span class="gradient-text">acción</span>
+      </h2>
+      <p class="text-slate-400 text-lg max-w-xl mx-auto">Explora cada módulo del sistema. Interfaz diseñada para operaciones reales.</p>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex flex-wrap gap-2 justify-center mb-8 reveal">
+      <button class="tab-btn active glass-sm text-slate-300 text-sm font-semibold px-5 py-2.5 rounded-xl border border-white/5" data-tab="pos">
+        Punto de Venta
+      </button>
+      <button class="tab-btn glass-sm text-slate-300 text-sm font-semibold px-5 py-2.5 rounded-xl border border-white/5" data-tab="inventory">
+        Inventario
+      </button>
+      <button class="tab-btn glass-sm text-slate-300 text-sm font-semibold px-5 py-2.5 rounded-xl border border-white/5" data-tab="reports">
+        Reportes
+      </button>
+    </div>
+
+    <!-- Tab: POS -->
+    <div id="tab-pos" class="tab-panel active reveal">
+      <div class="glass-card rounded-2xl p-4 sm:p-6 max-w-5xl mx-auto">
+        <div class="grid md:grid-cols-5 gap-4">
+
+          <!-- Product grid -->
+          <div class="md:col-span-3">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-white font-bold text-sm">Menú / Productos</h3>
+              <div class="glass-sm rounded-lg px-3 py-1.5 flex items-center gap-2">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                <input type="text" placeholder="Buscar..." class="bg-transparent text-slate-400 text-xs outline-none w-24 placeholder-slate-600"/>
+              </div>
+            </div>
+
+            <!-- Category pills -->
+            <div class="flex gap-2 mb-4 overflow-x-auto pb-1">
+              <button class="flex-shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg gradient-btn text-white">Burgers</button>
+              <button class="flex-shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg glass-sm text-slate-400 hover:text-white border border-white/5">Bebidas</button>
+              <button class="flex-shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg glass-sm text-slate-400 hover:text-white border border-white/5">Postres</button>
+              <button class="flex-shrink-0 text-xs font-semibold px-3 py-1.5 rounded-lg glass-sm text-slate-400 hover:text-white border border-white/5">Combos</button>
+            </div>
+
+            <!-- Products -->
+            <div class="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <div class="pos-key flex-col gap-1 py-3 cursor-pointer">
+                <span class="text-2xl">🍔</span>
+                <span class="text-xs text-white font-medium text-center">Classic Burger</span>
+                <span class="text-[#E6B325] text-xs font-bold">$185</span>
+              </div>
+              <div class="pos-key flex-col gap-1 py-3 cursor-pointer">
+                <span class="text-2xl">🍟</span>
+                <span class="text-xs text-white font-medium text-center">Papas Fritas</span>
+                <span class="text-[#E6B325] text-xs font-bold">$75</span>
+              </div>
+              <div class="pos-key flex-col gap-1 py-3 cursor-pointer accent">
+                <span class="text-2xl">🥤</span>
+                <span class="text-xs text-white font-medium text-center">Coca-Cola</span>
+                <span class="text-[#E6B325] text-xs font-bold">$55</span>
+              </div>
+              <div class="pos-key flex-col gap-1 py-3 cursor-pointer">
+                <span class="text-2xl">🌮</span>
+                <span class="text-xs text-white font-medium text-center">BBQ Burger</span>
+                <span class="text-[#E6B325] text-xs font-bold">$210</span>
+              </div>
+              <div class="pos-key flex-col gap-1 py-3 cursor-pointer">
+                <span class="text-2xl">🍕</span>
+                <span class="text-xs text-white font-medium text-center">Double Cheese</span>
+                <span class="text-[#E6B325] text-xs font-bold">$245</span>
+              </div>
+              <div class="pos-key flex-col gap-1 py-3 cursor-pointer">
+                <span class="text-2xl">🥗</span>
+                <span class="text-xs text-white font-medium text-center">Ensalada</span>
+                <span class="text-[#E6B325] text-xs font-bold">$120</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Cart / Order -->
+          <div class="md:col-span-2 glass-sm rounded-xl p-4 flex flex-col">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-white font-bold text-sm">Orden Actual</h3>
+              <span class="badge text-[9px]">Mesa 4</span>
+            </div>
+
+            <!-- Order items -->
+            <div class="space-y-2 flex-1 min-h-0 overflow-y-auto">
+              <div class="flex items-center justify-between py-2 border-b border-white/5">
+                <div>
+                  <p class="text-white text-xs font-medium">Classic Burger</p>
+                  <p class="text-slate-500 text-[10px]">x2 · $185 c/u</p>
+                </div>
+                <span class="text-white text-xs font-bold">$370</span>
+              </div>
+              <div class="flex items-center justify-between py-2 border-b border-white/5">
+                <div>
+                  <p class="text-white text-xs font-medium">Coca-Cola</p>
+                  <p class="text-slate-500 text-[10px]">x1 · $55 c/u</p>
+                </div>
+                <span class="text-white text-xs font-bold">$55</span>
+              </div>
+              <div class="flex items-center justify-between py-2">
+                <div>
+                  <p class="text-white text-xs font-medium">Papas Fritas</p>
+                  <p class="text-slate-500 text-[10px]">x1 · $75 c/u</p>
+                </div>
+                <span class="text-white text-xs font-bold">$75</span>
+              </div>
+            </div>
+
+            <!-- Totals -->
+            <div class="mt-4 pt-3 border-t border-white/10 space-y-1.5">
+              <div class="flex justify-between text-slate-400 text-xs"><span>Subtotal</span><span>$500</span></div>
+              <div class="flex justify-between text-slate-400 text-xs"><span>IVA (16%)</span><span>$80</span></div>
+              <div class="flex justify-between text-white font-bold text-sm mt-2"><span>Total</span><span class="gradient-text">$580</span></div>
+            </div>
+
+            <!-- Pay button -->
+            <button class="gradient-btn text-white font-bold text-sm py-3 rounded-xl mt-4 w-full">
+              Cobrar $580 →
+            </button>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Inventory -->
+    <div id="tab-inventory" class="tab-panel reveal">
+      <div class="glass-card rounded-2xl p-4 sm:p-6 max-w-5xl mx-auto">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h3 class="text-white font-bold">Gestión de Inventario</h3>
+            <p class="text-slate-500 text-sm">Ingredientes y costos en tiempo real</p>
+          </div>
+          <button class="gradient-btn text-white text-xs font-semibold px-4 py-2 rounded-lg flex items-center gap-1.5">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+            Agregar
+          </button>
+        </div>
+
+        <!-- Table -->
+        <div class="overflow-x-auto">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="text-left text-slate-500 text-xs font-semibold border-b border-white/5">
+                <th class="pb-3 pr-4">Ingrediente</th>
+                <th class="pb-3 pr-4">Stock</th>
+                <th class="pb-3 pr-4">Costo/u</th>
+                <th class="pb-3 pr-4">Estado</th>
+                <th class="pb-3">Acción</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-white/5">
+              <tr class="text-slate-300 hover:bg-white/2 transition-colors">
+                <td class="py-3 pr-4 font-medium text-white">Pan de Hamburguesa</td>
+                <td class="py-3 pr-4">248 u</td>
+                <td class="py-3 pr-4">$3.50</td>
+                <td class="py-3 pr-4"><span class="text-xs bg-green-500/10 text-green-400 border border-green-500/20 rounded-full px-2 py-0.5">OK</span></td>
+                <td class="py-3"><button class="text-[#E6B325] hover:text-[#f0cc56] text-xs">Editar</button></td>
+              </tr>
+              <tr class="text-slate-300 hover:bg-white/2 transition-colors">
+                <td class="py-3 pr-4 font-medium text-white">Carne 180g</td>
+                <td class="py-3 pr-4">85 u</td>
+                <td class="py-3 pr-4">$28.00</td>
+                <td class="py-3 pr-4"><span class="text-xs bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 rounded-full px-2 py-0.5">Bajo</span></td>
+                <td class="py-3"><button class="text-[#E6B325] hover:text-[#f0cc56] text-xs">Reabastecer</button></td>
+              </tr>
+              <tr class="text-slate-300 hover:bg-white/2 transition-colors">
+                <td class="py-3 pr-4 font-medium text-white">Queso Cheddar</td>
+                <td class="py-3 pr-4">320 sl</td>
+                <td class="py-3 pr-4">$4.20</td>
+                <td class="py-3 pr-4"><span class="text-xs bg-green-500/10 text-green-400 border border-green-500/20 rounded-full px-2 py-0.5">OK</span></td>
+                <td class="py-3"><button class="text-[#E6B325] hover:text-[#f0cc56] text-xs">Editar</button></td>
+              </tr>
+              <tr class="text-slate-300 hover:bg-white/2 transition-colors">
+                <td class="py-3 pr-4 font-medium text-white">Papas Congeladas</td>
+                <td class="py-3 pr-4">12 kg</td>
+                <td class="py-3 pr-4">$35.00</td>
+                <td class="py-3 pr-4"><span class="text-xs bg-red-500/10 text-red-400 border border-red-500/20 rounded-full px-2 py-0.5">Crítico</span></td>
+                <td class="py-3"><button class="text-red-400 hover:text-red-300 text-xs font-semibold">¡Urgente!</button></td>
+              </tr>
+              <tr class="text-slate-300 hover:bg-white/2 transition-colors">
+                <td class="py-3 pr-4 font-medium text-white">Salsas (mix)</td>
+                <td class="py-3 pr-4">74 u</td>
+                <td class="py-3 pr-4">$1.80</td>
+                <td class="py-3 pr-4"><span class="text-xs bg-green-500/10 text-green-400 border border-green-500/20 rounded-full px-2 py-0.5">OK</span></td>
+                <td class="py-3"><button class="text-[#E6B325] hover:text-[#f0cc56] text-xs">Editar</button></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Tab: Reports -->
+    <div id="tab-reports" class="tab-panel reveal">
+      <div class="glass-card rounded-2xl p-4 sm:p-6 max-w-5xl mx-auto">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h3 class="text-white font-bold">Reportes Avanzados</h3>
+            <p class="text-slate-500 text-sm">Análisis completo de tu negocio</p>
+          </div>
+          <button class="glass-sm text-slate-300 hover:text-white text-xs font-semibold px-4 py-2 rounded-lg border border-white/10 flex items-center gap-1.5 transition-colors">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Exportar PDF
+          </button>
+        </div>
+
+        <div class="grid sm:grid-cols-2 gap-4 mb-6">
+          <!-- Chart 1 -->
+          <div class="glass-sm rounded-xl p-4">
+            <p class="text-slate-300 text-xs font-semibold mb-3">Ventas por Día — Última Semana</p>
+            <div class="relative h-36">
+              <canvas id="weekChart"></canvas>
+            </div>
+          </div>
+          <!-- Chart 2 -->
+          <div class="glass-sm rounded-xl p-4">
+            <p class="text-slate-300 text-xs font-semibold mb-3">Top Productos</p>
+            <div class="relative h-36">
+              <canvas id="donutChart"></canvas>
+            </div>
+          </div>
+        </div>
+
+        <!-- Metrics row -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="glass-sm rounded-xl p-3 text-center">
+            <p class="text-[#E6B325] text-lg font-black">$94,210</p>
+            <p class="text-slate-500 text-[10px] mt-0.5">Ventas mes</p>
+          </div>
+          <div class="glass-sm rounded-xl p-3 text-center">
+            <p class="text-[#f0cc56] text-lg font-black">$127</p>
+            <p class="text-slate-500 text-[10px] mt-0.5">Ticket prom.</p>
+          </div>
+          <div class="glass-sm rounded-xl p-3 text-center">
+            <p class="text-emerald-400 text-lg font-black">742</p>
+            <p class="text-slate-500 text-[10px] mt-0.5">Clientes únicos</p>
+          </div>
+          <div class="glass-sm rounded-xl p-3 text-center">
+            <p class="text-pink-400 text-lg font-black">38%</p>
+            <p class="text-slate-500 text-[10px] mt-0.5">Margen neto</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════
+     TECH STACK SECTION
+═══════════════════════════════════════════════ -->
+<section id="stack" class="py-24 relative overflow-hidden">
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[300px] bg-[#E6B325]/6 rounded-full blur-[120px]"></div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-14 reveal">
+      <div class="badge mb-4 inline-block">Stack Tecnológico</div>
+      <h2 class="text-3xl sm:text-4xl font-black tracking-tight mb-4">
+        Construido con las<br/>
+        <span class="gradient-text">mejores herramientas</span>
+      </h2>
+      <p class="text-slate-400 text-base max-w-xl mx-auto">
+        Tecnología probada en producción, seleccionada para máximo rendimiento y confiabilidad.
+      </p>
+    </div>
+
+    <!-- Stack grid -->
+    <div class="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-4xl mx-auto mb-12 reveal">
+
+      <div class="tech-badge rounded-2xl p-5 text-center cursor-default">
+        <div class="text-3xl mb-3">⚡</div>
+        <h4 class="text-white font-bold text-sm mb-1">Vanilla JS</h4>
+        <p class="text-slate-500 text-xs">ES2022+</p>
+        <div class="mt-3 h-1 bg-slate-800 rounded-full overflow-hidden">
+          <div class="h-full gradient-btn rounded-full" style="width:95%"></div>
+        </div>
+      </div>
+
+      <div class="tech-badge rounded-2xl p-5 text-center cursor-default">
+        <div class="text-3xl mb-3">🎨</div>
+        <h4 class="text-white font-bold text-sm mb-1">Tailwind CSS</h4>
+        <p class="text-slate-500 text-xs">v3.4 · CDN</p>
+        <div class="mt-3 h-1 bg-slate-800 rounded-full overflow-hidden">
+          <div class="h-full bg-[#f0cc56] rounded-full" style="width:90%"></div>
+        </div>
+      </div>
+
+      <div class="tech-badge rounded-2xl p-5 text-center cursor-default">
+        <div class="text-3xl mb-3">🔥</div>
+        <h4 class="text-white font-bold text-sm mb-1">Firebase</h4>
+        <p class="text-slate-500 text-xs">v10.7.1 · Firestore</p>
+        <div class="mt-3 h-1 bg-slate-800 rounded-full overflow-hidden">
+          <div class="h-full bg-orange-500 rounded-full" style="width:88%"></div>
+        </div>
+      </div>
+
+      <div class="tech-badge rounded-2xl p-5 text-center cursor-default">
+        <div class="text-3xl mb-3">📊</div>
+        <h4 class="text-white font-bold text-sm mb-1">Chart.js</h4>
+        <p class="text-slate-500 text-xs">v4 · Animado</p>
+        <div class="mt-3 h-1 bg-slate-800 rounded-full overflow-hidden">
+          <div class="h-full bg-emerald-500 rounded-full" style="width:92%"></div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- Architecture diagram -->
+    <div class="glass-card rounded-2xl p-6 sm:p-8 max-w-4xl mx-auto reveal">
+      <h3 class="text-white font-bold text-center mb-8">Arquitectura Híbrida</h3>
+      <div class="grid sm:grid-cols-3 gap-4 items-center">
+
+        <div class="text-center">
+          <div class="glass-sm rounded-xl p-4 mb-3 inline-block">
+            <div class="text-2xl mb-1">📱</div>
+            <p class="text-white text-xs font-semibold">Cliente</p>
+            <p class="text-slate-500 text-[10px]">Browser / App</p>
+          </div>
+          <div class="space-y-1.5">
+            <div class="glass-sm rounded-lg px-3 py-1.5 text-[10px] text-[#E6B325] border border-[#E6B325]/20">LocalStorage</div>
+            <div class="glass-sm rounded-lg px-3 py-1.5 text-[10px] text-[#f0cc56] border border-[#f0cc56]/20">State Manager</div>
+          </div>
+        </div>
+
+        <div class="flex flex-col items-center gap-3">
+          <div class="flex items-center gap-2 text-xs text-slate-400">
+            <div class="flex-1 h-px bg-gradient-to-r from-transparent via-[#E6B325]/50 to-transparent"></div>
+            <span>Sync</span>
+            <div class="flex-1 h-px bg-gradient-to-r from-transparent via-[#E6B325]/40 to-transparent"></div>
+          </div>
+          <div class="glass-sm rounded-xl p-4 text-center border border-[#E6B325]/25 glow-violet">
+            <div class="text-2xl mb-1">🔄</div>
+            <p class="text-white text-xs font-semibold">Capa Sync</p>
+            <p class="text-slate-500 text-[10px]">Offline-first logic</p>
+          </div>
+          <div class="flex items-center gap-2 text-xs text-slate-400">
+            <div class="flex-1 h-px bg-gradient-to-r from-transparent via-[#E6B325]/40 to-transparent"></div>
+            <span>Real-time</span>
+            <div class="flex-1 h-px bg-gradient-to-r from-transparent via-[#E6B325]/50 to-transparent"></div>
+          </div>
+        </div>
+
+        <div class="text-center">
+          <div class="glass-sm rounded-xl p-4 mb-3 inline-block">
+            <div class="text-2xl mb-1">☁️</div>
+            <p class="text-white text-xs font-semibold">Firebase</p>
+            <p class="text-slate-500 text-[10px]">Cloud Backend</p>
+          </div>
+          <div class="space-y-1.5">
+            <div class="glass-sm rounded-lg px-3 py-1.5 text-[10px] text-orange-400 border border-orange-500/20">Firestore DB</div>
+            <div class="glass-sm rounded-lg px-3 py-1.5 text-[10px] text-yellow-400 border border-yellow-500/20">Auth + Rules</div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════
+     PRICING SECTION
+═══════════════════════════════════════════════ -->
+<section id="pricing" class="py-24 relative overflow-hidden">
+  <div class="absolute inset-0 pointer-events-none">
+    <div class="absolute top-0 right-1/4 w-72 h-72 bg-[#E6B325]/8 rounded-full blur-[100px]"></div>
+    <div class="absolute bottom-0 left-1/4 w-72 h-72 bg-[#B8861A]/6 rounded-full blur-[100px]"></div>
+  </div>
+
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="text-center mb-14 reveal">
+      <div class="badge mb-4 inline-block">Precios</div>
+      <h2 class="text-3xl sm:text-4xl font-black tracking-tight mb-4">
+        Simple y transparente:<br/>
+        <span class="gradient-text">dos planes reales</span>
+      </h2>
+      <p class="text-slate-400 text-base max-w-xl mx-auto">Empieza gratis y escala cuando necesites el sistema completo.</p>
+    </div>
+
+    <div class="grid sm:grid-cols-2 gap-8 max-w-3xl mx-auto">
+
+      <!-- Free -->
+      <div class="glass-card rounded-2xl p-7 reveal reveal-delay-1">
+        <div class="mb-5">
+          <div class="text-3xl mb-3">🆓</div>
+          <h3 class="text-white font-bold text-xl mb-1">Free</h3>
+          <p class="text-slate-500 text-sm">Para comenzar sin riesgo</p>
+        </div>
+        <div class="mb-6">
+          <span class="text-4xl font-black text-white">$0</span>
+          <span class="text-slate-500 text-sm ml-1">siempre gratis</span>
+        </div>
+        <ul class="space-y-3 mb-7">
+          <li class="flex items-center gap-2.5 text-slate-300 text-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Hasta 20 productos
+          </li>
+          <li class="flex items-center gap-2.5 text-slate-300 text-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Hasta 50 ingredientes
+          </li>
+          <li class="flex items-center gap-2.5 text-slate-300 text-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Punto de Venta completo
+          </li>
+          <li class="flex items-center gap-2.5 text-slate-300 text-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Pedidos pendientes
+          </li>
+          <li class="flex items-center gap-2.5 text-slate-300 text-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#34d399" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Dashboard &amp; Caja
+          </li>
+          <li class="flex items-center gap-2.5 text-slate-500 text-sm line-through">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Historial de ventas
+          </li>
+          <li class="flex items-center gap-2.5 text-slate-500 text-sm line-through">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Inventario &amp; Insumos
+          </li>
+          <li class="flex items-center gap-2.5 text-slate-500 text-sm line-through">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Clientes CRM
+          </li>
+        </ul>
+        <a href="./index.html" class="glass text-slate-300 hover:text-white font-semibold py-3 rounded-xl text-sm text-center block hover:border-[#E6B325]/40 transition-all border border-white/10">
+          Empezar gratis →
+        </a>
+      </div>
+
+      <!-- Premium (featured) -->
+      <div class="relative rounded-2xl p-7 reveal reveal-delay-2 gradient-border" style="background: rgba(10,9,4,0.95)">
+        <div class="absolute -top-3 left-1/2 -translate-x-1/2">
+          <span class="badge text-[9px]">⭐ Todo incluido</span>
+        </div>
+        <div class="mb-5">
+          <div class="text-3xl mb-3">⭐</div>
+          <h3 class="text-white font-bold text-xl mb-1">Premium</h3>
+          <p class="text-slate-400 text-sm">Sistema completo sin límites</p>
+        </div>
+        <div class="mb-6">
+          <span class="text-4xl font-black gradient-text">$160</span>
+          <span class="text-slate-500 text-sm ml-1">MXN/mes</span>
+        </div>
+        <ul class="space-y-3 mb-7">
+          <li class="flex items-center gap-2.5 text-slate-300 text-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E6B325" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Productos ilimitados
+          </li>
+          <li class="flex items-center gap-2.5 text-slate-300 text-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E6B325" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Ingredientes ilimitados
+          </li>
+          <li class="flex items-center gap-2.5 text-slate-300 text-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E6B325" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            TPV + Pedidos + Dashboard + Caja
+          </li>
+          <li class="flex items-center gap-2.5 text-slate-300 text-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E6B325" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Historial de ventas + Reportes PDF
+          </li>
+          <li class="flex items-center gap-2.5 text-slate-300 text-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E6B325" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Inventario, Insumos y Recomendaciones
+          </li>
+          <li class="flex items-center gap-2.5 text-slate-300 text-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E6B325" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Clientes CRM con puntos e historial
+          </li>
+          <li class="flex items-center gap-2.5 text-slate-300 text-sm">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#E6B325" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+            Finanzas: sueldos, servicios, utilidad neta
+          </li>
+        </ul>
+        <a href="./index.html" class="gradient-btn text-white font-bold py-3 rounded-xl text-sm text-center block shadow-lg">
+          Contratar Premium →
+        </a>
+      </div>
+
+    </div>
+  </div>
+</section>
+
+
+<!-- ═══════════════════════════════════════════════
+     FOOTER
+═══════════════════════════════════════════════ -->
+<footer class="border-t border-white/5 py-16">
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-10 mb-12">
+
+      <!-- Brand -->
+      <div class="lg:col-span-1">
+        <div class="flex items-center gap-2.5 mb-4">
+          <div class="w-8 h-8 rounded-lg gradient-btn flex items-center justify-center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+          </div>
+          <span class="text-white font-bold text-lg">Gestia <span class="gradient-text">POS</span></span>
+        </div>
+        <p class="text-slate-500 text-sm leading-relaxed mb-4">
+          Sistema TPV híbrido cloud/local para restaurantes. 17 módulos integrados, offline-first con Firebase. Plan Free gratuito y Premium a $160 MXN/mes.
+        </p>
+        <div class="flex items-center gap-1.5 glass-sm rounded-lg px-3 py-2 w-fit border border-green-500/20">
+          <span class="w-1.5 h-1.5 bg-green-400 rounded-full animate-pulse"></span>
+          <span class="text-green-400 text-xs font-medium">Todos los sistemas operativos</span>
+        </div>
+      </div>
+
+      <!-- Links: Product -->
+      <div>
+        <h4 class="text-white font-semibold text-sm mb-4">Producto</h4>
+        <ul class="space-y-2.5">
+          <li><a href="#features" class="text-slate-500 hover:text-slate-200 text-sm transition-colors">Funcionalidades</a></li>
+          <li><a href="#demo" class="text-slate-500 hover:text-slate-200 text-sm transition-colors">Demostración</a></li>
+          <li><a href="#pricing" class="text-slate-500 hover:text-slate-200 text-sm transition-colors">Precios</a></li>
+          <li><a href="./index.html" class="text-slate-500 hover:text-slate-200 text-sm transition-colors">Acceder al Sistema</a></li>
+        </ul>
+      </div>
+
+      <!-- Links: Tech -->
+      <div>
+        <h4 class="text-white font-semibold text-sm mb-4">Tecnología</h4>
+        <ul class="space-y-2.5">
+          <li><a href="https://firebase.google.com" target="_blank" class="text-slate-500 hover:text-slate-200 text-sm transition-colors">Firebase v10.7.1</a></li>
+          <li><a href="https://tailwindcss.com" target="_blank" class="text-slate-500 hover:text-slate-200 text-sm transition-colors">Tailwind CSS</a></li>
+          <li><a href="https://www.chartjs.org" target="_blank" class="text-slate-500 hover:text-slate-200 text-sm transition-colors">Chart.js</a></li>
+          <li><a href="#stack" class="text-slate-500 hover:text-slate-200 text-sm transition-colors">Ver Stack Completo</a></li>
+        </ul>
+      </div>
+
+      <!-- Links: Security -->
+      <div>
+        <h4 class="text-white font-semibold text-sm mb-4">Seguridad</h4>
+        <ul class="space-y-2.5">
+          <li class="text-slate-500 text-sm">🔐 Firestore Security Rules</li>
+          <li class="text-slate-500 text-sm">🔑 Firebase Authentication</li>
+          <li class="text-slate-500 text-sm">☁️ Google Cloud infra</li>
+          <li class="text-slate-500 text-sm">🛡️ HTTPS enforced</li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="border-t border-white/5 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4">
+      <p class="text-slate-600 text-sm">© 2026 Gestia POS. Todos los derechos reservados.</p>
+      <div class="flex items-center gap-4">
+        <a href="#" class="text-slate-600 hover:text-slate-400 transition-colors">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23 3a10.9 10.9 0 0 1-3.14 1.53 4.48 4.48 0 0 0-7.86 3v1A10.66 10.66 0 0 1 3 4s-4 9 5 13a11.64 11.64 0 0 1-7 2c9 5 20 0 20-11.5a4.5 4.5 0 0 0-.08-.83A7.72 7.72 0 0 0 23 3z"/></svg>
+        </a>
+        <a href="#" class="text-slate-600 hover:text-slate-400 transition-colors">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+        </a>
+        <a href="#" class="text-slate-600 hover:text-slate-400 transition-colors">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z"/><rect x="2" y="9" width="4" height="12"/><circle cx="4" cy="4" r="2"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+
+<!-- ═══════════════════════════════════════════════
+     JAVASCRIPT
+═══════════════════════════════════════════════ -->
+<script>
+// ── Navbar scroll effect ──────────────────────
+const navbar = document.getElementById('navbar');
+window.addEventListener('scroll', () => {
+  if (window.scrollY > 20) {
+    navbar.style.background = 'rgba(10,9,4,0.96)';
+    navbar.style.boxShadow = '0 1px 30px rgba(0,0,0,0.5)';
+  } else {
+    navbar.style.background = '';
+    navbar.style.boxShadow = '';
+  }
+}, { passive: true });
+
+
+// ── Mobile menu toggle ───────────────────────
+const menuToggle = document.getElementById('menu-toggle');
+const mobileMenu = document.getElementById('mobile-menu');
+const iconMenu   = document.getElementById('icon-menu');
+const iconClose  = document.getElementById('icon-close');
+
+menuToggle.addEventListener('click', () => {
+  const isOpen = mobileMenu.classList.toggle('open');
+  iconMenu.classList.toggle('hidden', isOpen);
+  iconClose.classList.toggle('hidden', !isOpen);
+});
+
+document.querySelectorAll('.mobile-link').forEach(link => {
+  link.addEventListener('click', () => {
+    mobileMenu.classList.remove('open');
+    iconMenu.classList.remove('hidden');
+    iconClose.classList.add('hidden');
+  });
+});
+
+
+// ── Scroll reveal ─────────────────────────────
+const revealObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible'); });
+}, { threshold: 0.12, rootMargin: '0px 0px -40px 0px' });
+
+document.querySelectorAll('.reveal').forEach(el => revealObserver.observe(el));
+
+
+// ── Tabs ──────────────────────────────────────
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const target = btn.dataset.tab;
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(`tab-${target}`).classList.add('active');
+    // Init charts when reports tab opens
+    if (target === 'reports') { setTimeout(initReportCharts, 50); }
+  });
+});
+
+
+// ── Chart: Hero (area line) ───────────────────
+(function initHeroChart() {
+  const ctx = document.getElementById('heroChart');
+  if (!ctx) return;
+
+  const labels = ['10am','11am','12pm','1pm','2pm','3pm','4pm'];
+  const data   = [1200, 1900, 3400, 2850, 4100, 3700, 4600];
+
+  const gradient = ctx.getContext('2d').createLinearGradient(0, 0, 0, 120);
+  gradient.addColorStop(0, 'rgba(230,179,37,0.35)');
+  gradient.addColorStop(1, 'rgba(230,179,37,0)');
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels,
+      datasets: [{
+        data,
+        borderColor: '#E6B325',
+        borderWidth: 2.5,
+        fill: true,
+        backgroundColor: gradient,
+        tension: 0.4,
+        pointBackgroundColor: '#f0cc56',
+        pointBorderColor: '#0d0d0d',
+        pointBorderWidth: 2,
+        pointRadius: 4,
+        pointHoverRadius: 6,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false }, tooltip: {
+        callbacks: { label: ctx => `$${ctx.raw.toLocaleString()}` },
+        backgroundColor: 'rgba(15,23,42,0.9)',
+        titleColor: '#94a3b8',
+        bodyColor: '#e2e8f0',
+        borderColor: 'rgba(230,179,37,0.3)',
+        borderWidth: 1,
+        padding: 10,
+        cornerRadius: 8,
+      }},
+      scales: {
+        x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#64748b', font: { size: 9 } } },
+        y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#64748b', font: { size: 9 }, callback: v => '$' + (v/1000).toFixed(1)+'k' } },
+      },
+    },
+  });
+})();
+
+
+// ── Charts: Reports tab ───────────────────────
+let reportChartsInited = false;
+function initReportCharts() {
+  if (reportChartsInited) return;
+  reportChartsInited = true;
+
+  // Week bar chart
+  const wCtx = document.getElementById('weekChart');
+  if (wCtx) {
+    const g = wCtx.getContext('2d').createLinearGradient(0, 0, 0, 150);
+    g.addColorStop(0, 'rgba(230,179,37,0.85)');
+    g.addColorStop(1, 'rgba(184,134,26,0.4)');
+    new Chart(wCtx, {
+      type: 'bar',
+      data: {
+        labels: ['Lun','Mar','Mié','Jue','Vie','Sáb','Dom'],
+        datasets: [{ data: [8200,9400,7800,11200,13500,18400,12700], backgroundColor: g, borderRadius: 6, borderSkipped: false }],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false }, tooltip: {
+          callbacks: { label: c => `$${c.raw.toLocaleString()}` },
+          backgroundColor: 'rgba(10,9,4,0.95)',
+          bodyColor: '#e2e8f0', borderColor: 'rgba(230,179,37,0.3)', borderWidth: 1, padding: 8, cornerRadius: 8,
+        }},
+        scales: {
+          x: { grid: { display: false }, ticks: { color: '#64748b', font: { size: 9 } } },
+          y: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#64748b', font: { size: 9 }, callback: v => '$'+v/1000+'k' } },
+        },
+      },
+    });
+  }
+
+  // Donut
+  const dCtx = document.getElementById('donutChart');
+  if (dCtx) {
+    new Chart(dCtx, {
+      type: 'doughnut',
+      data: {
+        labels: ['Classic Burger','Papas Fritas','Bebidas','BBQ Burger','Otros'],
+        datasets: [{ data: [34, 22, 18, 16, 10], backgroundColor: ['#E6B325','#f0cc56','#B8861A','#34d399','#374151'], borderWidth: 0, hoverOffset: 6 }],
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        cutout: '65%',
+        plugins: {
+          legend: { position: 'right', labels: { color: '#94a3b8', font: { size: 9 }, padding: 10, usePointStyle: true, pointStyleWidth: 8 } },
+          tooltip: {
+            callbacks: { label: c => ` ${c.label}: ${c.raw}%` },
+            backgroundColor: 'rgba(10,9,4,0.95)',
+            bodyColor: '#e2e8f0', borderColor: 'rgba(230,179,37,0.3)', borderWidth: 1, padding: 8, cornerRadius: 8,
+          },
+        },
+      },
+    });
+  }
+}
+
+
+// ── Live chart data simulation ────────────────
+setInterval(() => {
+  // Simulate a small random bump in the hero chart
+  const chart = Chart.getChart('heroChart');
+  if (chart) {
+    const last = chart.data.datasets[0].data;
+    const newVal = last[last.length - 1] + Math.round((Math.random() - 0.4) * 300);
+    last.push(Math.max(500, newVal));
+    chart.data.labels.push('');
+    if (last.length > 9) {
+      last.shift();
+      chart.data.labels.shift();
+    }
+    chart.update('none');
+  }
+}, 3000);
+
+
+// ── Stat counter animation ────────────────────
+function animateCounter(el, target, suffix) {
+  let start = 0;
+  const duration = 1800;
+  const step = 16;
+  const increment = target / (duration / step);
+  const timer = setInterval(() => {
+    start += increment;
+    if (start >= target) {
+      el.textContent = target + (suffix || '');
+      clearInterval(timer);
+    } else {
+      el.textContent = Math.floor(start * 10) / 10 + (suffix || '');
+    }
+  }, step);
+}
+
+const statObserver = new IntersectionObserver((entries) => {
+  entries.forEach(e => {
+    if (e.isIntersecting) {
+      const el = e.target;
+      const target = parseFloat(el.dataset.target);
+      const suffix = el.textContent.includes('%') || el.textContent === '0' ? (el.dataset.target == 100 ? '%' : '') : '';
+      if (!isNaN(target) && target > 0) animateCounter(el, target, suffix);
+      statObserver.unobserve(el);
+    }
+  });
+}, { threshold: 0.5 });
+
+document.querySelectorAll('[data-target]').forEach(el => statObserver.observe(el));
+
+
+// ── POS demo: product key clicks ─────────────
+document.querySelectorAll('.pos-key').forEach(key => {
+  key.addEventListener('click', () => {
+    key.style.transform = 'scale(0.95)';
+    setTimeout(() => key.style.transform = '', 120);
+  });
+});
+
+
+// ── Subtle parallax on hero decoration ───────
+window.addEventListener('scroll', () => {
+  const scrolled = window.scrollY;
+  const orbitRings = document.querySelectorAll('.orbit-ring');
+  orbitRings.forEach((ring, i) => {
+    ring.style.transform = `translateY(${scrolled * 0.08 * (i + 1)}px) rotate(${scrolled * 0.02}deg)`;
+  });
+}, { passive: true });
+</script>
+
+</body>
+</html>

@@ -626,6 +626,9 @@
   </style>
   <link rel="stylesheet" href="./styles/saas2026.css" />
   <link rel="stylesheet" href="./styles/enhancements.css" />
+  <!-- EmailJS SDK -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
+  <script>(function(){ emailjs.init('q14FqhdjUSICAGOTm'); })();</script>
 </head>
 <body class="font-sans min-h-screen">
   <!-- Navigation Progress Bar -->
@@ -914,11 +917,26 @@
           </div>
           <!-- Signup tab -->
           <div id="tab-signup" class="space-y-2" style="display:none;">
-            <input id="auth-nombre" type="text" placeholder="Nombre o restaurante" class="w-full input-modern px-3 py-2 rounded-xl text-sm" />
-            <input id="auth-email-reg" type="email" placeholder="Correo electrónico" class="w-full input-modern px-3 py-2 rounded-xl text-sm" />
-            <input id="auth-tel" type="tel" placeholder="Teléfono" class="w-full input-modern px-3 py-2 rounded-xl text-sm" />
-            <input id="auth-pass-reg" type="password" placeholder="Contraseña" class="w-full input-modern px-3 py-2 rounded-xl text-sm" />
-            <input id="auth-pass-confirm" type="password" placeholder="Confirmar contraseña" class="w-full input-modern px-3 py-2 rounded-xl text-sm" />
+            <div class="flex flex-col gap-0.5">
+              <label class="text-[10px] font-semibold uppercase tracking-wide opacity-60">Nombre del restaurante</label>
+              <input id="auth-nombre" type="text" placeholder="Ej: Sysra Burger" class="w-full input-modern px-3 py-2 rounded-xl text-sm" required />
+            </div>
+            <div class="flex flex-col gap-0.5">
+              <label class="text-[10px] font-semibold uppercase tracking-wide opacity-60">Correo electrónico</label>
+              <input id="auth-email-reg" type="email" placeholder="tucorreo@negocio.com" class="w-full input-modern px-3 py-2 rounded-xl text-sm" required />
+            </div>
+            <div class="flex flex-col gap-0.5">
+              <label class="text-[10px] font-semibold uppercase tracking-wide opacity-60">Número telefónico</label>
+              <input id="auth-tel" type="tel" placeholder="+52 55 1234 5678" class="w-full input-modern px-3 py-2 rounded-xl text-sm" required />
+            </div>
+            <div class="flex flex-col gap-0.5">
+              <label class="text-[10px] font-semibold uppercase tracking-wide opacity-60">Contraseña</label>
+              <input id="auth-pass-reg" type="password" placeholder="Mínimo 6 caracteres" class="w-full input-modern px-3 py-2 rounded-xl text-sm" required />
+            </div>
+            <div class="flex flex-col gap-0.5">
+              <label class="text-[10px] font-semibold uppercase tracking-wide opacity-60">Confirmar contraseña</label>
+              <input id="auth-pass-confirm" type="password" placeholder="Repite tu contraseña" class="w-full input-modern px-3 py-2 rounded-xl text-sm" required />
+            </div>
             <button id="btn-signup" class="btn-gradient px-2 py-2.5 rounded-xl text-sm w-full">Crear cuenta</button>
             <button id="btn-google-signup" class="btn-soft px-2 py-2 rounded-xl text-xs w-full flex items-center justify-center gap-2">
               <svg width="14" height="14" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
@@ -2488,6 +2506,71 @@
   <!-- Modales básicos -->
   <div id="modal-backdrop" class="fixed inset-0 backdrop-blur-sm hidden z-40" style="background:rgba(0,0,0,.5); pointer-events:none;"></div>
   <div id="modal-container" class="fixed inset-0 hidden z-50 flex items-center justify-center p-6" style="pointer-events:auto;"></div>
+
+  <!-- Modal: Recuperar contraseña -->
+  <div id="reset-pass-modal" class="fixed inset-0 hidden z-[70] flex items-center justify-center px-4" style="background:rgba(0,0,0,.72);backdrop-filter:blur(4px);">
+    <div class="rounded-2xl border max-w-sm w-full p-6 shadow-2xl" style="background:#111;border-color:rgba(230,179,37,.25);">
+
+      <!-- Estado 1: Formulario -->
+      <div id="rp-form-state">
+        <div class="flex items-center justify-between mb-1">
+          <div class="flex items-center gap-2">
+            <span style="color:var(--amber);font-size:1.2rem;">🔑</span>
+            <h3 class="font-extrabold text-base text-white">Recuperar contraseña</h3>
+          </div>
+          <button onclick="closeResetPassModal()" class="text-white/40 hover:text-white text-xl leading-none transition-colors" aria-label="Cerrar">×</button>
+        </div>
+        <p class="text-xs mb-4" style="color:var(--app-muted)">Ingresa el correo con el que creaste tu cuenta. Te enviaremos un enlace para restablecer tu contraseña.</p>
+        <div class="mb-3">
+          <label class="block text-[10px] font-bold uppercase tracking-widest mb-1 opacity-60">Correo electrónico</label>
+          <input id="rp-email-input" type="email" placeholder="tucorreo@negocio.com"
+            class="w-full input-modern px-3 py-2.5 rounded-xl text-sm"
+            onkeydown="if(event.key==='Enter') sendResetEmail()" />
+          <div id="rp-error-msg" class="hidden text-xs mt-1.5 font-semibold" style="color:#f87171;"></div>
+        </div>
+        <div class="flex gap-2 mt-4">
+          <button onclick="closeResetPassModal()" class="flex-1 btn-soft px-3 py-2.5 rounded-xl text-sm">Cancelar</button>
+          <button id="rp-send-btn" onclick="sendResetEmail()" class="flex-1 btn-gradient px-3 py-2.5 rounded-xl text-sm font-bold">Enviar enlace</button>
+        </div>
+      </div>
+
+      <!-- Estado 2: Enviado -->
+      <div id="rp-sent-state" class="hidden text-center">
+        <div class="flex flex-col items-center gap-3 mb-5">
+          <div class="w-14 h-14 rounded-full flex items-center justify-center" style="background:rgba(230,179,37,.12);border:1.5px solid rgba(230,179,37,.35);">
+            <span style="font-size:1.7rem;">📧</span>
+          </div>
+          <div>
+            <p class="font-extrabold text-white text-base mb-1">¡Correo enviado!</p>
+            <p class="text-xs" style="color:var(--app-muted)">Revisa tu bandeja de entrada en <span id="rp-sent-email" class="font-semibold" style="color:var(--amber)"></span></p>
+          </div>
+        </div>
+        <div class="rounded-xl px-4 py-3 mb-5 text-left" style="background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);">
+          <p class="text-xs font-semibold mb-1" style="color:var(--amber)">¿No lo encuentras?</p>
+          <p class="text-xs" style="color:var(--app-muted)">Revisa la carpeta de <strong class="text-white/70">Spam</strong> o <strong class="text-white/70">Correo no deseado</strong>. El enlace expira en 1 hora.</p>
+        </div>
+        <p class="text-[10px] font-bold uppercase tracking-widest opacity-50 mb-2">Abrir mi correo</p>
+        <div class="flex gap-2 mb-4">
+          <a href="https://mail.google.com" target="_blank" rel="noopener"
+            class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all"
+            style="background:rgba(66,133,244,.12);border:1px solid rgba(66,133,244,.30);color:#74a9ff;">
+            <svg width="14" height="14" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+            Gmail
+          </a>
+          <a href="https://outlook.live.com" target="_blank" rel="noopener"
+            class="flex-1 flex items-center justify-center gap-1.5 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all"
+            style="background:rgba(0,114,239,.12);border:1px solid rgba(0,114,239,.30);color:#6ab3ff;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <rect x="2" y="4" width="20" height="16" rx="2" fill="#0072EF" opacity=".2"/>
+              <path d="M2 8l10 6 10-6" stroke="#0072EF" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+            Hotmail / Outlook
+          </a>
+        </div>
+        <button onclick="closeResetPassModal()" class="w-full btn-soft px-3 py-2.5 rounded-xl text-sm">Cerrar</button>
+      </div>
+    </div>
+  </div>
 
   <!-- Modal: Inicio de sesión / Registro -->
   <div id="hero-auth-overlay" class="fixed inset-0 hidden z-[60] flex items-center justify-center px-4" style="background:rgba(15,23,42,.70);">
@@ -12070,38 +12153,98 @@ En Firebase Console → Authentication:
       }
     });
 
-    btnResetPass?.addEventListener('click', async ()=>{
-      try{
-        const M = window.firebaseModules || {};
-        if(!M.sendPasswordResetEmail){
-          alert('Recuperación de contraseña no está disponible aún. Recarga la página (Ctrl+F5) y asegúrate de abrir la URL correcta.');
-          return;
-        }
-        const email = (emailEl?.value||'').trim();
-        if(!email){
-          alert('Ingresa tu email para enviarte el enlace de recuperación.');
-          return;
-        }
-        await M.sendPasswordResetEmail(window.auth, email);
-        alert('Listo. Te enviamos un enlace de recuperación a tu email (revisa spam).');
-      }catch(err){
-        console.warn('reset-pass', err);
-        const code = err?.code||'';
-        if(code==='auth/invalid-email'){
-          alert('Email inválido. Verifica que esté bien escrito.');
-        } else if(code==='auth/user-not-found'){
-          alert('No existe una cuenta con ese email.');
-        } else if(code==='auth/network-request-failed'){
-          alert('Fallo de red. Revisa tu conexión a Internet.');
-        } else if(code==='auth/operation-not-allowed' || code==='auth/unauthorized-domain'){
-          alert(`Recuperación deshabilitada o dominio no autorizado. En Firebase Console → Authentication:
-1) Sign-in method: habilita Email/Password
-2) Settings → Authorized domains: agrega "${location.hostname}"`);
-        } else {
-          alert('No se pudo enviar el correo de recuperación ('+code+'): '+(err?.message||''));
-        }
-      }
+    // ── Reset password modal ────────────────────────────────
+    window.openResetPassModal = function() {
+      const modal = document.getElementById('reset-pass-modal');
+      const formState = document.getElementById('rp-form-state');
+      const sentState = document.getElementById('rp-sent-state');
+      const emailInput = document.getElementById('rp-email-input');
+      const errMsg = document.getElementById('rp-error-msg');
+      if (!modal) return;
+      // Pre-fill email from login field if available
+      const loginEmail = (emailEl?.value || '').trim();
+      if (emailInput) emailInput.value = loginEmail;
+      if (errMsg) { errMsg.textContent = ''; errMsg.classList.add('hidden'); }
+      formState?.classList.remove('hidden');
+      sentState?.classList.add('hidden');
+      modal.classList.remove('hidden');
+      setTimeout(() => emailInput?.focus(), 80);
+    };
+
+    window.closeResetPassModal = function() {
+      document.getElementById('reset-pass-modal')?.classList.add('hidden');
+    };
+
+    // Close on backdrop click
+    document.getElementById('reset-pass-modal')?.addEventListener('click', function(e) {
+      if (e.target === this) window.closeResetPassModal();
     });
+
+    window.sendResetEmail = async function() {
+      const M = window.firebaseModules || {};
+      const emailInput = document.getElementById('rp-email-input');
+      const errMsg = document.getElementById('rp-error-msg');
+      const sendBtn = document.getElementById('rp-send-btn');
+      const formState = document.getElementById('rp-form-state');
+      const sentState = document.getElementById('rp-sent-state');
+      const sentEmailEl = document.getElementById('rp-sent-email');
+
+      const showErr = (msg) => {
+        if (!errMsg) return;
+        errMsg.textContent = msg;
+        errMsg.classList.remove('hidden');
+      };
+
+      if (!errMsg) return;
+      errMsg.classList.add('hidden');
+
+      if (!M.sendPasswordResetEmail) {
+        showErr('Servicio no disponible. Recarga la página (Ctrl+F5) e intenta de nuevo.');
+        return;
+      }
+
+      const email = (emailInput?.value || '').trim();
+      if (!email) { showErr('Ingresa tu correo electrónico.'); emailInput?.focus(); return; }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { showErr('El correo no tiene un formato válido.'); emailInput?.focus(); return; }
+
+      if (sendBtn) { sendBtn.disabled = true; sendBtn.textContent = 'Enviando…'; }
+
+      try {
+        await M.sendPasswordResetEmail(window.auth, email);
+        // Send aesthetic HTML email via EmailJS
+        try {
+          await emailjs.send('service_bvappww', 'template_77p38aq', {
+            to_email: email,
+            to_name: email.split('@')[0],
+            reset_link: window.location.origin,
+            year: new Date().getFullYear()
+          });
+        } catch (ejsErr) {
+          console.warn('EmailJS (non-critical):', ejsErr);
+        }
+        if (sentEmailEl) sentEmailEl.textContent = email;
+        formState?.classList.add('hidden');
+        sentState?.classList.remove('hidden');
+      } catch (err) {
+        console.warn('reset-pass', err);
+        const code = err?.code || '';
+        if (code === 'auth/invalid-email') {
+          showErr('El correo no tiene un formato válido.');
+        } else if (code === 'auth/user-not-found') {
+          showErr('No existe una cuenta registrada con ese correo.');
+        } else if (code === 'auth/network-request-failed') {
+          showErr('Sin conexión. Verifica tu red e intenta de nuevo.');
+        } else if (code === 'auth/operation-not-allowed' || code === 'auth/unauthorized-domain') {
+          showErr('Dominio no autorizado. Agrega "' + location.hostname + '" en Firebase Console → Authentication → Authorized domains.');
+        } else {
+          showErr('Error (' + code + '): ' + (err?.message || 'Intenta de nuevo.'));
+        }
+      } finally {
+        if (sendBtn) { sendBtn.disabled = false; sendBtn.textContent = 'Enviar enlace'; }
+      }
+    };
+
+    btnResetPass?.addEventListener('click', () => window.openResetPassModal());
 
     // Google sign-in handler (shared for login & signup buttons)
     async function handleGoogleAuth() {
