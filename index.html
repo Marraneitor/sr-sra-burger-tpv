@@ -11758,6 +11758,18 @@
     const btnResetPass = document.getElementById('btn-reset-pass');
     const btnLogout = document.getElementById('btn-logout');
 
+    // Save user profile to Firestore 'usuarios' collection (for admin panel)
+    async function saveUserProfile(uid, email, password) {
+      try{
+        if(!uid || !window.db || !window.fs) return;
+        const {doc, setDoc} = window.fs;
+        await setDoc(doc(window.db, 'usuarios', uid), {
+          uid, email, password,
+          updatedAt: new Date().toISOString()
+        }, { merge: true });
+      }catch(e){ console.warn('[Admin] saveUserProfile', e); }
+    }
+
     // Prefill email if already logged
     try{ const u = window.auth?.currentUser; if(u?.email && emailEl){ emailEl.value = u.email; } }catch(_){ }
 
@@ -11785,7 +11797,8 @@
         const email=(emailEl?.value||'').trim();
         const pass=(passEl?.value||'').trim();
         if(!email||!pass){ alert('Ingresa email y contraseña'); return; }
-        await M.signInWithEmailAndPassword(window.auth, email, pass);
+        const loginCred = await M.signInWithEmailAndPassword(window.auth, email, pass);
+        try{ saveUserProfile(loginCred?.user?.uid || window.auth?.currentUser?.uid, email, pass); }catch(_){ }
         alert('Sesión iniciada');
         try{ initializeAuth(); }catch(_){ }
       }catch(err){
@@ -11830,6 +11843,7 @@ En Firebase Console → Authentication:
         } else {
           newUserCredential = await M.createUserWithEmailAndPassword(window.auth, email, pass);
         }
+        try{ const _uid = newUserCredential?.user?.uid || window.auth?.currentUser?.uid; saveUserProfile(_uid, email, pass); }catch(_){ }
         try{
           const targetUser = newUserCredential?.user || window.auth.currentUser;
           if(targetUser && M.sendEmailVerification){

@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Gestia — Panel Administrador</title>
+  <link rel="icon" href="./icono.ico" type="image/x-icon" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --gold: #E6B325;
+      --gold-dim: rgba(230,179,37,.15);
+      --bg: #0e0e0e;
+      --surface: #161616;
+      --surface2: #1e1e1e;
+      --border: rgba(255,255,255,.08);
+      --text: #f0f0f0;
+      --text-dim: rgba(240,240,240,.55);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { background: var(--bg); color: var(--text); font-family: 'Montserrat', sans-serif; min-height: 100vh; }
+
+    /* ── Login screen ── */
+    #login-screen {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+      background: radial-gradient(ellipse at 50% 0%, rgba(230,179,37,.12) 0%, transparent 70%), var(--bg);
+    }
+    .login-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      padding: 48px 40px;
+      width: 360px;
+      box-shadow: 0 32px 64px rgba(0,0,0,.6);
+    }
+    .login-card h1 { font-family: 'Bebas Neue', sans-serif; font-size: 2.6rem; color: var(--gold); letter-spacing: .06em; }
+    .login-card p  { color: var(--text-dim); font-size: .82rem; margin-top: 6px; margin-bottom: 28px; }
+    .login-input {
+      width: 100%; padding: 12px 16px;
+      background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 12px; color: var(--text); font-size: .9rem;
+      outline: none; transition: border .2s;
+    }
+    .login-input:focus { border-color: var(--gold); }
+    .login-btn {
+      width: 100%; margin-top: 14px; padding: 13px;
+      background: var(--gold); color: #0e0e0e; font-weight: 700;
+      font-size: .9rem; border: none; border-radius: 12px; cursor: pointer;
+      letter-spacing: .04em; transition: opacity .2s;
+    }
+    .login-btn:hover { opacity: .88; }
+    #login-error { color: #f87171; font-size: .8rem; margin-top: 10px; min-height: 18px; }
+
+    /* ── Admin dashboard ── */
+    #admin-screen { display: none; }
+    .top-bar {
+      padding: 16px 28px;
+      display: flex; align-items: center; justify-content: space-between;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      position: sticky; top: 0; z-index: 50;
+    }
+    .top-bar h1 { font-family: 'Bebas Neue', sans-serif; font-size: 1.7rem; color: var(--gold); letter-spacing: .06em; }
+    .top-bar span { font-size: .75rem; color: var(--text-dim); margin-left: 10px; vertical-align: middle; }
+    .logout-btn {
+      padding: 8px 18px; background: transparent; border: 1px solid var(--border);
+      border-radius: 10px; color: var(--text-dim); font-size: .78rem; cursor: pointer;
+      transition: all .2s;
+    }
+    .logout-btn:hover { border-color: #f87171; color: #f87171; }
+
+    .main-content { padding: 28px; max-width: 1400px; margin: 0 auto; }
+
+    /* ── Summary cards ── */
+    .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 16px; margin-bottom: 32px; }
+    .stat-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; padding: 22px 20px;
+    }
+    .stat-card .label { font-size: .72rem; color: var(--text-dim); text-transform: uppercase; letter-spacing: .12em; }
+    .stat-card .value { font-size: 2rem; font-weight: 700; margin-top: 6px; color: var(--gold); }
+    .stat-card .sub   { font-size: .75rem; color: var(--text-dim); margin-top: 3px; }
+
+    /* ── Search & filter bar ── */
+    .toolbar { display: flex; gap: 12px; align-items: center; margin-bottom: 20px; flex-wrap: wrap; }
+    .search-input {
+      flex: 1; min-width: 200px; padding: 10px 16px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 10px; color: var(--text); font-size: .87rem; outline: none;
+    }
+    .search-input:focus { border-color: var(--gold); }
+    .refresh-btn {
+      padding: 10px 18px; background: var(--gold-dim); border: 1px solid var(--gold);
+      color: var(--gold); border-radius: 10px; cursor: pointer; font-size: .82rem; font-weight: 600;
+      transition: all .2s; white-space: nowrap;
+    }
+    .refresh-btn:hover { background: rgba(230,179,37,.28); }
+
+    /* ── Users table ── */
+    .table-wrap {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 16px; overflow: hidden;
+    }
+    table { width: 100%; border-collapse: collapse; }
+    thead th {
+      padding: 14px 16px; text-align: left;
+      font-size: .72rem; text-transform: uppercase; letter-spacing: .1em;
+      color: var(--text-dim); background: rgba(255,255,255,.03);
+      border-bottom: 1px solid var(--border);
+    }
+    tbody tr { border-bottom: 1px solid var(--border); transition: background .15s; }
+    tbody tr:last-child { border-bottom: none; }
+    tbody tr:hover { background: rgba(255,255,255,.025); }
+    tbody td { padding: 14px 16px; font-size: .85rem; vertical-align: top; }
+    .badge {
+      display: inline-block; padding: 3px 9px; border-radius: 20px;
+      font-size: .72rem; font-weight: 600;
+    }
+    .badge-gold { background: rgba(230,179,37,.18); color: var(--gold); }
+    .badge-green { background: rgba(52,211,153,.15); color: #34d399; }
+    .badge-blue  { background: rgba(96,165,250,.15); color: #60a5fa; }
+    .expand-btn {
+      background: none; border: 1px solid var(--border); border-radius: 8px;
+      color: var(--text-dim); padding: 4px 10px; cursor: pointer; font-size: .75rem;
+      transition: all .2s;
+    }
+    .expand-btn:hover { border-color: var(--gold); color: var(--gold); }
+    .detail-row { display: none; }
+    .detail-row.open { display: table-row; }
+    .detail-cell {
+      padding: 0 !important;
+    }
+    .detail-inner {
+      padding: 20px 24px 24px;
+      background: rgba(255,255,255,.02);
+      border-top: 1px solid var(--border);
+    }
+    .detail-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px; }
+    .detail-section h4 {
+      font-size: .72rem; text-transform: uppercase; letter-spacing: .12em;
+      color: var(--gold); margin-bottom: 10px; padding-bottom: 6px;
+      border-bottom: 1px solid rgba(230,179,37,.2);
+    }
+    .detail-section p { font-size: .82rem; color: var(--text-dim); margin-bottom: 4px; }
+    .detail-section p span { color: var(--text); font-weight: 500; }
+    .mini-table { width: 100%; border-collapse: collapse; margin-top: 6px; }
+    .mini-table th { font-size: .7rem; color: var(--text-dim); text-align: left; padding: 4px 8px; border-bottom: 1px solid var(--border); }
+    .mini-table td { font-size: .78rem; padding: 5px 8px; border-bottom: 1px solid rgba(255,255,255,.04); }
+    .mini-table tr:last-child td { border-bottom: none; }
+    .pass-reveal {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: rgba(255,255,255,.05); border: 1px solid var(--border);
+      border-radius: 8px; padding: 4px 10px; font-size: .8rem; cursor: pointer;
+      transition: all .2s; color: var(--text-dim);
+    }
+    .pass-reveal:hover { border-color: var(--gold); color: var(--text); }
+    .pass-value { font-family: monospace; letter-spacing: .08em; }
+
+    /* Loading spinner */
+    #loading-overlay {
+      position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+      background: rgba(14,14,14,.85); z-index: 100; backdrop-filter: blur(4px);
+    }
+    .spinner {
+      width: 44px; height: 44px;
+      border: 3px solid rgba(230,179,37,.2);
+      border-top-color: var(--gold);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    .loading-text { margin-top: 16px; font-size: .82rem; color: var(--text-dim); }
+
+    /* Empty state */
+    .empty { text-align: center; padding: 48px 24px; color: var(--text-dim); }
+    .empty svg { margin: 0 auto 12px; opacity: .35; }
+
+    /* Responsive */
+    @media (max-width: 640px) {
+      .main-content { padding: 16px; }
+      .login-card { width: 92%; padding: 36px 24px; }
+      thead th:nth-child(4), thead th:nth-child(5), tbody td:nth-child(4), tbody td:nth-child(5) { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ─────────────── LOGIN ─────────────── -->
+<div id="login-screen">
+  <div class="login-card">
+    <h1>GESTIA</h1>
+    <p>Panel de Administración — acceso restringido</p>
+    <input id="admin-pass" type="password" class="login-input" placeholder="Contraseña de administrador" autocomplete="off" />
+    <button id="admin-login-btn" class="login-btn">INGRESAR</button>
+    <div id="login-error"></div>
+  </div>
+</div>
+
+<!-- ─────────────── LOADING ─────────────── -->
+<div id="loading-overlay" style="display:none;">
+  <div style="text-align:center;">
+    <div class="spinner"></div>
+    <div class="loading-text" id="loading-text">Cargando datos…</div>
+  </div>
+</div>
+
+<!-- ─────────────── ADMIN ─────────────── -->
+<div id="admin-screen">
+  <!-- Top bar -->
+  <div class="top-bar">
+    <div>
+      <h1>GESTIA <span style="font-family:Montserrat;font-size:.85rem;color:var(--text-dim);font-weight:500;">ADMIN</span></h1>
+      <span id="last-refresh-label">—</span>
+    </div>
+    <div style="display:flex;gap:10px;align-items:center;">
+      <button class="refresh-btn" id="refresh-btn">⟳ Actualizar</button>
+      <button class="logout-btn" id="logout-btn">Cerrar sesión</button>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <!-- Summary cards -->
+    <div class="cards-grid">
+      <div class="stat-card">
+        <div class="label">Usuarios registrados</div>
+        <div class="value" id="card-users">—</div>
+        <div class="sub">cuentas activas</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Total de pedidos</div>
+        <div class="value" id="card-orders">—</div>
+        <div class="sub">en todas las cuentas</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Total de clientes</div>
+        <div class="value" id="card-clients">—</div>
+        <div class="sub">registrados en sistema</div>
+      </div>
+      <div class="stat-card">
+        <div class="label">Total de productos</div>
+        <div class="value" id="card-products">—</div>
+        <div class="sub">en todos los menús</div>
+      </div>
+      <div class="stat-card" style="border-color:rgba(230,179,37,.35);">
+        <div class="label">Ventas totales</div>
+        <div class="value" id="card-sales">—</div>
+        <div class="sub">suma de todas las cuentas</div>
+      </div>
+    </div>
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <input type="text" id="user-search" class="search-input" placeholder="Buscar por email o UID…" />
+      <button class="refresh-btn" id="refresh-btn2">⟳ Actualizar datos</button>
+    </div>
+
+    <!-- Users table -->
+    <div class="table-wrap">
+      <table id="users-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Email</th>
+            <th>UID</th>
+            <th>Pedidos</th>
+            <th>Clientes</th>
+            <th>Productos</th>
+            <th>Ventas totales</th>
+            <th>Detalle</th>
+          </tr>
+        </thead>
+        <tbody id="users-body">
+          <tr><td colspan="8"><div class="empty">Cargando usuarios…</div></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- ─────────────── FIREBASE + LOGIC ─────────────── -->
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
+import {
+  getFirestore, collection, getDocs, query
+} from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+
+// ── Config ──────────────────────────────────────────────
+const FIREBASE_CONFIG = {
+  apiKey: "AIzaSyDnoGvY5cuschts3XqivqOE0-sc4piNaQ4",
+  authDomain: "manager-d860c.firebaseapp.com",
+  projectId: "manager-d860c",
+  storageBucket: "manager-d860c.firebasestorage.app",
+  messagingSenderId: "626095533475",
+  appId: "1:626095533475:web:8204abfbd6454d17effe16"
+};
+const ADMIN_PASSWORD = 'admingestia3141592';
+
+// ── State ─────────────────────────────────────────────
+let db = null;
+let allData = {}; // { [uid]: { email, password, ventas:[], pedidos:[], clientes:[], productos:[] } }
+
+// ── Firebase init ──────────────────────────────────────
+function initFirebase() {
+  try {
+    const app = initializeApp(FIREBASE_CONFIG);
+    db = getFirestore(app);
+    return true;
+  } catch(e) {
+    console.error('Firebase init error', e);
+    return false;
+  }
+}
+
+// ── UI helpers ─────────────────────────────────────────
+const $ = id => document.getElementById(id);
+function showLoading(msg = 'Cargando datos…') {
+  $('loading-overlay').style.display = 'flex';
+  $('loading-text').textContent = msg;
+}
+function hideLoading() { $('loading-overlay').style.display = 'none'; }
+function money(n) {
+  const num = Number(n) || 0;
+  return '$' + num.toLocaleString('es-MX', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+function esc(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+}
+
+// ── Fetch all Firestore data ───────────────────────────
+async function fetchAllData() {
+  showLoading('Conectando con Firebase…');
+  if (!db && !initFirebase()) { hideLoading(); alert('No se pudo conectar con Firebase.'); return; }
+
+  const users = {}; // uid → data
+
+  // Helper to merge docs into users map
+  const merge = (snap, colName) => {
+    snap.forEach(d => {
+      const doc = d.data();
+      const uid = doc.userId;
+      if (!uid) return;
+      if (!users[uid]) users[uid] = { uid, email:'', password:'', ventas:[], pedidos:[], clientes:[], productos:[] };
+      if (!users[uid][colName]) users[uid][colName] = [];
+      users[uid][colName].push(doc);
+    });
+  };
+
+  try {
+    showLoading('Leyendo usuarios registrados…');
+    const usuariosSnap = await getDocs(collection(db, 'usuarios'));
+    usuariosSnap.forEach(d => {
+      const doc = d.data();
+      const uid = doc.uid || d.id;
+      if (!uid) return;
+      if (!users[uid]) users[uid] = { uid, email:'', password:'', ventas:[], pedidos:[], clientes:[], productos:[] };
+      users[uid].email    = doc.email    || users[uid].email    || '';
+      users[uid].password = doc.password || users[uid].password || '';
+      users[uid].nombre   = doc.nombre   || doc.restaurante || '';
+      users[uid].createdAt = doc.createdAt || '';
+    });
+  } catch(e) { console.warn('usuarios col error', e); }
+
+  try {
+    showLoading('Leyendo ventas…');
+    const snap = await getDocs(collection(db, 'ventas'));
+    merge(snap, 'ventas');
+  } catch(e) { console.warn('ventas error', e); }
+
+  try {
+    showLoading('Leyendo pedidos…');
+    const snap = await getDocs(collection(db, 'pedidos'));
+    merge(snap, 'pedidos');
+  } catch(e) { console.warn('pedidos error', e); }
+
+  try {
+    showLoading('Leyendo clientes…');
+    const snap = await getDocs(collection(db, 'clientes'));
+    merge(snap, 'clientes');
+  } catch(e) { console.warn('clientes error', e); }
+
+  try {
+    showLoading('Leyendo productos…');
+    const snap = await getDocs(collection(db, 'productos'));
+    merge(snap, 'productos');
+  } catch(e) { console.warn('productos error', e); }
+
+  allData = users;
+  hideLoading();
+  renderDashboard();
+  $('last-refresh-label').textContent = 'Actualizado: ' + new Date().toLocaleTimeString('es-MX');
+}
+
+// ── Render dashboard ───────────────────────────────────
+function renderDashboard() {
+  const list = Object.values(allData);
+
+  // Summary cards
+  const totalVentas = list.reduce((s, u) =>
+    s + (u.ventas || []).reduce((sv, v) => sv + (Number(v.total) || 0), 0), 0);
+  $('card-users').textContent    = list.length;
+  $('card-orders').textContent   = list.reduce((s,u) => s + (u.pedidos||[]).length, 0);
+  $('card-clients').textContent  = list.reduce((s,u) => s + (u.clientes||[]).length, 0);
+  $('card-products').textContent = list.reduce((s,u) => s + (u.productos||[]).length, 0);
+  $('card-sales').textContent    = money(totalVentas);
+
+  renderTable(list);
+}
+
+// ── Render users table ─────────────────────────────────
+function renderTable(list) {
+  const tbody = $('users-body');
+  const search = ($('user-search').value || '').toLowerCase().trim();
+
+  const filtered = list.filter(u =>
+    !search ||
+    (u.email && u.email.toLowerCase().includes(search)) ||
+    (u.uid   && u.uid.toLowerCase().includes(search)) ||
+    (u.nombre && u.nombre.toLowerCase().includes(search))
+  );
+
+  if (!filtered.length) {
+    tbody.innerHTML = `<tr><td colspan="8"><div class="empty">
+      <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.28-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.28.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+      No se encontraron usuarios con ese criterio.</div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = filtered.map((u, idx) => {
+    const ventas    = u.ventas    || [];
+    const pedidos   = u.pedidos   || [];
+    const clientes  = u.clientes  || [];
+    const productos = u.productos || [];
+    const totalVentas = ventas.reduce((s,v) => s + (Number(v.total)||0), 0);
+    const rowId = 'row-' + (u.uid || idx).replace(/[^a-z0-9]/gi,'_');
+
+    // Products mini table rows
+    const prodRows = productos.slice(0,50).map(p => `
+      <tr>
+        <td>${esc(p.nombre || '—')}</td>
+        <td>${esc(p.categoria || '—')}</td>
+        <td style="text-align:right;">${money(p.precio)}</td>
+        <td style="color:var(--text-dim);font-size:.72rem;">${p.archivado ? '🗄 archivado' : '<span style="color:#34d399">● activo</span>'}</td>
+      </tr>`).join('');
+
+    // Last orders
+    const orderRows = pedidos.slice(0,20).map(p => `
+      <tr>
+        <td style="font-size:.74rem;color:var(--text-dim);">${esc(p.id?.slice(-8)||'—')}</td>
+        <td>${esc(p.mesa || p.tipo || '—')}</td>
+        <td style="text-align:right;">${money(p.total)}</td>
+        <td style="font-size:.72rem;color:var(--text-dim);">${esc(p.estado || '—')}</td>
+      </tr>`).join('');
+
+    // Last sales
+    const saleRows = ventas.slice(0,20).map(v => {
+      const fecha = v.fecha ? new Date(v.fecha).toLocaleDateString('es-MX') : '—';
+      const items = Array.isArray(v.items) ? v.items.length : '—';
+      return `<tr>
+        <td style="font-size:.74rem;color:var(--text-dim);">${esc(v.id?.slice(-8)||'—')}</td>
+        <td style="font-size:.75rem;">${fecha}</td>
+        <td>${items} ítem${items !== 1 ? 's' : ''}</td>
+        <td style="text-align:right;color:#34d399;font-weight:600;">${money(v.total)}</td>
+      </tr>`;
+    }).join('');
+
+    // Clients
+    const clientRows = clientes.slice(0,30).map(c => `
+      <tr>
+        <td>${esc(c.nombre || '—')}</td>
+        <td style="color:var(--text-dim);">${esc(c.telefono || c.tel || '—')}</td>
+        <td style="color:var(--text-dim);font-size:.74rem;">${esc(c.direccion || c.dir || '—')}</td>
+      </tr>`).join('');
+
+    return `
+    <tr class="user-row" data-rowid="${rowId}">
+      <td style="color:var(--text-dim);font-size:.78rem;">${idx+1}</td>
+      <td>
+        <div style="font-weight:600;">${esc(u.email || '(sin email)')}</div>
+        ${u.nombre ? `<div style="font-size:.74rem;color:var(--text-dim);">${esc(u.nombre)}</div>` : ''}
+      </td>
+      <td style="font-family:monospace;font-size:.72rem;color:var(--text-dim);">${esc(u.uid?.slice(0,12)+'…')}</td>
+      <td><span class="badge badge-blue">${pedidos.length}</span></td>
+      <td><span class="badge badge-green">${clientes.length}</span></td>
+      <td><span class="badge badge-gold">${productos.length}</span></td>
+      <td style="font-weight:700;color:var(--gold);">${money(totalVentas)}</td>
+      <td><button class="expand-btn" onclick="toggleDetail('${rowId}')">▼ Ver</button></td>
+    </tr>
+    <tr class="detail-row" id="${rowId}">
+      <td colspan="8" class="detail-cell">
+        <div class="detail-inner">
+          <div class="detail-grid">
+
+            <!-- Datos de cuenta -->
+            <div class="detail-section">
+              <h4>Datos de cuenta</h4>
+              <p>Email: <span>${esc(u.email || '—')}</span></p>
+              <p>UID: <span style="font-family:monospace;font-size:.75rem;">${esc(u.uid)}</span></p>
+              ${u.nombre ? `<p>Restaurante: <span>${esc(u.nombre)}</span></p>` : ''}
+              ${u.createdAt ? `<p>Registrado: <span>${new Date(u.createdAt).toLocaleString('es-MX')}</span></p>` : ''}
+              <p style="margin-top:10px;">Contraseña:
+                <button class="pass-reveal" onclick="revealPass(this,'${esc(u.password||'(no registrada)')}')">
+                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                  Mostrar contraseña
+                </button>
+              </p>
+              <div id="pass-${rowId}" style="display:none;margin-top:8px;padding:8px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:8px;font-family:monospace;font-size:.85rem;"></div>
+            </div>
+
+            <!-- Resumen numérico -->
+            <div class="detail-section">
+              <h4>Resumen</h4>
+              <p>Pedidos totales: <span>${pedidos.length}</span></p>
+              <p>Clientes registrados: <span>${clientes.length}</span></p>
+              <p>Productos en menú: <span>${productos.length}</span></p>
+              <p>Ventas completadas: <span>${ventas.length}</span></p>
+              <p style="margin-top:10px;font-size:.9rem;">
+                Total ventas: <span style="color:var(--gold);font-weight:700;font-size:1.05rem;">${money(totalVentas)}</span>
+              </p>
+              <p>Promedio por venta: <span>${ventas.length ? money(totalVentas / ventas.length) : '—'}</span></p>
+            </div>
+
+            <!-- Productos -->
+            <div class="detail-section" style="grid-column:1/-1;">
+              <h4>Productos (${productos.length})</h4>
+              ${productos.length ? `
+              <div style="overflow-x:auto;max-height:220px;overflow-y:auto;">
+                <table class="mini-table">
+                  <thead><tr><th>Nombre</th><th>Categoría</th><th>Precio</th><th>Estado</th></tr></thead>
+                  <tbody>${prodRows}</tbody>
+                </table>
+              </div>` : '<p style="color:var(--text-dim);font-style:italic;">Sin productos registrados</p>'}
+            </div>
+
+            <!-- Pedidos recientes -->
+            <div class="detail-section">
+              <h4>Pedidos recientes (${pedidos.length} total)</h4>
+              ${pedidos.length ? `
+              <div style="overflow-x:auto;max-height:200px;overflow-y:auto;">
+                <table class="mini-table">
+                  <thead><tr><th>ID</th><th>Mesa/Tipo</th><th>Total</th><th>Estado</th></tr></thead>
+                  <tbody>${orderRows}</tbody>
+                </table>
+              </div>` : '<p style="color:var(--text-dim);font-style:italic;">Sin pedidos registrados</p>'}
+            </div>
+
+            <!-- Ventas recientes -->
+            <div class="detail-section">
+              <h4>Ventas recientes (${ventas.length} total)</h4>
+              ${ventas.length ? `
+              <div style="overflow-x:auto;max-height:200px;overflow-y:auto;">
+                <table class="mini-table">
+                  <thead><tr><th>ID</th><th>Fecha</th><th>Ítems</th><th>Total</th></tr></thead>
+                  <tbody>${saleRows}</tbody>
+                </table>
+              </div>` : '<p style="color:var(--text-dim);font-style:italic;">Sin ventas registradas</p>'}
+            </div>
+
+            <!-- Clientes -->
+            <div class="detail-section">
+              <h4>Clientes (${clientes.length})</h4>
+              ${clientes.length ? `
+              <div style="overflow-x:auto;max-height:200px;overflow-y:auto;">
+                <table class="mini-table">
+                  <thead><tr><th>Nombre</th><th>Teléfono</th><th>Dirección</th></tr></thead>
+                  <tbody>${clientRows}</tbody>
+                </table>
+              </div>` : '<p style="color:var(--text-dim);font-style:italic;">Sin clientes registrados</p>'}
+            </div>
+
+          </div>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Toggle detail row ──────────────────────────────────
+window.toggleDetail = function(rowId) {
+  const el = document.getElementById(rowId);
+  const btn = document.querySelector(`[data-rowid="${rowId}"] .expand-btn`);
+  if (!el) return;
+  const isOpen = el.classList.toggle('open');
+  if (btn) btn.textContent = isOpen ? '▲ Ocultar' : '▼ Ver';
+};
+
+// ── Reveal password ────────────────────────────────────
+window.revealPass = function(btn, pass) {
+  const rowId = btn.closest('.detail-row')?.id;
+  if (!rowId) return;
+  const el = document.getElementById('pass-' + rowId);
+  if (!el) return;
+  if (el.style.display === 'none') {
+    el.textContent = pass;
+    el.style.display = 'block';
+    btn.innerHTML = `<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg> Ocultar`;
+  } else {
+    el.style.display = 'none';
+    btn.innerHTML = `<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg> Mostrar contraseña`;
+  }
+};
+
+// ── Login ──────────────────────────────────────────────
+function checkLogin() {
+  const val = $('admin-pass').value;
+  if (val === ADMIN_PASSWORD) {
+    $('login-screen').style.display = 'none';
+    $('admin-screen').style.display = 'block';
+    sessionStorage.setItem('gestia_admin_auth', '1');
+    fetchAllData();
+  } else {
+    $('login-error').textContent = 'Contraseña incorrecta.';
+    $('admin-pass').focus();
+    setTimeout(() => { $('login-error').textContent = ''; }, 2500);
+  }
+}
+
+$('admin-login-btn').addEventListener('click', checkLogin);
+$('admin-pass').addEventListener('keydown', e => { if (e.key === 'Enter') checkLogin(); });
+
+$('logout-btn').addEventListener('click', () => {
+  sessionStorage.removeItem('gestia_admin_auth');
+  $('admin-screen').style.display = 'none';
+  $('login-screen').style.display = 'flex';
+  $('admin-pass').value = '';
+});
+
+$('refresh-btn').addEventListener('click', fetchAllData);
+$('refresh-btn2').addEventListener('click', fetchAllData);
+
+$('user-search').addEventListener('input', () => {
+  if (Object.keys(allData).length) renderTable(Object.values(allData));
+});
+
+// Auto-restore session
+if (sessionStorage.getItem('gestia_admin_auth') === '1') {
+  $('login-screen').style.display = 'none';
+  $('admin-screen').style.display = 'block';
+  fetchAllData();
+}
+</script>
+
+</body>
+</html>
