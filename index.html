@@ -20,7 +20,7 @@
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
   import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, getDocs, getDoc, query, where, enableIndexedDbPersistence } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-    import { getAuth, setPersistence, browserLocalPersistence, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, EmailAuthProvider, linkWithCredential, sendEmailVerification, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import { getAuth, setPersistence, browserLocalPersistence, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, EmailAuthProvider, linkWithCredential, sendEmailVerification, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, updatePassword, updateEmail, reauthenticateWithCredential } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
   (async () => {
   // Support overriding config via window.FIREBASE_CONFIG, localStorage, or './firebase-config.json'
@@ -103,7 +103,7 @@
     window.auth = auth;
   // Expose config for diagnostics
   window.firebaseConfig = firebaseConfig;
-  window.firebaseModules = { setPersistence, browserLocalPersistence, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, EmailAuthProvider, linkWithCredential, sendEmailVerification, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup };
+  window.firebaseModules = { setPersistence, browserLocalPersistence, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, EmailAuthProvider, linkWithCredential, sendEmailVerification, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, updatePassword, updateEmail, reauthenticateWithCredential };
   window.fs = { collection, doc, setDoc, deleteDoc, onSnapshot, getDocs, getDoc, query, where };
   console.log('🔥 Firebase inicializado', { projectId: firebaseConfig?.projectId, authDomain: firebaseConfig?.authDomain });
   // Helpful LAN hint
@@ -601,6 +601,28 @@
   #pos-product-list .product-card .btn-add-to-order{ padding:.35rem .5rem; font-size:.75rem; }
   #pos-product-list .product-card .text-lg{ font-size: .95rem; }
   .loader { width: 44px; height: 44px; border-width: 5px; }
+
+  /* ── Mi Perfil: plan cards & profile ─── */
+  .profile-avatar { width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:900;flex-shrink:0;background:linear-gradient(135deg,var(--amber,#E6B325),#c99208);color:#000; }
+  .plan-card { border-radius:14px;padding:1.1rem;display:flex;flex-direction:column;gap:.45rem;border:1.5px solid var(--bdr-strong,rgba(255,255,255,.12));background:var(--panel-bg,rgba(255,255,255,.04)); }
+  .plan-card-premium { border-color:var(--amber,#E6B325);box-shadow:0 0 22px rgba(230,179,37,.18); }
+  .plan-card-header { display:flex;align-items:center;gap:.8rem;margin-bottom:.4rem; }
+  .plan-card-emoji { font-size:1.7rem;line-height:1; }
+  .plan-card-name { font-weight:900;font-size:.95rem; }
+  .plan-card-price { font-size:.88rem;font-weight:700;color:var(--amber,#E6B325); }
+  .plan-card-period { font-size:.68rem;font-weight:500;opacity:.6; }
+  .plan-feature-list { list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.22rem;flex:1; }
+  .plan-feature-item { font-size:.76rem;display:flex;align-items:center;gap:.4rem; }
+  .plan-feature-item.ok::before { content:"✓";color:#22c55e;font-weight:900;font-size:.68rem;flex-shrink:0; }
+  .plan-feature-item.no::before { content:"✗";color:rgba(255,255,255,.25);font-weight:900;font-size:.68rem;flex-shrink:0; }
+  .plan-feature-item.no { opacity:.45; }
+  .plan-upgrade-btn { margin-top:.5rem;padding:.6rem;border-radius:10px;font-weight:700;font-size:.8rem;cursor:pointer;background:linear-gradient(135deg,var(--amber,#E6B325),#c99208);color:#000;border:none;transition:opacity .2s;width:100%; }
+  .plan-upgrade-btn:hover { opacity:.82; }
+  .plan-card-current { font-size:.7rem;font-weight:700;color:var(--amber,#E6B325);text-align:center;margin-top:.25rem; }
+  .nav-link .plan-lock { font-size:.68rem;margin-left:auto;opacity:.5;pointer-events:none; }
+  #upgrade-modal { display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:1rem; }
+  #upgrade-modal.open { display:flex; }
+  #upgrade-modal-box { background:var(--panel-bg,#1a1a1a);border-radius:18px;padding:2rem;max-width:400px;width:100%;border:1.5px solid var(--amber,#E6B325);box-shadow:0 0 40px rgba(230,179,37,.22); }
   </style>
   <link rel="stylesheet" href="./styles/saas2026.css" />
   <link rel="stylesheet" href="./styles/enhancements.css" />
@@ -739,6 +761,10 @@
       <a href="#personalizar" class="nav-link">
         <span class="nav-icon">🎨</span>
         <span>Personalizar</span>
+      </a>
+      <a href="#perfil" class="nav-link">
+        <span class="nav-icon">👤</span>
+        <span>Mi Perfil</span>
       </a>
 
     </nav>
@@ -2356,6 +2382,101 @@
             </div>
 
             <button id="btn-reset-theme" class="text-xs font-semibold self-start" style="color:rgba(255,255,255,.35)" >↺ Restablecer color por defecto</button>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- ─── MI PERFIL ─────────────────────────────────────────── -->
+      <section id="view-perfil" class="view">
+        <h2 class="text-2xl font-extrabold mb-1 section-title" style="color:var(--burger-dark)">👤 Mi Perfil</h2>
+        <p class="text-sm mb-6" style="color:var(--app-muted)">Configura los datos de tu negocio y gestiona tu plan de suscripción.</p>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+
+          <!-- Datos del negocio -->
+          <div class="panel">
+            <h3 class="font-extrabold text-sm mb-4 tracking-wide">Datos del negocio</h3>
+            <div class="flex items-center gap-4 mb-6">
+              <div id="perfil-avatar" class="profile-avatar">?</div>
+              <div>
+                <p id="perfil-email-disp" class="font-bold text-sm">Cargando…</p>
+                <p class="text-[11px]" style="color:var(--app-muted)">Correo de tu cuenta</p>
+              </div>
+            </div>
+            <div class="flex flex-col gap-1.5 mb-4">
+              <label class="text-[11px] font-bold uppercase tracking-widest" style="color:var(--app-muted)">Nombre del negocio</label>
+              <input id="perfil-nombre-negocio" type="text" class="input-modern p-2 rounded" placeholder="Ej. Sysra Burger" />
+            </div>
+            <div class="flex flex-col gap-1.5 mb-4">
+              <label class="text-[11px] font-bold uppercase tracking-widest" style="color:var(--app-muted)">Nueva contraseña</label>
+              <input id="perfil-new-pass" type="password" class="input-modern p-2 rounded" placeholder="Dejar vacío para no cambiar" />
+            </div>
+            <div class="flex flex-col gap-1.5 mb-5">
+              <label class="text-[11px] font-bold uppercase tracking-widest" style="color:var(--app-muted)">Confirmar contraseña</label>
+              <input id="perfil-confirm-pass" type="password" class="input-modern p-2 rounded" placeholder="Repetir nueva contraseña" />
+            </div>
+            <button id="perfil-save-btn" class="btn-gradient px-5 py-2.5 rounded-full text-sm font-bold w-full">Guardar cambios</button>
+            <p id="perfil-save-msg" class="text-xs text-center mt-2" style="color:var(--amber);min-height:1.2em"></p>
+          </div>
+
+          <!-- Plan -->
+          <div class="panel">
+            <h3 class="font-extrabold text-sm mb-1 tracking-wide">Tu Plan</h3>
+            <p class="text-[11px] mb-4" style="color:var(--app-muted)">Elige el plan que mejor se adapte a tu negocio.</p>
+            <div id="perfil-plan-badge" class="mb-4"></div>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+
+              <!-- Free -->
+              <div class="plan-card" id="plan-card-free">
+                <div class="plan-card-header">
+                  <span class="plan-card-emoji">🆓</span>
+                  <div>
+                    <p class="plan-card-name">Free</p>
+                    <p class="plan-card-price">Gratis</p>
+                  </div>
+                </div>
+                <ul class="plan-feature-list">
+                  <li class="plan-feature-item ok">20 productos</li>
+                  <li class="plan-feature-item ok">50 ingredientes</li>
+                  <li class="plan-feature-item ok">Punto de Venta</li>
+                  <li class="plan-feature-item ok">Pedidos</li>
+                  <li class="plan-feature-item ok">Dashboard &amp; Caja</li>
+                  <li class="plan-feature-item no">Ventas</li>
+                  <li class="plan-feature-item no">Insumos Gastados</li>
+                  <li class="plan-feature-item no">Inventario</li>
+                  <li class="plan-feature-item no">Recomendaciones</li>
+                  <li class="plan-feature-item no">Clientes (CRM)</li>
+                </ul>
+                <p class="plan-card-current" id="plan-badge-free" style="display:none">Plan actual ✓</p>
+              </div>
+
+              <!-- Premium -->
+              <div class="plan-card plan-card-premium" id="plan-card-premium">
+                <div class="plan-card-header">
+                  <span class="plan-card-emoji">⭐</span>
+                  <div>
+                    <p class="plan-card-name">Premium</p>
+                    <p class="plan-card-price">$160 MXN<span class="plan-card-period">/mes</span></p>
+                  </div>
+                </div>
+                <ul class="plan-feature-list">
+                  <li class="plan-feature-item ok">Productos ilimitados</li>
+                  <li class="plan-feature-item ok">Ingredientes ilimitados</li>
+                  <li class="plan-feature-item ok">Punto de Venta</li>
+                  <li class="plan-feature-item ok">Pedidos</li>
+                  <li class="plan-feature-item ok">Dashboard &amp; Caja</li>
+                  <li class="plan-feature-item ok">Ventas</li>
+                  <li class="plan-feature-item ok">Insumos Gastados</li>
+                  <li class="plan-feature-item ok">Inventario</li>
+                  <li class="plan-feature-item ok">Recomendaciones</li>
+                  <li class="plan-feature-item ok">Clientes (CRM)</li>
+                </ul>
+                <button id="btn-upgrade-premium" class="plan-upgrade-btn" onclick="window.startPremiumUpgrade()">⭐ Contratar Premium</button>
+                <p class="plan-card-current" id="plan-badge-premium" style="display:none">Plan actual ✓</p>
+              </div>
+
+            </div>
           </div>
 
         </div>
@@ -4212,6 +4333,13 @@
           // Add the product to the state
           // Add the product to the state
           if (prod) {
+            // Plan limit check
+            const activeProds = (appState.productos||[]).filter(p=>!p.archivado).length;
+            if(activeProds >= (window.FREE_PLAN_MAX_PRODUCTOS||20) && typeof window.isPremium==='function' && !window.isPremium()){
+              closeModal();
+              if(typeof window.showUpgradeModal==='function') window.showUpgradeModal();
+              return;
+            }
             console.log('[UI] Guardando producto:', prod);
             appState.productos.push(prod);
             if(typeof saveProductToFirestore === 'function') saveProductToFirestore(prod);
@@ -4236,6 +4364,12 @@
         onSubmit:(data)=>{
           try{
             const ing = { id: generateId('ing'), nombre:(data.nombre||'').trim(), unidad:(data.unidad||'').trim(), precioPaquete:Number(data.precioPaquete)||0, unidadesPaquete:Number(data.unidadesPaquete)||1 };
+            // Plan limit check
+            const activeIngs = (appState.ingredientes||[]).length;
+            if(activeIngs >= (window.FREE_PLAN_MAX_INGREDIENTES||50) && typeof window.isPremium==='function' && !window.isPremium()){
+              if(typeof window.showUpgradeModal==='function') window.showUpgradeModal();
+              return;
+            }
             appState.ingredientes.push(ing);
             if(typeof saveIngredientToFirestore==='function') saveIngredientToFirestore(ing);
             saveLS(); renderAll();
@@ -4515,6 +4649,12 @@
     function showView(id){
       try{
         console.log('[NAV] showView ->', id);
+        // Plan gate — intercept premium-only sections for free users
+        const GATED = ['ventas','insumos','inventario','recomendaciones','clientes'];
+        if(GATED.includes(id) && typeof window.isPremium==='function' && !window.isPremium()){
+          if(typeof window.showUpgradeModal==='function') window.showUpgradeModal();
+          return;
+        }
         try{ document.body.setAttribute('data-view', id); }catch(_){ }
         const targetId = 'view-' + id;
         const views = $$('.view');
@@ -4570,6 +4710,7 @@
   if(id==='finanzas') renderFinanzas();
         if(id==='ventas') renderVentasTabla();
   if(id==='personalizar') renderThemePicker();
+  if(id==='perfil' && typeof window.renderPerfilView==='function') window.renderPerfilView();
       }catch(e){ console.error('[NAV] showView error', e); }
     }
 
@@ -11754,6 +11895,8 @@
           if(uidOut) uidOut.textContent = user.uid.slice(0,10)+'…';
           // Always sync the real Firebase Auth email to Firestore so the admin panel can see it
           try{ saveUserProfile(user.uid, user.email || '', ''); }catch(_){ }
+          // Load plan for this user
+          try{ window.loadUserPlan?.(); }catch(_){ }
 
           // Cargar cache local de ESTE usuario y renderizar antes de Firestore
           if(userChanged){
@@ -12333,6 +12476,185 @@ En Firebase Console → Authentication:
         try{ hideLoading(); }catch(_){ }
       }
     });
+
+    // ─────────────────────────────────────────────────────────────
+    // ── PLAN SYSTEM ──────────────────────────────────────────────
+    // ─────────────────────────────────────────────────────────────
+    const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/CONFIGURAR_EN_STRIPE_DASHBOARD'; // ← Reemplaza con tu Stripe Payment Link. Pon como URL de éxito: https://TU_DOMINIO/?plan_upgraded=1
+    window.FREE_PLAN_MAX_PRODUCTOS = 20;
+    window.FREE_PLAN_MAX_INGREDIENTES = 50;
+    window.__userPlan = 'free';
+    window.isPremium = function(){ return window.__userPlan === 'premium'; };
+
+    window.applyNavLocks = function(){
+      const gated = ['ventas','insumos','inventario','recomendaciones','clientes'];
+      document.querySelectorAll('.nav-link').forEach(function(a){
+        const href = (a.getAttribute('href')||'').replace('#','');
+        if(!gated.includes(href)) return;
+        let lock = a.querySelector('.plan-lock');
+        if(!window.isPremium()){
+          if(!lock){ lock = document.createElement('span'); lock.className='plan-lock'; lock.textContent='🔒'; a.appendChild(lock); }
+          a.style.opacity = '0.55';
+        } else {
+          if(lock) lock.remove();
+          a.style.opacity = '';
+        }
+      });
+    };
+
+    window.loadUserPlan = async function(){
+      try{
+        const u = window.auth?.currentUser;
+        if(!u || u.isAnonymous){ window.applyNavLocks(); return; }
+        let waited = 0;
+        while((!window.db || !window.fs) && waited < 50){ await new Promise(r=>setTimeout(r,100)); waited++; }
+        if(!window.db || !window.fs){ window.applyNavLocks(); return; }
+        const {doc, getDoc} = window.fs;
+        const snap = await getDoc(doc(window.db, 'usuarios', u.uid));
+        if(snap.exists()) window.__userPlan = snap.data().plan || 'free';
+        window.applyNavLocks();
+      }catch(e){ console.warn('[Plan] loadUserPlan', e); window.applyNavLocks(); }
+    };
+
+    window.showUpgradeModal = function(){
+      let modal = document.getElementById('upgrade-modal');
+      if(!modal){
+        modal = document.createElement('div');
+        modal.id = 'upgrade-modal';
+        modal.innerHTML = `
+          <div id="upgrade-modal-box">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem">
+              <h3 style="font-size:1.1rem;font-weight:900">⭐ Función Premium</h3>
+              <button onclick="document.getElementById('upgrade-modal').classList.remove('open')" style="opacity:.5;font-size:1.4rem;background:none;border:none;cursor:pointer;color:inherit;line-height:1">×</button>
+            </div>
+            <p style="font-size:.84rem;opacity:.7;margin-bottom:1.1rem">Esta sección requiere el plan <strong style="color:var(--amber,#E6B325)">Premium</strong>. Desbloquea Ventas, Inventario, Clientes, Recomendaciones e Insumos Gastados con productos e ingredientes ilimitados.</p>
+            <div style="background:rgba(230,179,37,.09);border:1px solid var(--amber,#E6B325);border-radius:10px;padding:.9rem;margin-bottom:1.2rem;text-align:center">
+              <p style="font-size:1.4rem;font-weight:900;color:var(--amber,#E6B325);margin:0">$160 MXN<span style="font-size:.8rem;font-weight:500;opacity:.7">/mes</span></p>
+              <p style="font-size:.76rem;opacity:.5;margin-top:.2rem">Acceso completo a todas las funciones</p>
+            </div>
+            <button onclick="window.startPremiumUpgrade()" class="plan-upgrade-btn" style="width:100%;padding:.8rem;font-size:.88rem;border-radius:12px">⭐ Contratar ahora — $160 MXN/mes</button>
+            <button onclick="document.getElementById('upgrade-modal').classList.remove('open');window.showView&&window.showView('perfil')" style="display:block;width:100%;margin-top:.5rem;padding:.55rem;font-size:.76rem;background:none;border:none;cursor:pointer;opacity:.5">Ver comparativa de planes</button>
+          </div>`;
+        document.body.appendChild(modal);
+      }
+      modal.classList.add('open');
+    };
+
+    window.startPremiumUpgrade = function(){
+      const modal = document.getElementById('upgrade-modal');
+      if(modal) modal.classList.remove('open');
+      window.open(STRIPE_PAYMENT_LINK, '_blank');
+    };
+
+    // Detectar retorno desde Stripe con ?plan_upgraded=1
+    (function checkStripeReturn(){
+      const params = new URLSearchParams(location.search);
+      if(params.get('plan_upgraded') !== '1') return;
+      history.replaceState({}, '', location.pathname + location.hash);
+      (async function activatePremium(){
+        try{
+          let w = 0;
+          while((!window.auth || !window.db || !window.fs) && w < 100){ await new Promise(r=>setTimeout(r,100)); w++; }
+          const u = window.auth?.currentUser;
+          if(!u || u.isAnonymous) return;
+          const {doc, setDoc} = window.fs;
+          await setDoc(doc(window.db, 'usuarios', u.uid), { plan:'premium', planActivatedAt: new Date().toISOString() }, {merge:true});
+          window.__userPlan = 'premium';
+          window.applyNavLocks();
+          alert('¡Plan Premium activado! 🎉 Ya tienes acceso a todas las funciones.');
+        }catch(e){ console.warn('[Plan] activatePremium', e); }
+      })();
+    })();
+
+    // ─── renderPerfilView ─────────────────────────────────────────
+    window.renderPerfilView = function(){
+      try{
+        const u = window.auth?.currentUser;
+        const av = document.getElementById('perfil-avatar');
+        const ed = document.getElementById('perfil-email-disp');
+        if(!u){
+          if(av) av.textContent = '?';
+          if(ed) ed.textContent = 'No has iniciado sesión';
+          return;
+        }
+        const email = u.email || '';
+        if(av) av.textContent = email ? email[0].toUpperCase() : u.uid[0].toUpperCase();
+        if(ed) ed.textContent = email || '(sin correo)';
+
+        (async function loadPerfil(){
+          try{
+            let waited = 0;
+            while((!window.db || !window.fs) && waited < 50){ await new Promise(r=>setTimeout(r,100)); waited++; }
+            if(!window.db || !window.fs) return;
+            const {doc, getDoc} = window.fs;
+            const snap = await getDoc(doc(window.db, 'usuarios', u.uid));
+            if(snap.exists()){
+              const data = snap.data();
+              const nEl = document.getElementById('perfil-nombre-negocio');
+              if(nEl && data.nombreNegocio) nEl.value = data.nombreNegocio;
+              window.__userPlan = data.plan || 'free';
+            }
+            renderPlanBadge();
+            window.applyNavLocks();
+          }catch(e){ console.warn('[Perfil] loadPerfil', e); }
+        })();
+
+        const saveBtn = document.getElementById('perfil-save-btn');
+        if(saveBtn){
+          saveBtn.onclick = async function(){
+            const msgEl = document.getElementById('perfil-save-msg');
+            const setMsg = (t)=>{ if(msgEl) msgEl.textContent = t; };
+            try{
+              const nombreNegocio = (document.getElementById('perfil-nombre-negocio')?.value||'').trim();
+              const newPass = document.getElementById('perfil-new-pass')?.value||'';
+              const confirmPass = document.getElementById('perfil-confirm-pass')?.value||'';
+              if(newPass && newPass !== confirmPass){ setMsg('⚠ Las contraseñas no coinciden'); return; }
+              if(newPass && newPass.length < 6){ setMsg('⚠ Mínimo 6 caracteres'); return; }
+              saveBtn.disabled = true;
+              setMsg('Guardando…');
+              // Save to Firestore
+              let waited = 0;
+              while((!window.db || !window.fs) && waited < 50){ await new Promise(r=>setTimeout(r,100)); waited++; }
+              if(window.db && window.fs){
+                const {doc, setDoc} = window.fs;
+                const payload = { uid: u.uid, updatedAt: new Date().toISOString() };
+                if(nombreNegocio) payload.nombreNegocio = nombreNegocio;
+                await setDoc(doc(window.db, 'usuarios', u.uid), payload, {merge:true});
+              }
+              // Update password via Firebase Auth
+              if(newPass){
+                const M = window.firebaseModules || {};
+                if(M.updatePassword) await M.updatePassword(u, newPass);
+                document.getElementById('perfil-new-pass').value = '';
+                document.getElementById('perfil-confirm-pass').value = '';
+              }
+              setMsg('✓ Guardado correctamente');
+              setTimeout(()=>setMsg(''), 3500);
+            }catch(e){
+              setMsg('⚠ ' + (e?.message || 'Error al guardar'));
+            }finally{ saveBtn.disabled = false; }
+          };
+        }
+      }catch(e){ console.error('[Perfil] renderPerfilView', e); }
+    };
+
+    function renderPlanBadge(){
+      const badge = document.getElementById('perfil-plan-badge');
+      if(!badge) return;
+      const prem = window.isPremium();
+      badge.innerHTML = prem
+        ? `<span style="display:inline-flex;align-items:center;gap:.4rem;padding:.3rem .8rem;border-radius:999px;background:linear-gradient(135deg,var(--amber,#E6B325),#c99208);color:#000;font-size:.76rem;font-weight:900">⭐ Plan Premium activo</span>`
+        : `<span style="display:inline-flex;align-items:center;gap:.4rem;padding:.3rem .8rem;border-radius:999px;background:rgba(255,255,255,.08);font-size:.76rem;font-weight:700;opacity:.7">🆓 Plan Free</span>`;
+      const fl = document.getElementById('plan-badge-free');
+      const pl = document.getElementById('plan-badge-premium');
+      const ub = document.getElementById('btn-upgrade-premium');
+      if(fl) fl.style.display = prem ? 'none' : 'block';
+      if(pl) pl.style.display = prem ? 'block' : 'none';
+      if(ub) ub.style.display = prem ? 'none' : 'block';
+    }
+
+    // Load plan on auth state change (called after auth ready)
+    window.__loadPlanOnAuth = function(){ window.loadUserPlan?.(); };
 
     // Bootstrap global de navegación (respaldo independiente)
     (function(){
