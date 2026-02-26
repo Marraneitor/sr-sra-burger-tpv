@@ -35,9 +35,11 @@
     .body-split{display:flex;flex:1;overflow:hidden;}
     .sidebar{width:290px;flex-shrink:0;border-right:1px solid var(--border);background:var(--surface);display:flex;flex-direction:column;overflow:hidden;}
     .sidebar-hdr{padding:12px 14px;border-bottom:1px solid var(--border);flex-shrink:0;}
-    .ssearch{width:100%;padding:9px 13px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:.83rem;outline:none;font-family:"Montserrat",sans-serif;}
+    .ssearch{width:100%;padding:9px 13px;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:.83rem;outline:none;font-family:"Montserrat",sans-serif;cursor:pointer;appearance:none;-webkit-appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23E6B325' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:32px;}
     .ssearch:focus{border-color:var(--gold);}
+    .ssearch option{background:var(--surface2);color:var(--text);}
     .scnt{font-size:.7rem;color:var(--text-dim);margin-top:7px;}
+    #err-banner{display:none;margin:8px;padding:8px 12px;background:rgba(248,113,113,.12);border:1px solid rgba(248,113,113,.3);border-radius:8px;font-size:.72rem;color:#fca5a5;line-height:1.5;}
     .slist{flex:1;overflow-y:auto;padding:8px;}
     .ucard{padding:12px 14px;border-radius:12px;cursor:pointer;margin-bottom:6px;border:1px solid transparent;transition:all .15s;background:var(--surface2);}
     .ucard:hover{border-color:rgba(230,179,37,.3);background:var(--surface3);}
@@ -124,9 +126,10 @@
   <div class="body-split">
     <div class="sidebar">
       <div class="sidebar-hdr">
-        <input id="ssearch" class="ssearch" type="text" placeholder="Buscar usuario..." />
+        <select id="ssearch" class="ssearch"><option value="">-- Seleccionar cuenta --</option></select>
         <div class="scnt" id="scnt">0 usuarios</div>
       </div>
+      <div id="err-banner"></div>
       <div class="slist" id="slist">
         <div style="padding:24px;text-align:center;color:var(--text-dim);font-size:.8rem;">Cargando...</div>
       </div>
@@ -170,8 +173,11 @@ async function loadAll(){
     {n:"clientes",fn:snap=>merge(snap,"clientes")},
     {n:"productos",fn:snap=>merge(snap,"productos")},
   ];
-  for(const{n,fn}of cols){try{sl("Leyendo "+n+"...");fn(await getDocs(collection(db,n)));}catch(e){console.warn("[Admin]",n,e.code||e.message);}}
+  const errs=[];
+  for(const{n,fn}of cols){try{sl("Leyendo "+n+"...");fn(await getDocs(collection(db,n)));}catch(e){const msg=e.code||e.message;console.warn("[Admin]",n,msg);errs.push(n+": "+msg);}}
   allData=users;hl();
+  const eb=$("err-banner");
+  if(errs.length){eb.style.display="block";eb.innerHTML="<b>Errores de lectura:</b><br>"+errs.map(e=>`&#x26A0; ${e}`).join("<br>");}else{eb.style.display="none";}
   updStats();renderSidebar();
   $("refresh-lbl").textContent="Actualizado: "+new Date().toLocaleTimeString("es-MX");
 }
@@ -242,7 +248,7 @@ $("admin-login-btn").addEventListener("click",doLogin);
 $("admin-pass").addEventListener("keydown",e=>{if(e.key==="Enter")doLogin();});
 $("logout-btn").addEventListener("click",()=>{sessionStorage.removeItem("g_adm");$("admin-screen").classList.remove("show");$("login-screen").style.display="flex";$("admin-pass").value="";selUid=null;});
 $("refresh-btn").addEventListener("click",loadAll);
-$("ssearch").addEventListener("input",renderSidebar);
+$("ssearch").addEventListener("change",e=>{if(e.target.value)selUser(e.target.value);});
 if(sessionStorage.getItem("g_adm")==="1"){$("login-screen").style.display="none";$("admin-screen").classList.add("show");loadAll();}
 </script>
 </body>
