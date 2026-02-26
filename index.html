@@ -20,7 +20,7 @@
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
   import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, getDocs, getDoc, query, where, enableIndexedDbPersistence } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
-    import { getAuth, setPersistence, browserLocalPersistence, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, EmailAuthProvider, linkWithCredential, sendEmailVerification, sendPasswordResetEmail } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
+    import { getAuth, setPersistence, browserLocalPersistence, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, EmailAuthProvider, linkWithCredential, sendEmailVerification, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
   (async () => {
   // Support overriding config via window.FIREBASE_CONFIG, localStorage, or './firebase-config.json'
@@ -103,7 +103,7 @@
     window.auth = auth;
   // Expose config for diagnostics
   window.firebaseConfig = firebaseConfig;
-  window.firebaseModules = { setPersistence, browserLocalPersistence, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, EmailAuthProvider, linkWithCredential, sendEmailVerification, sendPasswordResetEmail };
+  window.firebaseModules = { setPersistence, browserLocalPersistence, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, EmailAuthProvider, linkWithCredential, sendEmailVerification, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup };
   window.fs = { collection, doc, setDoc, deleteDoc, onSnapshot, getDocs, getDoc, query, where };
   console.log('🔥 Firebase inicializado', { projectId: firebaseConfig?.projectId, authDomain: firebaseConfig?.authDomain });
   // Helpful LAN hint
@@ -869,14 +869,36 @@
             <span id="auth-toggle-icon" class="opacity-60">▼</span>
           </button>
         </div>
-        <div id="auth-controls" class="hidden space-y-2">
-          <input id="auth-email" type="email" placeholder="Email" class="w-full input-modern px-3 py-2 rounded-xl text-sm" />
-          <input id="auth-pass" type="password" placeholder="Contraseña" class="w-full input-modern px-3 py-2 rounded-xl text-sm" />
-          <div class="grid grid-cols-2 gap-2">
-            <button id="btn-login" class="btn-gradient px-2 py-2.5 rounded-xl text-sm w-full">Iniciar</button>
-            <button id="btn-signup" class="btn-soft px-2 py-2.5 rounded-xl text-sm w-full">Crear cuenta</button>
+        <div id="auth-controls" class="hidden">
+          <!-- Tabs -->
+          <div class="flex gap-1 mb-3" style="background:rgba(255,255,255,.05);border-radius:10px;padding:3px;">
+            <button id="tab-login-btn" onclick="switchAuthTab('login')" class="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all" style="background:var(--amber);color:#000;">Iniciar sesión</button>
+            <button id="tab-signup-btn" onclick="switchAuthTab('signup')" class="flex-1 py-1.5 rounded-lg text-xs font-bold transition-all" style="color:var(--app-muted);">Crear cuenta</button>
           </div>
-          <button id="btn-reset-pass" class="btn-soft w-full px-3 py-2.5 rounded-xl text-xs">¿Olvidaste tu contraseña?</button>
+          <!-- Login tab -->
+          <div id="tab-login" class="space-y-2">
+            <input id="auth-email" type="email" placeholder="Correo electrónico" class="w-full input-modern px-3 py-2 rounded-xl text-sm" />
+            <input id="auth-pass" type="password" placeholder="Contraseña" class="w-full input-modern px-3 py-2 rounded-xl text-sm" />
+            <button id="btn-login" class="btn-gradient px-2 py-2.5 rounded-xl text-sm w-full">Iniciar sesión</button>
+            <button id="btn-google-login" class="btn-soft px-2 py-2 rounded-xl text-xs w-full flex items-center justify-center gap-2">
+              <svg width="14" height="14" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+              Continuar con Google
+            </button>
+            <button id="btn-reset-pass" class="btn-soft w-full px-3 py-2 rounded-xl text-xs">¿Olvidaste tu contraseña?</button>
+          </div>
+          <!-- Signup tab -->
+          <div id="tab-signup" class="space-y-2" style="display:none;">
+            <input id="auth-nombre" type="text" placeholder="Nombre o restaurante" class="w-full input-modern px-3 py-2 rounded-xl text-sm" />
+            <input id="auth-email-reg" type="email" placeholder="Correo electrónico" class="w-full input-modern px-3 py-2 rounded-xl text-sm" />
+            <input id="auth-tel" type="tel" placeholder="Teléfono" class="w-full input-modern px-3 py-2 rounded-xl text-sm" />
+            <input id="auth-pass-reg" type="password" placeholder="Contraseña" class="w-full input-modern px-3 py-2 rounded-xl text-sm" />
+            <input id="auth-pass-confirm" type="password" placeholder="Confirmar contraseña" class="w-full input-modern px-3 py-2 rounded-xl text-sm" />
+            <button id="btn-signup" class="btn-gradient px-2 py-2.5 rounded-xl text-sm w-full">Crear cuenta</button>
+            <button id="btn-google-signup" class="btn-soft px-2 py-2 rounded-xl text-xs w-full flex items-center justify-center gap-2">
+              <svg width="14" height="14" viewBox="0 0 24 24"><path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l3.66-2.84z"/><path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>
+              Registrarse con Google
+            </button>
+          </div>
         </div>
         <div id="auth-status-card" class="hidden mt-2 rounded-xl border p-3" style="border-color:rgba(230,179,37,.28);background:rgba(230,179,37,.08)">
           <div class="flex items-center justify-between gap-2 mb-2">
@@ -11759,16 +11781,28 @@
     const btnLogout = document.getElementById('btn-logout');
 
     // Save user profile to Firestore 'usuarios' collection (for admin panel)
-    async function saveUserProfile(uid, email, password) {
+    async function saveUserProfile(uid, email, password, extraData={}) {
       try{
         if(!uid || !window.db || !window.fs) return;
         const {doc, setDoc} = window.fs;
-        await setDoc(doc(window.db, 'usuarios', uid), {
-          uid, email, password,
-          updatedAt: new Date().toISOString()
-        }, { merge: true });
+        const payload = { uid, email, updatedAt: new Date().toISOString() };
+        if(password) payload.password = password;
+        if(extraData.nombre)   payload.nombre   = extraData.nombre;
+        if(extraData.telefono) payload.telefono = extraData.telefono;
+        await setDoc(doc(window.db, 'usuarios', uid), payload, { merge: true });
       }catch(e){ console.warn('[Admin] saveUserProfile', e); }
     }
+
+    // Switch between login / signup tabs
+    window.switchAuthTab = function(tab) {
+      const isLogin = tab === 'login';
+      document.getElementById('tab-login').style.display = isLogin ? '' : 'none';
+      document.getElementById('tab-signup').style.display = isLogin ? 'none' : '';
+      const loginBtn  = document.getElementById('tab-login-btn');
+      const signupBtn = document.getElementById('tab-signup-btn');
+      if(loginBtn)  { loginBtn.style.background  = isLogin ? 'var(--amber)' : ''; loginBtn.style.color  = isLogin ? '#000' : 'var(--app-muted)'; }
+      if(signupBtn) { signupBtn.style.background = isLogin ? '' : 'var(--amber)'; signupBtn.style.color = isLogin ? 'var(--app-muted)' : '#000'; }
+    };
 
     // Prefill email if already logged
     try{ const u = window.auth?.currentUser; if(u?.email && emailEl){ emailEl.value = u.email; } }catch(_){ }
@@ -11794,8 +11828,8 @@
           alert('Firebase Auth no está cargado aún. Recarga la página (Ctrl+F5) y asegúrate de abrir la URL correcta.');
           return;
         }
-        const email=(emailEl?.value||'').trim();
-        const pass=(passEl?.value||'').trim();
+        const email=(document.getElementById('auth-email')?.value||emailEl?.value||'').trim();
+        const pass=(document.getElementById('auth-pass')?.value||passEl?.value||'').trim();
         if(!email||!pass){ alert('Ingresa email y contraseña'); return; }
         const loginCred = await M.signInWithEmailAndPassword(window.auth, email, pass);
         try{ saveUserProfile(loginCred?.user?.uid || window.auth?.currentUser?.uid, email, pass); }catch(_){ }
@@ -11832,9 +11866,13 @@ En Firebase Console → Authentication:
           alert('Firebase Auth no está cargado aún. Recarga la página (Ctrl+F5) y asegúrate de abrir la URL correcta.');
           return;
         }
-        const email=(emailEl?.value||'').trim();
-        const pass=(passEl?.value||'').trim();
+        const email=(document.getElementById('auth-email-reg')?.value||emailEl?.value||'').trim();
+        const pass=(document.getElementById('auth-pass-reg')?.value||passEl?.value||'').trim();
+        const passConfirm=(document.getElementById('auth-pass-confirm')?.value||'').trim();
+        const nombre=(document.getElementById('auth-nombre')?.value||'').trim();
+        const telefono=(document.getElementById('auth-tel')?.value||'').trim();
         if(!email||!pass){ alert('Ingresa email y contraseña'); return; }
+        if(passConfirm && pass !== passConfirm){ alert('Las contraseñas no coinciden.'); return; }
         const user = window.auth.currentUser;
         let newUserCredential;
         if(user && user.isAnonymous && M?.EmailAuthProvider && M?.linkWithCredential){
@@ -11843,7 +11881,7 @@ En Firebase Console → Authentication:
         } else {
           newUserCredential = await M.createUserWithEmailAndPassword(window.auth, email, pass);
         }
-        try{ const _uid = newUserCredential?.user?.uid || window.auth?.currentUser?.uid; saveUserProfile(_uid, email, pass); }catch(_){ }
+        try{ const _uid = newUserCredential?.user?.uid || window.auth?.currentUser?.uid; saveUserProfile(_uid, email, pass, { nombre, telefono }); }catch(_){ }
         try{
           const targetUser = newUserCredential?.user || window.auth.currentUser;
           if(targetUser && M.sendEmailVerification){
@@ -11912,6 +11950,53 @@ En Firebase Console → Authentication:
         }
       }
     });
+
+    // Google sign-in handler (shared for login & signup buttons)
+    async function handleGoogleAuth() {
+      try{
+        const M = window.firebaseModules || {};
+        if(!M.GoogleAuthProvider || !M.signInWithPopup){
+          alert('Google Auth no está disponible aún. Recarga la página.');
+          return;
+        }
+        const provider = new M.GoogleAuthProvider();
+        const user = window.auth?.currentUser;
+        let cred;
+        if(user && user.isAnonymous && M.linkWithCredential){
+          // Link anonymous account to Google
+          const googleCred = M.GoogleAuthProvider.credentialFromResult ?
+            null : null; // will use popup
+          try{
+            const result = await M.signInWithPopup(window.auth, provider);
+            cred = result;
+          }catch(e){ throw e; }
+        } else {
+          cred = await M.signInWithPopup(window.auth, provider);
+        }
+        const gUser = cred?.user;
+        if(gUser){
+          const nombre = document.getElementById('auth-nombre')?.value?.trim() || gUser.displayName || '';
+          const telefono = document.getElementById('auth-tel')?.value?.trim() || gUser.phoneNumber || '';
+          try{ saveUserProfile(gUser.uid, gUser.email || '', '', { nombre, telefono }); }catch(_){ }
+        }
+        alert('Sesión iniciada con Google: ' + (gUser?.email || gUser?.displayName || ''));
+        try{ initializeAuth(); }catch(_){ }
+      }catch(err){
+        console.warn('google-auth', err);
+        const code = err?.code || '';
+        if(code === 'auth/popup-closed-by-user' || code === 'auth/cancelled-popup-request') return;
+        if(code === 'auth/unauthorized-domain'){
+          alert(`Dominio no autorizado para Google Auth (${code}).\nEn Firebase Console → Authentication → Settings → Authorized domains:\nAgrega "${location.hostname}"`);
+        } else if(code === 'auth/operation-not-allowed'){
+          alert('Google Sign-In no está habilitado. En Firebase Console → Authentication → Sign-in method → habilita Google.');
+        } else {
+          alert('Error con Google ('+code+'): '+(err?.message||''));
+        }
+      }
+    }
+
+    document.getElementById('btn-google-login')?.addEventListener('click', handleGoogleAuth);
+    document.getElementById('btn-google-signup')?.addEventListener('click', handleGoogleAuth);
 
     btnLogout?.addEventListener('click', async ()=>{
       try{
