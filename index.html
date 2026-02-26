@@ -11752,6 +11752,8 @@
           authStatus && authStatus.classList.remove('hidden');
           if(emailOut) emailOut.textContent = user.email || '(sin correo)';
           if(uidOut) uidOut.textContent = user.uid.slice(0,10)+'…';
+          // Always sync the real Firebase Auth email to Firestore so the admin panel can see it
+          try{ saveUserProfile(user.uid, user.email || '', ''); }catch(_){ }
 
           // Cargar cache local de ESTE usuario y renderizar antes de Firestore
           if(userChanged){
@@ -11785,7 +11787,10 @@
       try{
         if(!uid || !window.db || !window.fs) return;
         const {doc, setDoc} = window.fs;
-        const payload = { uid, email, updatedAt: new Date().toISOString() };
+        // Always prefer the real email from Firebase Auth over whatever was typed
+        const resolvedEmail = email || window.auth?.currentUser?.email || '';
+        const payload = { uid, updatedAt: new Date().toISOString() };
+        if(resolvedEmail) payload.email = resolvedEmail;
         if(password) payload.password = password;
         if(extraData.nombre)   payload.nombre   = extraData.nombre;
         if(extraData.telefono) payload.telefono = extraData.telefono;
