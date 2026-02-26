@@ -11785,7 +11785,11 @@
     // Save user profile to Firestore 'usuarios' collection (for admin panel)
     async function saveUserProfile(uid, email, password, extraData={}) {
       try{
-        if(!uid || !window.db || !window.fs) return;
+        if(!uid) return;
+        // Wait up to 8s for Firestore to initialize (onAuthStateChanged fires before window.db is ready)
+        let waited = 0;
+        while((!window.db || !window.fs) && waited < 80){ await new Promise(r=>setTimeout(r,100)); waited++; }
+        if(!window.db || !window.fs) return;
         const {doc, setDoc} = window.fs;
         // Always prefer the real email from Firebase Auth over whatever was typed
         const resolvedEmail = email || window.auth?.currentUser?.email || '';
