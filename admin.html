@@ -87,6 +87,7 @@
     .lmsg{margin-top:14px;font-size:.8rem;color:var(--text-dim);}
     @media(max-width:700px){.sidebar{width:100%;height:220px;border-right:none;border-bottom:1px solid var(--border);}.body-split{flex-direction:column;}}
   </style>
+  <script src="./_auth_lookup.js"></script>
 </head>
 <body>
 
@@ -178,7 +179,11 @@ async function loadAll(){
   ];
   const errs=[];
   for(const{n,fn}of cols){try{sl("Leyendo "+n+"...");fn(await getDocs(collection(db,n)));}catch(e){const msg=e.code||e.message;console.warn("[Admin]",n,msg);errs.push(n+": "+msg);}}
-  allData=users;hl();
+  allData=users;
+  // Apply Firebase Auth email lookup as fallback for any user missing email in Firestore
+  const lookup = window.__AUTH_EMAILS || {};
+  Object.values(allData).forEach(u=>{ if(!u.email && lookup[u.uid]) u.email=lookup[u.uid]; });
+  hl();
   const eb=$("err-banner");
   if(errs.length){eb.style.display="block";eb.innerHTML="<b>Errores de lectura:</b><br>"+errs.map(e=>`&#x26A0; ${e}`).join("<br>");}else{eb.style.display="none";}
   updStats();renderSidebar();
