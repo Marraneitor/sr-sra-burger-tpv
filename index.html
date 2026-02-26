@@ -12481,6 +12481,7 @@ En Firebase Console → Authentication:
     // ── PLAN SYSTEM ──────────────────────────────────────────────
     // ─────────────────────────────────────────────────────────────
     const STRIPE_PAYMENT_LINK = 'https://buy.stripe.com/5kQcMY2NM0nq9NK5b11sQ00';
+    window.STRIPE_PAYMENT_LINK = STRIPE_PAYMENT_LINK;
     window.FREE_PLAN_MAX_PRODUCTOS = 20;
     window.FREE_PLAN_MAX_INGREDIENTES = 50;
     window.__userPlan = 'free';
@@ -12543,7 +12544,8 @@ En Firebase Console → Authentication:
     window.startPremiumUpgrade = function(){
       const modal = document.getElementById('upgrade-modal');
       if(modal) modal.classList.remove('open');
-      location.href = STRIPE_PAYMENT_LINK;
+      const url = window.STRIPE_PAYMENT_LINK || 'https://buy.stripe.com/5kQcMY2NM0nq9NK5b11sQ00';
+      location.href = url;
     };
 
     // Detectar retorno desde Stripe con ?plan_upgraded=1
