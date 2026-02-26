@@ -12543,7 +12543,7 @@ En Firebase Console → Authentication:
     window.startPremiumUpgrade = function(){
       const modal = document.getElementById('upgrade-modal');
       if(modal) modal.classList.remove('open');
-      window.open(STRIPE_PAYMENT_LINK, '_blank');
+      location.href = STRIPE_PAYMENT_LINK;
     };
 
     // Detectar retorno desde Stripe con ?plan_upgraded=1
