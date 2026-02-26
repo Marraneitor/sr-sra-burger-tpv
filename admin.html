@@ -181,19 +181,22 @@ async function loadAll(){
   updStats();renderSidebar();
   $("refresh-lbl").textContent="Actualizado: "+new Date().toLocaleTimeString("es-MX");
 }
+function registered(){return Object.values(allData).filter(u=>u.email&&u.email.trim()!=="");}
 function updStats(){
-  const L=Object.values(allData);
+  const L=registered();
   const tv=L.reduce((s,u)=>s+(u.ventas||[]).reduce((sv,v)=>sv+(Number(v.total)||0),0),0);
   $("s-u").textContent=L.length;$("s-o").textContent=L.reduce((s,u)=>s+(u.pedidos||[]).length,0);
   $("s-c").textContent=L.reduce((s,u)=>s+(u.clientes||[]).length,0);$("s-p").textContent=L.reduce((s,u)=>s+(u.productos||[]).length,0);
   $("s-s").textContent=money(tv);
 }
 function renderSidebar(){
-  const q=($("ssearch").value||"").toLowerCase();
-  const L=Object.values(allData).filter(u=>!q||(u.email&&u.email.toLowerCase().includes(q))||(u.nombre&&u.nombre.toLowerCase().includes(q))||(u.uid&&u.uid.toLowerCase().includes(q)));
-  $("scnt").textContent=L.length+" usuario"+(L.length!==1?"s":"");
-  if(!L.length){$("slist").innerHTML='<div style="padding:24px;text-align:center;color:var(--text-dim);font-size:.8rem;">Sin resultados</div>';return;}
-  $("slist").innerHTML=L.map(u=>{const tv=(u.ventas||[]).reduce((s,v)=>s+(Number(v.total)||0),0);return`<div class="ucard${u.uid===selUid?" active":""}" onclick="selUser('${esc(u.uid)}')">`+`<div class="ue">${esc(u.email||"(sin email)")}</div>`+`<div class="un">${esc(u.nombre||u.uid.slice(0,22)+"...")}</div>`+`<div class="ubadges"><span class="ub ub-b">${(u.pedidos||[]).length} pedidos</span><span class="ub ub-g">${(u.clientes||[]).length} clientes</span><span class="ub ub-y">${money(tv)}</span></div></div>`;}).join("");
+  const L=registered().sort((a,b)=>a.email.localeCompare(b.email));
+  $("scnt").textContent=L.length+" cuenta"+(L.length!==1?"s registradas":" registrada");
+  const sel=$("ssearch");
+  sel.innerHTML='<option value="">-- Seleccionar cuenta --</option>'+L.map(u=>`<option value="${esc(u.uid)}"${u.uid===selUid?" selected":""}>${esc(u.email)}${u.nombre?" \u2014 "+esc(u.nombre):""}</option>`).join("");
+  if(selUid&&L.some(u=>u.uid===selUid))sel.value=selUid;
+  if(!L.length){$("slist").innerHTML='<div style="padding:24px;text-align:center;color:var(--text-dim);font-size:.8rem;">Sin cuentas registradas</div>';return;}
+  $("slist").innerHTML=L.map(u=>{const tv=(u.ventas||[]).reduce((s,v)=>s+(Number(v.total)||0),0);return`<div class="ucard${u.uid===selUid?" active":""}" onclick="selUser('${esc(u.uid)}')">`+`<div class="ue">${esc(u.email)}</div>`+`<div class="un">${esc(u.nombre||u.uid.slice(0,22)+"...")}</div>`+`<div class="ubadges"><span class="ub ub-b">${(u.pedidos||[]).length} pedidos</span><span class="ub ub-g">${(u.clientes||[]).length} clientes</span><span class="ub ub-y">${money(tv)}</span></div></div>`;}).join("");
 }
 window.selUser=function(uid){
   selUid=uid;renderSidebar();
