@@ -12627,8 +12627,15 @@ En Firebase Console → Authentication:
     window.STRIPE_PAYMENT_LINK = STRIPE_PAYMENT_LINK;
     window.FREE_PLAN_MAX_PRODUCTOS = 20;
     window.FREE_PLAN_MAX_INGREDIENTES = 50;
+    // Admin account always has full premium access
+    const ADMIN_UID = 'Gi7lpYblceRCzebBIL6si5NoTU72'; // yoelskygold@gmail.com
+    window.ADMIN_UID = ADMIN_UID;
     window.__userPlan = 'free';
-    window.isPremium = function(){ return window.__userPlan === 'premium'; };
+    window.isPremium = function(){
+      const u = window.auth?.currentUser;
+      if(u && u.uid === ADMIN_UID) return true;
+      return window.__userPlan === 'premium';
+    };
 
     window.applyNavLocks = function(){
       const gated = ['ventas','insumos','inventario','recomendaciones','clientes'];
@@ -12650,6 +12657,8 @@ En Firebase Console → Authentication:
       try{
         const u = window.auth?.currentUser;
         if(!u || u.isAnonymous){ window.applyNavLocks(); return; }
+        // Admin always gets premium
+        if(u.uid === ADMIN_UID){ window.__userPlan = 'premium'; window.applyNavLocks(); return; }
         let waited = 0;
         while((!window.db || !window.fs) && waited < 50){ await new Promise(r=>setTimeout(r,100)); waited++; }
         if(!window.db || !window.fs){ window.applyNavLocks(); return; }

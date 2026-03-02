@@ -8,10 +8,17 @@
     "start": "serve -s . --listen 3000",
     "lan": "serve -s . --listen tcp://0.0.0.0:8080"
   },
-  "keywords": ["pos", "restaurant", "gestia", "sales", "sistema-pos"],
+  "keywords": [
+    "pos",
+    "restaurant",
+    "gestia",
+    "sales",
+    "sistema-pos"
+  ],
   "author": "Gestia",
   "license": "MIT",
   "devDependencies": {
+    "firebase-admin": "^13.6.1",
     "serve": "^14.2.0"
   }
 }
