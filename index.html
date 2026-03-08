@@ -6721,6 +6721,7 @@
             onSubmit:(data)=>{
               ing.nombre=(data.nombre||'').trim();
               ing.unidad=(data.unidad||'').trim();
+              ing.precioPaquete=Number(data.precioPaquete)||0;
               ing.unidadesPaquete=Number(data.unidadesPaquete)||1;
               if(typeof saveIngredientToFirestore==='function') saveIngredientToFirestore(ing);
               saveLS(); renderAll();

@@ -1,0 +1,20 @@
+{
+  "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
+  "version": "0.2",
+  "language": "es,en",
+  "ignorePaths": ["node_modules", "_archive"],
+  "words": [
+    "firebaseapp", "firebasestorage", "Firestore", "firebase",
+    "opcional", "producción", "proyecto", "equivocado", "evitar", "pegada",
+    "Usando", "desde", "Ignorando", "Borra", "persiste", "cargó", "pero",
+    "tiene", "válido", "devolvió", "posible", "pudo", "publica", "raíz", "sitio",
+    "inicializado", "Habilitar", "persistencia", "mejor", "experiencia", "móvil",
+    "Ignorar", "navegador", "permite", "privado", "insumos", "insumo",
+    "ingredientes", "ingrediente", "estacion", "estaciones", "Estaciones",
+    "Estación", "letra", "dentro", "cuadrado", "sombras", "contorno",
+    "bento", "personalización", "Clientes", "visuales", "venta", "merma",
+    "alineación", "nums", "Aplica", "monoespaciado", "automáticamente",
+    "columnas", "numéricas", "Inicio", "inicio", "productos", "diseño",
+    "estilos", "estilo", "Cuschts", "Xqivq", "VJBLGD"
+  ]
+}
