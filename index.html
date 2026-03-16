@@ -293,10 +293,7 @@
     .input-modern:focus{ outline:none; border-color: var(--burger-accent); }
     .sidebar{position:relative}
     .sidebar.collapsed{ display:none !important; }
-    @media(max-width:1024px){
-      .sidebar{position:fixed;left:-280px;top:0;bottom:0;width:280px;z-index:60;transition:left .3s;display:none}
-      .sidebar.open{left:0;display:block}
-    }
+    /* Sidebar mobile: handled by responsive.css (mobile-first) */
 
   /* ─── Section Titles ────────────────────────────────────────── */
   .section-title{ display:flex; align-items:center; gap:.5rem; letter-spacing:.2px; padding-bottom:.55rem; margin-bottom:.9rem; border-bottom:1px solid var(--grid-strong); }
@@ -633,6 +630,30 @@
 <body class="font-sans min-h-screen">
   <!-- Navigation Progress Bar -->
   <div id="nav-progress" aria-hidden="true"></div>
+
+  <!-- ─── Bottom Tab Bar (mobile navigation) ─── -->
+  <nav id="bottom-tab-bar" role="navigation" aria-label="Navegación principal">
+    <a href="#inicio" class="tab-item active" data-tab="inicio" aria-label="Inicio">
+      <span class="tab-icon" aria-hidden="true">🏠</span>
+      <span>Inicio</span>
+    </a>
+    <a href="#vender" class="tab-item" data-tab="vender" aria-label="Punto de Venta">
+      <span class="tab-icon" aria-hidden="true">🛒</span>
+      <span>Vender</span>
+    </a>
+    <a href="#pedidos-pendientes" class="tab-item" data-tab="pedidos-pendientes" aria-label="Pedidos">
+      <span class="tab-icon" aria-hidden="true">🍳</span>
+      <span>Pedidos</span>
+    </a>
+    <a href="#dashboard" class="tab-item" data-tab="dashboard" aria-label="Dashboard">
+      <span class="tab-icon" aria-hidden="true">📊</span>
+      <span>Dashboard</span>
+    </a>
+    <button class="tab-item" id="bottom-tab-menu" aria-label="Abrir menú completo" aria-expanded="false">
+      <span class="tab-icon" aria-hidden="true">☰</span>
+      <span>Menú</span>
+    </button>
+  </nav>
 
   <!-- Loading -->
   <div id="loading-overlay" class="fixed inset-0 z-[100] flex flex-col justify-center items-center gap-4"
@@ -4677,6 +4698,14 @@
 
       btn?.addEventListener('click', ()=> toggle());
       backdrop?.addEventListener('click', ()=> toggle(false));
+
+      // Bottom tab bar — "Menú" button opens sidebar
+      const bottomMenuBtn = document.getElementById('bottom-tab-menu');
+      bottomMenuBtn?.addEventListener('click', ()=>{
+        toggle();
+        const isOpen = sidebar?.classList.contains('open');
+        bottomMenuBtn.setAttribute('aria-expanded', String(!!isOpen));
+      });
       document.addEventListener('click', (e)=>{
         if(window.innerWidth<=1024 && sidebar?.classList.contains('open')){
           const inside = sidebar.contains(e.target) || btn?.contains(e.target);
@@ -4770,6 +4799,8 @@
         setTimeout(()=>{ if(prog){ prog.classList.add('prog-complete'); } }, 180);
 
         $$('.nav-link').forEach(a=> a.classList.toggle('active', a.getAttribute('href')==='#'+id));
+        // Sync bottom tab bar active state
+        $$('#bottom-tab-bar .tab-item[data-tab]').forEach(t=> t.classList.toggle('active', t.getAttribute('data-tab')===id));
         if(id==='dashboard') updateDashboard();
         if(id==='vender'){
           try{ document.getElementById('pos-search-input').value=''; }catch(_){ }
