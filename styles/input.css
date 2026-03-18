@@ -1,0 +1,13 @@
+/* Gestia POS — Tailwind entry point
+   Compile con: npm run css:build
+   Output:      styles/main.css (minificado, listo para producción)
+
+   IMPORTANTE: Una vez compilado, reemplazar en index.html:
+     <script src="https://cdn.tailwindcss.com"></script>
+   por:
+     <link rel="stylesheet" href="./styles/main.css">
+*/
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
