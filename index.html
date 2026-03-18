@@ -2155,6 +2155,12 @@
     const $$ = (sel)=>Array.from(document.querySelectorAll(sel));
     const fmt = (n)=>'$'+(Number(n)||0).toFixed(2);
     const hideLoading = ()=>{ const el=$('#loading-overlay'); if(el){ el.style.display='none'; el.style.pointerEvents='none'; } };
+    /**
+     * esc() — Escapa caracteres HTML para prevenir XSS al insertar datos
+     * de Firestore (u otras fuentes externas) en innerHTML.
+     * SIEMPRE usar esta función antes de interpolar datos de usuario en HTML.
+     */
+    const esc = (s) => String(s ?? '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
     const USER_STATE_PREFIX = 'pointsell:user-state:v1:';
     let __activeUid = null;
 
@@ -5251,12 +5257,12 @@
             const tr = document.createElement('tr');
             const metodoDisplay = (String(i.metodo||'Efectivo').toLowerCase().includes('efect') ? 'Efectivo' : 'Tarjeta');
             tr.innerHTML = `<td class="p-2">${new Date(i.fecha).toLocaleDateString()}</td>`+
-              `<td class="p-2">${metodoDisplay}</td>`+
-              `<td class="p-2">${i.descripcion||'—'}</td>`+
+              `<td class="p-2">${esc(metodoDisplay)}</td>`+
+              `<td class="p-2">${esc(i.descripcion||'—')}</td>`+
               `<td class="p-2 text-right num">${fmt(Number(i.monto)||0)}</td>`+
               `<td class="p-2">`+
-                `<button class="px-2 py-1 rounded border text-sm caja-edit-ing" data-id="${i.id}">Editar</button> `+
-                `<button class="px-2 py-1 rounded border text-sm caja-del-ing" data-id="${i.id}">Eliminar</button>`+
+                `<button class="px-2 py-1 rounded border text-sm caja-edit-ing" data-id="${esc(i.id)}">Editar</button> `+
+                `<button class="px-2 py-1 rounded border text-sm caja-del-ing" data-id="${esc(i.id)}">Eliminar</button>`+
               `</td>`;
             ib.appendChild(tr);
           });
@@ -5275,12 +5281,12 @@
             const metodoDisplay = (String(g.metodo||'Efectivo').toLowerCase().includes('efect') ? 'Efectivo' : 'Tarjeta');
             const actions = (g.__source==='compra')
               ? '<span class="text-xs opacity-60">—</span>'
-              : `<button class="px-2 py-1 rounded border text-sm fin-edit-gasto" data-id="${g.id}">Editar</button> `+
-                `<button class="px-2 py-1 rounded border text-sm fin-del-gasto" data-id="${g.id}">Eliminar</button>`;
+              : `<button class="px-2 py-1 rounded border text-sm fin-edit-gasto" data-id="${esc(g.id)}">Editar</button> `+
+                `<button class="px-2 py-1 rounded border text-sm fin-del-gasto" data-id="${esc(g.id)}">Eliminar</button>`;
             tr.innerHTML = `<td class="p-2">${new Date(g.fecha).toLocaleDateString()}</td>`+
-              `<td class="p-2">${tipoDisplay}</td>`+
-              `<td class="p-2">${metodoDisplay}</td>`+
-              `<td class="p-2">${g.descripcion||'—'}</td>`+
+              `<td class="p-2">${esc(tipoDisplay)}</td>`+
+              `<td class="p-2">${esc(metodoDisplay)}</td>`+
+              `<td class="p-2">${esc(g.descripcion||'—')}</td>`+
               `<td class="p-2 text-right num">${fmt(Number(g.monto)||0)}</td>`+
               `<td class="p-2">${actions}</td>`;
             gb.appendChild(tr);
@@ -5299,13 +5305,13 @@
             const tipoDisplay = tipoMap[p.tipo] || p.tipo || '📌 Otro';
             const metodoDisplay = (String(p.metodo||'Efectivo').toLowerCase().includes('efect') ? 'Efectivo' : 'Tarjeta');
             tr.innerHTML = `<td class="p-2">${new Date(p.fecha).toLocaleDateString()}</td>`+
-              `<td class="p-2">${tipoDisplay}</td>`+
-              `<td class="p-2">${metodoDisplay}</td>`+
-              `<td class="p-2">${p.descripcion||'—'}</td>`+
+              `<td class="p-2">${esc(tipoDisplay)}</td>`+
+              `<td class="p-2">${esc(metodoDisplay)}</td>`+
+              `<td class="p-2">${esc(p.descripcion||'—')}</td>`+
               `<td class="p-2 text-right num">${fmt(Number(p.monto)||0)}</td>`+
               `<td class="p-2">`+
-                `<button class="px-2 py-1 rounded border text-sm caja-resolve-pend" data-id="${p.id}">Resolver</button> `+
-                `<button class="px-2 py-1 rounded border text-sm caja-del-pend" data-id="${p.id}">Eliminar</button>`+
+                `<button class="px-2 py-1 rounded border text-sm caja-resolve-pend" data-id="${esc(p.id)}">Resolver</button> `+
+                `<button class="px-2 py-1 rounded border text-sm caja-del-pend" data-id="${esc(p.id)}">Eliminar</button>`+
               `</td>`;
             pb.appendChild(tr);
           });
@@ -5429,12 +5435,12 @@
             const amt = baseVal * (pct/100);
             totalPct += pct; totalAmt += amt;
             const tr = document.createElement('tr');
-            tr.innerHTML = `<td class="p-2">${a.nombre||'—'}</td>`+
+            tr.innerHTML = `<td class="p-2">${esc(a.nombre||'—')}</td>`+
               `<td class="p-2 text-right">${pct.toFixed(1)}%</td>`+
               `<td class="p-2 text-right">${fmt(amt)}</td>`+
               `<td class="p-2">`+
-              `<button class="px-2 py-1 rounded border text-sm fin-edit-alloc" data-id="${a.id}">Editar</button> `+
-              `<button class="px-2 py-1 rounded border text-sm fin-del-alloc" data-id="${a.id}">Eliminar</button>`+
+              `<button class="px-2 py-1 rounded border text-sm fin-edit-alloc" data-id="${esc(a.id)}">Editar</button> `+
+              `<button class="px-2 py-1 rounded border text-sm fin-del-alloc" data-id="${esc(a.id)}">Eliminar</button>`+
               `</td>`;
             ab.appendChild(tr);
           });
@@ -5446,17 +5452,17 @@
         // Tablas
         const eb = document.getElementById('fin-emp-body'); if(eb){ eb.innerHTML=''; (appState.finanzas?.empleados||[]).forEach(e=>{
           const tr = document.createElement('tr');
-          tr.innerHTML = `<td class="p-2">${e.nombre||'—'}</td><td class="p-2 text-right">${fmt(Number(e.sueldoSemanal)||0)}</td><td class="p-2">${e.activo===false? 'No':'Sí'}</td><td class="p-2">`+
-            `<button class="px-2 py-1 rounded border text-sm fin-edit-emp" data-id="${e.id}">Editar</button> `+
-            `<button class="px-2 py-1 rounded border text-sm fin-del-emp" data-id="${e.id}">Eliminar</button>`+
+          tr.innerHTML = `<td class="p-2">${esc(e.nombre||'—')}</td><td class="p-2 text-right">${fmt(Number(e.sueldoSemanal)||0)}</td><td class="p-2">${e.activo===false? 'No':'Sí'}</td><td class="p-2">`+
+            `<button class="px-2 py-1 rounded border text-sm fin-edit-emp" data-id="${esc(e.id)}">Editar</button> `+
+            `<button class="px-2 py-1 rounded border text-sm fin-del-emp" data-id="${esc(e.id)}">Eliminar</button>`+
             `</td>`;
           eb.appendChild(tr);
         }); }
         const sb = document.getElementById('fin-srv-body'); if(sb){ sb.innerHTML=''; (appState.finanzas?.servicios||[]).forEach(s=>{
           const tr = document.createElement('tr');
-          tr.innerHTML = `<td class="p-2">${s.nombre||'—'}</td><td class="p-2 text-right">${fmt(Number(s.monto)||0)}</td><td class="p-2">${s.frecuencia||'mensual'}</td><td class="p-2">`+
-            `<button class="px-2 py-1 rounded border text-sm fin-edit-srv" data-id="${s.id}">Editar</button> `+
-            `<button class="px-2 py-1 rounded border text-sm fin-del-srv" data-id="${s.id}">Eliminar</button>`+
+          tr.innerHTML = `<td class="p-2">${esc(s.nombre||'—')}</td><td class="p-2 text-right">${fmt(Number(s.monto)||0)}</td><td class="p-2">${esc(s.frecuencia||'mensual')}</td><td class="p-2">`+
+            `<button class="px-2 py-1 rounded border text-sm fin-edit-srv" data-id="${esc(s.id)}">Editar</button> `+
+            `<button class="px-2 py-1 rounded border text-sm fin-del-srv" data-id="${esc(s.id)}">Eliminar</button>`+
             `</td>`;
           sb.appendChild(tr);
         }); }
@@ -5471,12 +5477,12 @@
             const tipoMap = { 'sueldo': '💵 Sueldo', 'gas': '🔥 Gas', 'gasolina': '⛽ Gasolina', 'insumos': '📦 Insumos', 'otro': '📌 Otro' };
             const tipoDisplay = tipoMap[g.tipo] || g.tipo || '📌 Otro';
             tr.innerHTML = `<td class="p-2">${new Date(g.fecha).toLocaleDateString()}</td>`+
-              `<td class="p-2">${tipoDisplay}</td>`+
-              `<td class="p-2">${g.descripcion||'—'}</td>`+
+              `<td class="p-2">${esc(tipoDisplay)}</td>`+
+              `<td class="p-2">${esc(g.descripcion||'—')}</td>`+
               `<td class="p-2 text-right num">${fmt(Number(g.monto)||0)}</td>`+
               `<td class="p-2">`+
-              `<button class="px-2 py-1 rounded border text-sm fin-edit-gasto" data-id="${g.id}">Editar</button> `+
-              `<button class="px-2 py-1 rounded border text-sm fin-del-gasto" data-id="${g.id}">Eliminar</button>`+
+              `<button class="px-2 py-1 rounded border text-sm fin-edit-gasto" data-id="${esc(g.id)}">Editar</button> `+
+              `<button class="px-2 py-1 rounded border text-sm fin-del-gasto" data-id="${esc(g.id)}">Eliminar</button>`+
               `</td>`;
             gb.appendChild(tr);
           });
@@ -7315,7 +7321,7 @@
           const tr = document.createElement('tr');
     const venta = (appState.ventas||[]).find(v=> v.id===h.ventaId);
     const label = venta && venta.saleNumber ? `Venta${venta.saleNumber}` : `#${String(h.ventaId).slice(0,6)}`;
-	  tr.innerHTML = `<td class="p-2">${new Date(h.fecha).toLocaleString()}</td><td class="p-2"><span class="insumo-badge insumo-badge-venta" data-venta-id="${h.ventaId}" title="Descargar PDF de insumos de esta venta">${label}</span></td>`;
+	  tr.innerHTML = `<td class="p-2">${new Date(h.fecha).toLocaleString()}</td><td class="p-2"><span class="insumo-badge insumo-badge-venta" data-venta-id="${esc(h.ventaId)}" title="Descargar PDF de insumos de esta venta">${esc(label)}</span></td>`;
           vb.appendChild(tr);
         });
   // Click en badge de venta para PDF individual de insumos
@@ -7336,7 +7342,7 @@
           const tr = document.createElement('tr');
           const ing = appState.ingredientes.find(i=>i.id===m.ingredienteId);
           const nombre = ing?.nombre || m.ingredienteId; const unidad = ing?.unidad || '';
-          tr.innerHTML = `<td class="p-2">${new Date(m.fecha).toLocaleString()}</td><td class="p-2">${nombre}</td><td class="p-2">${m.cantidad}${unidad}</td>`;
+          tr.innerHTML = `<td class="p-2">${new Date(m.fecha).toLocaleString()}</td><td class="p-2">${esc(nombre)}</td><td class="p-2">${esc(String(m.cantidad))}${esc(unidad)}</td>`;
           mb.appendChild(tr);
         });
       }
@@ -10603,7 +10609,7 @@
       const rows = Object.values(byIng).sort((a,b)=> b.gasto-a.gasto);
       if(rows.length===0){ body.innerHTML = '<tr><td colspan="4" class="p-3 text-center opacity-60">Sin compras en el periodo</td></tr>'; }
       else{
-        body.innerHTML = rows.map(r=> `<tr><td class="p-2">${r.nombre}</td><td class="p-2 text-right">${r.piezas}</td><td class="p-2 text-right">${r.unidades.toFixed(0)}</td><td class="p-2 text-right">${fmt(r.gasto)}</td></tr>`).join('');
+        body.innerHTML = rows.map(r=> `<tr><td class="p-2">${esc(r.nombre)}</td><td class="p-2 text-right">${esc(String(r.piezas))}</td><td class="p-2 text-right">${r.unidades.toFixed(0)}</td><td class="p-2 text-right">${fmt(r.gasto)}</td></tr>`).join('');
       }
       // KPIs de la sección
       const sum = (arr,f)=> arr.reduce((s,x)=> s + (f?f(x):x), 0);
@@ -12472,7 +12478,7 @@ En Firebase Console → Authentication:
     window.FREE_PLAN_MAX_PRODUCTOS = 20;
     window.FREE_PLAN_MAX_INGREDIENTES = 50;
     // Admin account always has full premium access
-    const ADMIN_UID = 'Gi7lpYblceRCzebBIL6si5NoTU72'; // yoelskygold@gmail.com
+    const ADMIN_UID = 'Gi7lpYblceRCzebBIL6si5NoTU72';
     window.ADMIN_UID = ADMIN_UID;
     window.__userPlan = 'free';
     window.isPremium = function(){
