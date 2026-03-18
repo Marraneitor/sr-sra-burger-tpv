@@ -435,6 +435,7 @@ h1, h2, h3 { letter-spacing: -.01em; }
   .panel { padding: 14px !important; }
   .stat-card, .client-card, .product-card { padding: 12px !important; }
   .view { padding: 14px !important; }
-  .hero-sr { min-height: 78svh; padding: 16px !important; }
+  /* Note: responsive.css overrides hero height with !important for mobile — do not set here with !important */
+  .hero-sr { min-height: 60svh; padding: 16px !important; }
   .hero-sr__logo { width: 140px; height: 92px; border-radius: 14px; padding: 8px 12px; }
 }

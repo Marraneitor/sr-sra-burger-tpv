@@ -1,529 +1,331 @@
-/* ============================================================
-   GESTIA — Mobile-First Responsive System
-   Strategy: base styles target mobile (≤479px), then scale up
-   Breakpoints:
-     sm  →  min-width: 480px   (large phones / landscape)
-     md  →  min-width: 768px   (tablets)
-     lg  →  min-width: 1024px  (desktop)
-     xl  →  min-width: 1280px  (wide desktop)
-   ============================================================ */
+/* Shared responsive + mobile fixes (safe overrides).
+   Intentionally minimal: only improves responsiveness/touch behavior. */
 
-/* ─── CSS Custom Properties ──────────────────────────────────── */
 :root{
-  /* Safe areas (notch / home indicator) */
-  --safe-top:    env(safe-area-inset-top,    0px);
-  --safe-right:  env(safe-area-inset-right,  0px);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
-  --safe-left:   env(safe-area-inset-left,   0px);
-
-  /* Bottom tab bar height — main content pads by this on mobile */
-  --tab-bar-h: 60px;
+  --safe-left: env(safe-area-inset-left, 0px);
 }
 
-/* ─── Base Reset (applied universally / Mobile-First) ─────────── */
-*,
-*::before,
-*::after { box-sizing: border-box; }
-
-html {
-  font-size: 16px;                /* Prevent iOS auto-zoom on inputs */
+html{
   -webkit-text-size-adjust: 100%;
   text-size-adjust: 100%;
   scroll-behavior: smooth;
 }
 
-body {
-  line-height: 1.5;               /* WCAG-friendly line-height */
-  overflow-x: hidden;             /* No horizontal scroll */
-}
+*, *::before, *::after{ box-sizing: border-box; }
 
-/* ─── Adaptive images / media ─────────────────────────────────── */
-img,
-video,
-canvas,
-svg {
+img, video, canvas{
   max-width: 100%;
   height: auto;
-  display: block;
 }
 
-/* ─── Dynamic viewport (iOS Safari) ──────────────────────────── */
-@supports (height: 100dvh) {
-  .min-h-screen { min-height: 100dvh !important; }
-  .h-screen     { height: 100dvh !important; }
+/* Prevent accidental horizontal overflow from wide tables/cards */
+body{ overflow-x: hidden; }
+
+/* iOS Safari: prefer dynamic viewport units when available */
+@supports (height: 100dvh){
+  .min-h-screen{ min-height: 100dvh !important; }
+  .h-screen{ height: 100dvh !important; }
 }
 
-/* ─── Touch targets (all interactive elements ≥ 44×44 px) ────── */
-@media (pointer: coarse) {
-  /* Prevent iOS double-tap zoom */
-  * { touch-action: manipulation; }
+/* Safe-area: keep floating buttons above home indicator */
+#btn-theme-fab{ bottom: calc(16px + var(--safe-bottom)) !important; }
+#mobile-menu-btn{ bottom: calc(1rem + var(--safe-bottom)) !important; }
 
-  /* Input font-size ≥ 16px prevents iOS auto-zoom */
-  input,
-  select,
-  textarea { font-size: 16px !important; }
-
-  /* Minimum 44px hit-area */
-  button,
-  [role="button"],
-  a,
-  .nav-link,
-  .btn-outline,
-  .btn-success,
-  .btn-danger,
-  .btn-gradient,
-  .btn-soft,
-  .estacion-btn,
-  .nav-link { min-height: 44px; padding-block: max(.55rem, 10px); }
-
-  /* Product cards: comfortable tap */
-  .product-card,
-  .client-card,
-  .stat-card { min-height: 80px; }
-
-  /* Replace hover-only visuals with :active on touch */
-  .panel:hover,
-  .stat-card:hover,
-  .client-card:hover,
-  .product-card:hover { transform: none !important; }
-
-  .panel:active,
-  .stat-card:active    { background: var(--surf-2) !important; }
-  .product-card:active { transform: scale(.98) !important; }
-  .client-card:active  { transform: scale(.98) !important; }
-
-  .btn-gradient:active,
-  .btn-success:active,
-  .btn-danger:active,
-  .btn-outline:active  { transform: translateY(1px) scale(.98) !important; }
-
-  .nav-link:active { background: var(--surf-2) !important; transform: none !important; }
-}
-
-/* ─── Bottom Tab Bar  (mobile only, hidden ≥1024px) ──────────── */
-#bottom-tab-bar {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 65;
-  height: calc(var(--tab-bar-h) + var(--safe-bottom));
-  padding-bottom: var(--safe-bottom);
-  background: rgba(12, 10, 5, .96);
-  border-top: 1px solid rgba(255, 255, 255, .10);
-  backdrop-filter: blur(20px) saturate(160%);
-  -webkit-backdrop-filter: blur(20px) saturate(160%);
-  display: flex;
-  align-items: stretch;
-}
-
-#bottom-tab-bar .tab-item {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: .2rem;
-  padding: .4rem .25rem;
-  font-size: .62rem;
-  font-weight: 700;
-  letter-spacing: .04em;
-  color: rgba(255, 255, 255, .45);
-  text-align: center;
-  cursor: pointer;
-  border: none;
-  background: transparent;
-  transition: color .15s ease;
-  text-decoration: none;
-  min-height: 44px;
-}
-
-#bottom-tab-bar .tab-item .tab-icon {
-  font-size: 1.25rem;
-  line-height: 1;
-  transition: transform .15s ease;
-}
-
-#bottom-tab-bar .tab-item.active,
-#bottom-tab-bar .tab-item:active {
-  color: var(--amber, #E6B325);
-}
-
-#bottom-tab-bar .tab-item.active .tab-icon {
-  transform: scale(1.15);
-}
-
-#bottom-tab-bar .tab-item:active .tab-icon {
-  transform: scale(.92);
-}
-
-/* On desktop: hide bottom bar, it's replaced by the sidebar */
-@media (min-width: 1024px) {
-  #bottom-tab-bar { display: none !important; }
-}
-
-/* ─── Main content: pad bottom so tab bar doesn't overlap ─────── */
-@media (max-width: 1023px) {
-  main {
-    padding-bottom: calc(var(--tab-bar-h) + var(--safe-bottom) + .75rem) !important;
+/* Sidebar width/position on mobile/tablet.
+   ROOT CAUSE FIX: saas2026.css defines .sidebar { position: relative; display: flex }
+   without a media query, which loads AFTER custom.css and overrides its mobile rules.
+   Using !important here (responsive.css loads first but these media-query rules beat
+   non-media-query rules at same specificity when !important is present) ensures the
+   sidebar is position:fixed and removed from the flex flow on mobile,
+   so <main> can expand to full width. */
+@media (max-width: 1024px){
+  .sidebar{
+    position: fixed   !important;
+    top:    0         !important;
+    bottom: 0         !important;
+    height: 100%      !important;
+    width:  min(86vw, 320px) !important;
+    z-index: 60       !important;
+    transition: left .28s ease, visibility .28s ease !important;
+    display: flex     !important; /* keep internal flex; position:fixed removes it from parent flow */
+  }
+  .sidebar:not(.open){
+    left:       calc(-1 * min(86vw, 320px)) !important;
+    visibility: hidden  !important;
+  }
+  .sidebar.open{
+    left:       0        !important;
+    visibility: visible  !important;
+  }
+  /* Guarantee main takes 100% width since sidebar is out of flow */
+  main{
+    width:     100%  !important;
+    max-width: 100%  !important;
+    min-width: 0     !important;
   }
 }
 
-/* ─── Sidebar: mobile off-canvas drawer ──────────────────────── */
-/* Mobile: hidden drawer, slides in */
-.sidebar {
-  width: min(86vw, 320px) !important;
-  position: fixed !important;
-  left: calc(-1 * min(86vw, 320px)) !important;
-  top: 0;
-  bottom: 0;
-  z-index: 60;
-  transition: left .28s cubic-bezier(.4, 0, .2, 1);
+/* Views and layout: avoid clipping content on small screens */
+@media (max-width: 768px){
+  .view{ overflow: visible !important; }
+
+  /* iOS: smooth scrolling inside the main pane (index layout) */
+  main{ -webkit-overflow-scrolling: touch; }
 }
 
-.sidebar.open {
-  left: 0 !important;
-  box-shadow: 4px 0 48px rgba(0, 0, 0, .65);
-}
-
-/* Desktop: sidebar becomes sticky inline */
-@media (min-width: 1024px) {
-  .sidebar {
-    position: sticky !important;
-    left: 0 !important;
-    top: 0 !important;
-    height: 100dvh !important;
-    width: 18rem !important;
-    overflow-y: auto;
-    scrollbar-width: none;
+/* Section headers/toolbars: stack title + buttons on phones */
+@media (max-width: 640px){
+  /* Common pattern used across modules: <div class="flex justify-between items-center mb-4"> */
+  section.view > .flex.justify-between.items-center.mb-4{
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: .75rem !important;
   }
-  .sidebar::-webkit-scrollbar { display: none; }
-}
 
-/* ─── Floating action buttons ─────────────────────────────────── */
-/* On mobile: keep above bottom tab-bar */
-#btn-theme-fab {
-  bottom: calc(var(--tab-bar-h) + var(--safe-bottom) + 12px) !important;
-  right: 12px;
-}
-
-/* Hide the old hamburger FAB — bottom tab bar replaces it */
-#mobile-menu-btn {
-  bottom: calc(var(--tab-bar-h) + var(--safe-bottom) + 12px) !important;
-  left: 12px;
-}
-
-@media (min-width: 1024px) {
-  #mobile-menu-btn  { display: none !important; }
-  #btn-theme-fab    { bottom: 16px !important; right: 16px !important; }
-}
-
-/* ─── Layout: main content ────────────────────────────────────── */
-/* Mobile base — all space used */
-main {
-  padding: .75rem !important;
-  -webkit-overflow-scrolling: touch;
-}
-
-/* sm: 480px */
-@media (min-width: 480px) {
-  main { padding: 1rem !important; }
-}
-
-/* md: 768px */
-@media (min-width: 768px) {
-  main { padding: 1.25rem !important; }
-}
-
-/* lg: 1024px */
-@media (min-width: 1024px) {
-  main { padding: 1.5rem !important; }
-}
-
-/* ─── View sections ───────────────────────────────────────────── */
-/* Mobile: no clipping, no overflow issues */
-.view {
-  overflow: visible !important;
-  padding: .875rem !important;
-  border-radius: 14px !important;
-}
-
-/* sm */
-@media (min-width: 480px) {
-  .view { padding: 1rem !important; border-radius: 16px !important; }
-}
-
-/* md */
-@media (min-width: 768px) {
-  .view { padding: 1.25rem !important; border-radius: 18px !important; }
-}
-
-/* lg */
-@media (min-width: 1024px) {
-  .view { padding: 1.5rem !important; border-radius: 22px !important; }
-}
-
-/* ─── Cards / Panels ──────────────────────────────────────────── */
-.panel,
-.stat-card,
-.client-card,
-.product-card { padding: .875rem !important; border-radius: 12px !important; }
-
-@media (min-width: 480px) {
-  .panel,
-  .stat-card,
-  .client-card { padding: 1rem !important; border-radius: 14px !important; }
-}
-
-@media (min-width: 768px) {
-  .panel,
-  .stat-card,
-  .client-card { padding: 1.1rem !important; }
-}
-
-/* ─── Grids: mobile-first column counts ────────────────────────── */
-/* KPI cards: 2-col on phones, 4-col on desktop */
-.stat-grid-auto {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: .75rem;
-}
-
-@media (min-width: 768px) {
-  .stat-grid-auto { grid-template-columns: repeat(3, 1fr); }
-}
-
-@media (min-width: 1024px) {
-  .stat-grid-auto { grid-template-columns: repeat(4, 1fr); }
-}
-
-/* ─── Section toolbars: stack on mobile ──────────────────────── */
-section.view > .flex.justify-between.items-center.mb-4 {
-  flex-direction: column !important;
-  align-items: stretch !important;
-  gap: .75rem !important;
-}
-
-section.view > .flex.justify-between.items-center.mb-4 > :last-child {
-  width: 100% !important;
-  justify-content: flex-start !important;
-  flex-wrap: wrap !important;
-}
-
-section.view .flex.justify-between.items-center {
-  flex-wrap: wrap;
-  gap: .5rem;
-}
-
-/* md: restore inline toolbar */
-@media (min-width: 768px) {
-  section.view > .flex.justify-between.items-center.mb-4 {
-    flex-direction: row !important;
-    align-items: center !important;
+  /* The actions container (usually the last child div with buttons) */
+  section.view > .flex.justify-between.items-center.mb-4 > :last-child{
+    width: 100% !important;
+    justify-content: flex-start !important;
+    flex-wrap: wrap !important;
   }
-  section.view > .flex.justify-between.items-center.mb-4 > :last-child {
-    width: auto !important;
+
+  /* Some pages use a nested toolbar (e.g. Insumos period + actions) */
+  section.view .flex.justify-between.items-center{
+    flex-wrap: wrap;
+    gap: .5rem;
   }
 }
 
-/* ─── Action buttons: full-width on very small phones ─────────── */
-/* base (< 480px) */
-section.view > .flex.justify-between.items-center.mb-4 > :last-child > button,
-section.view > .flex.justify-between.items-center.mb-4 > :last-child > a {
-  width: 100% !important;
-}
-
-#add-categoria-btn { width: 100% !important; justify-content: center !important; }
-#productos-filter-container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-
-/* sm: buttons revert to inline */
-@media (min-width: 480px) {
+@media (max-width: 420px){
+  /* On very small phones, make action buttons readable and tappable */
   section.view > .flex.justify-between.items-center.mb-4 > :last-child > button,
-  section.view > .flex.justify-between.items-center.mb-4 > :last-child > a {
-    width: auto !important;
+  section.view > .flex.justify-between.items-center.mb-4 > :last-child > a{
+    width: 100% !important;
   }
-  #add-categoria-btn { width: auto !important; }
+
+  /* Index: category filters row (prevent squeeze/overflow) */
+  #add-categoria-btn{ width: 100% !important; justify-content: center !important; }
+  #productos-filter-container{ overflow-x: auto; -webkit-overflow-scrolling: touch; }
 }
 
-/* ─── Modal: most reliable UX on phones ──────────────────────── */
-#modal-container {
-  overscroll-behavior: contain;
-  backdrop-filter: blur(5px);
-  -webkit-backdrop-filter: blur(5px);
-}
-
-/* Mobile: full-width sheet */
-#modal-container {
-  align-items: flex-end !important;
-  justify-content: center !important;
-  padding: 0 !important;
-  padding-bottom: calc(var(--tab-bar-h) + var(--safe-bottom)) !important;
-  overflow-y: auto;
-}
-
-#modal-container > div {
-  width: 100% !important;
-  max-width: 100% !important;
-  border-radius: 20px 20px 0 0 !important;
-  max-height: calc(94dvh - var(--tab-bar-h) - var(--safe-bottom));
-  overflow: auto;
-  -webkit-overflow-scrolling: touch;
-  padding-top: calc(.75rem + var(--safe-top));
-}
-
-/* sm: centered dialog */
-@media (min-width: 480px) {
-  #modal-container {
+/* Modals: usable on phones (fit, scroll, no background scroll) */
+#modal-container{ overscroll-behavior: contain; }
+@media (max-width: 640px){
+  #modal-container{
     align-items: flex-start !important;
+    justify-content: center !important;
     padding: 12px !important;
     padding-top: calc(12px + var(--safe-top)) !important;
-    padding-bottom: calc(12px + var(--safe-bottom) + var(--tab-bar-h)) !important;
+    padding-bottom: calc(12px + var(--safe-bottom)) !important;
+    overflow-y: auto;
   }
-  #modal-container > div {
-    width: min(540px, 100%) !important;
-    max-width: min(540px, 100%) !important;
-    border-radius: 18px !important;
+  /* modal root (the direct child injected into #modal-container) */
+  #modal-container > div{
     max-height: calc(100dvh - 24px - var(--safe-top) - var(--safe-bottom));
-    padding-top: unset;
+    overflow: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
 
-/* lg: no tab bar offset needed */
-@media (min-width: 1024px) {
-  #modal-container {
-    padding-bottom: 12px !important;
+/* Tables: allow horizontal scroll on small screens */
+@media (max-width: 768px){
+  /* NOTE: per-page inline styles load after this file.
+     Use !important to ensure mobile behavior wins. */
+  table.table-nice,
+  table.ingredientes-table,
+  table.insumos-table{
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    overflow-x: auto !important;
+    overflow-y: hidden !important;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 12px !important;
   }
-}
 
-/* ─── Tables: horizontal scroll on phones ─────────────────────── */
-table.table-nice,
-table.ingredientes-table,
-table.insumos-table {
-  display: block !important;
-  width: 100% !important;
-  max-width: 100% !important;
-  overflow-x: auto !important;
-  overflow-y: hidden !important;
-  -webkit-overflow-scrolling: touch;
-  border-radius: 12px !important;
-}
+  /* Make dense tables readable on phones */
+  table.table-nice th, table.table-nice td,
+  table.ingredientes-table th, table.ingredientes-table td,
+  table.insumos-table th, table.insumos-table td{
+    padding: .4rem .45rem !important;
+    font-size: .78rem !important;
+    line-height: 1.05rem !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+    overflow-wrap: anywhere !important;
+  }
 
-/* Compact but readable cell padding on mobile */
-table.table-nice th,         table.table-nice td,
-table.ingredientes-table th, table.ingredientes-table td,
-table.insumos-table th,      table.insumos-table td {
-  padding: .4rem .5rem !important;
-  font-size: .8rem !important;
-  line-height: 1.4 !important;
-  white-space: normal !important;
-  word-break: break-word !important;
-  overflow-wrap: anywhere !important;
-}
+  /* Productos (iPhone/móvil): evitar texto "letra por letra".
+     Es una tabla ancha: mejor scroll horizontal con palabras completas. */
+  #view-productos table.table-nice{
+    min-width: 980px !important;
+  }
+  #view-productos table.table-nice th,
+  #view-productos table.table-nice td{
+    white-space: nowrap !important;
+    word-break: normal !important;
+    overflow-wrap: normal !important;
+  }
+  /* Permitir que la descripción sí envuelva (y darle ancho razonable) */
+  #view-productos table.table-nice td.max-w-xs{
+    white-space: normal !important;
+    min-width: 260px !important;
+  }
 
-/* Sticky header breaks inside scroll-block on mobile */
-table.table-nice thead th,
-table.ingredientes-table thead th,
-table.insumos-table thead th { position: static !important; }
-.table-nice .sticky-col { position: static !important; }
-
-/* Productos table: wide enough to read without wrapping */
-#view-productos table.table-nice { min-width: 980px !important; }
-#view-productos table.table-nice th,
-#view-productos table.table-nice td {
-  white-space: nowrap !important;
-  word-break: normal !important;
-  overflow-wrap: normal !important;
-}
-#view-productos table.table-nice td.max-w-xs {
-  white-space: normal !important;
-  min-width: 260px !important;
-}
-
-/* md: tables can use sticky header again */
-@media (min-width: 768px) {
+  /* Sticky headers/cols can behave oddly inside scroll containers on mobile */
   table.table-nice thead th,
   table.ingredientes-table thead th,
-  table.insumos-table thead th {
-    position: sticky !important;
-    top: 0;
-    z-index: 1;
+  table.insumos-table thead th{
+    position: static !important;
+  }
+  .table-nice .sticky-col{ position: static !important; }
+}
+
+/* Touch devices: avoid iOS input zoom + increase target sizes */
+@media (pointer: coarse){
+  input, select, textarea{ font-size: 16px !important; }
+  button, .btn-outline, .btn-success, .btn-danger, .btn-gradient{ min-height: 44px; }
+}
+
+/* ─── Loading overlay CSS failsafe ───────────────────────────
+   If JavaScript fails to call hideLoading() (e.g. runtime error
+   in iOS Safari), this animation will auto-fade the overlay out
+   after 5 seconds — fully independent of JS.
+   JS hides it with display:none (faster); CSS is the safety net. */
+@keyframes _loaderKill {
+  0%   { opacity: 1; pointer-events: auto; }
+  85%  { opacity: 1; }
+  100% { opacity: 0; pointer-events: none; visibility: hidden; }
+}
+#loading-overlay {
+  animation: _loaderKill 0.7s ease-out 4.3s forwards;
+}
+
+/* ============================================================
+   MOBILE UI/UX IMPROVEMENTS
+   All rules below target phone/tablet screens.
+   responsive.css loads before saas2026.css, so !important is
+   needed to override late-loading declarations.
+   ============================================================ */
+
+/* ─── Sidebar backdrop: dark scrim while sidebar is open ──── */
+@media (max-width: 1024px){
+  /* Main content: bottom padding so FABs never cover content */
+  main{
+    padding-bottom: calc(96px + var(--safe-bottom)) !important;
   }
 }
 
-/* ─── Hero section: mobile-first sizing ──────────────────────── */
-.hero-sr {
-  min-height: 55svh !important;
-  padding: 1rem !important;
+/* ─── Hero: way too tall on mobile (78svh = near-fullscreen) ── */
+@media (max-width: 768px){
+  .hero-sr{
+    min-height: 56vh   !important;
+    min-height: 56svh  !important;
+  }
+
+  /* Lighten the overlay so bg image/color is actually visible */
+  .hero-sr__overlay{
+    background:
+      linear-gradient(160deg,
+        rgba(14,12,6,.06) 0%,
+        rgba(14,12,6,.38) 40%,
+        rgba(14,12,6,.75) 100%
+      ),
+      radial-gradient(ellipse 70% 58% at 22% 28%, rgba(230,179,37,.12), transparent 65%) !important;
+  }
+
+  /* Reduce grid gaps for mobile breathing room */
+  #view-inicio > .grid   { gap: .875rem !important; }
+  section.view > .grid   { gap: .875rem !important; }
+
+  /* Stat grid inside inicio right panel: keep 2-col */
+  #view-inicio .grid.grid-cols-2{
+    grid-template-columns: repeat(2, minmax(0,1fr)) !important;
+  }
+
+  /* View border-radius: softer on small screens */
+  .view{ border-radius: 12px !important; }
 }
 
-.hero-sr__logo {
-  width: 120px !important;
-  height: 80px !important;
-  padding: 6px 10px !important;
-  border-radius: 12px !important;
+/* ─── Small phones (≤ 640px) ─────────────────────────────── */
+@media (max-width: 640px){
+  .hero-sr{
+    min-height: 48vh  !important;
+    min-height: 48svh !important;
+    padding: 12px    !important;
+  }
+
+  /* Hero content: compact glass panel */
+  .hero-sr__content{
+    padding: 14px !important;
+    border-radius: 14px !important;
+  }
+
+  /* Logo: smaller on phones */
+  .hero-sr__logo{
+    width: 110px  !important;
+    height: 72px  !important;
+    margin-bottom: 8px !important;
+  }
+
+  /* Hero title: tighter on small screens */
+  .hero-title{
+    font-size: 2.8rem  !important;
+    line-height: .92   !important;
+    margin-bottom: .5rem !important;
+  }
+
+  /* Hero description text: smaller body copy */
+  .hero-sr__content > p{
+    font-size: .8rem   !important;
+    margin-bottom: .75rem !important;
+  }
+
+  /* CTA buttons: stack vertically on phones */
+  .hero-sr .flex.flex-wrap.items-center{
+    flex-direction: column !important;
+    align-items: stretch   !important;
+    gap: .5rem             !important;
+  }
+  #btn-hero-login,
+  #btn-hero-signup,
+  #btn-hero-guide{
+    width: 100%              !important;
+    justify-content: center  !important;
+    text-align: center       !important;
+    padding: .75rem 1.25rem  !important;
+  }
+
+  /* Panels: tighter internal padding */
+  .panel{ padding: 12px !important; }
+
+  /* Section headers: smaller text */
+  .section-title{ font-size: .95rem !important; }
+
+  /* Stat cards: compact on phones */
+  .stat-card{ padding: 10px !important; }
+
+  /* Form/input labels + inputs: full-width on phones */
+  label{ display: block; width: 100% !important; }
+
+  /* FAB buttons: slightly smaller on tiny screens */
+  #mobile-menu-btn,
+  #btn-theme-fab{
+    width:  50px !important;
+    height: 50px !important;
+  }
+
+  /* Bottom FABs: spread apart cleanly */
+  #mobile-menu-btn{ left: 14px  !important; }
+  #btn-theme-fab  { right: 14px !important; }
 }
 
-/* sm */
-@media (min-width: 480px) {
-  .hero-sr { min-height: 62svh !important; padding: 1.25rem !important; }
-  .hero-sr__logo { width: 150px !important; height: 100px !important; }
-}
-
-/* md */
-@media (min-width: 768px) {
-  .hero-sr { min-height: 72svh !important; padding: 1.5rem !important; }
-  .hero-sr__logo { width: 180px !important; height: 120px !important; padding: 10px 14px !important; border-radius: var(--r-md) !important; }
-}
-
-/* Disable parallax hover effect on touch devices */
-@media (pointer: coarse) {
-  .hero-sr:hover .hero-sr__bg { transform: scale(1.03) !important; }
-}
-
-/* ─── POS Product Grid: 2-col mobile → 3-col tablet → auto ────── */
-#pos-product-list {
-  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-  gap: .5rem !important;
-}
-
-@media (min-width: 480px) {
-  #pos-product-list { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
-}
-
-@media (min-width: 768px) {
-  #pos-product-list { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: .75rem !important; }
-}
-
-@media (min-width: 1024px) {
-  #pos-product-list { grid-template-columns: repeat(3, minmax(0, 1fr)) !important; }
-}
-
-/* ─── Typography: responsive scale ───────────────────────────── */
-/* hero title */
-.hero-title { font-size: clamp(2.5rem, 11vw, 6rem) !important; }
-
-@media (min-width: 768px) {
-  .hero-title { font-size: clamp(3.5rem, 8vw, 8rem) !important; }
-}
-
-/* ─── Upgrade modal: full-width on mobile ─────────────────────── */
-#upgrade-modal.open {
-  align-items: flex-end !important;
-  padding: 0 !important;
-}
-#upgrade-modal-box {
-  width: 100% !important;
-  max-width: 100% !important;
-  border-radius: 20px 20px 0 0 !important;
-  padding-bottom: calc(1.5rem + var(--safe-bottom)) !important;
-}
-
-@media (min-width: 480px) {
-  #upgrade-modal.open { align-items: center !important; padding: 1rem !important; }
-  #upgrade-modal-box { max-width: 420px !important; border-radius: 18px !important; padding-bottom: 2rem !important; }
-}
-
-/* ─── Scrollbar: thin on mobile ───────────────────────────────── */
-@media (max-width: 767px) {
-  ::-webkit-scrollbar { width: 3px; height: 3px; }
+/* ─── Very small phones (≤ 375px) ───────────────────────── */
+@media (max-width: 375px){
+  .hero-title{ font-size: 2.4rem !important; }
+  .panel     { padding: 10px    !important; }
+  main       { padding-left: .5rem  !important; padding-right: .5rem !important; }
 }

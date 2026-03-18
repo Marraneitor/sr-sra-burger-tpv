@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="es" data-theme="dark">
 <head>
   <meta charset="UTF-8" />
@@ -7,19 +7,22 @@
   <link rel="icon" href="./icono.ico" type="image/x-icon" />
   <link rel="shortcut icon" href="./icono.ico" type="image/x-icon" />
   <!-- @ts-nocheck -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-  <link href="https://cdnjs.cloudflare.com/ajax/libs/heroicons/2.0.18/24/solid/css/heroicons.min.css" rel="stylesheet" />
+  <!-- Chart.js cargado con defer — no bloquea el parser HTML -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js" defer></script>
+  <!-- Fuentes: carga no bloqueante (media=print trick) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700&display=swap"
+        rel="stylesheet" media="print" onload="this.media='all'" />
+  <noscript>
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Montserrat:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  </noscript>
   <link rel="stylesheet" href="./styles/responsive.css" />
 
   <!-- Firebase SDKs (opcional) -->
   <script type="module">
     import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js';
-  import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, getDocs, getDoc, query, where, enableIndexedDbPersistence } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+  import { getFirestore, collection, doc, setDoc, deleteDoc, onSnapshot, getDocs, getDoc, query, where, enableIndexedDbPersistence, runTransaction } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
     import { getAuth, setPersistence, browserLocalPersistence, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, EmailAuthProvider, linkWithCredential, sendEmailVerification, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, updatePassword, updateEmail, reauthenticateWithCredential } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js';
 
   (async () => {
@@ -104,7 +107,7 @@
   // Expose config for diagnostics
   window.firebaseConfig = firebaseConfig;
   window.firebaseModules = { setPersistence, browserLocalPersistence, signInAnonymously, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, EmailAuthProvider, linkWithCredential, sendEmailVerification, sendPasswordResetEmail, GoogleAuthProvider, signInWithPopup, updatePassword, updateEmail, reauthenticateWithCredential };
-  window.fs = { collection, doc, setDoc, deleteDoc, onSnapshot, getDocs, getDoc, query, where };
+  window.fs = { collection, doc, setDoc, deleteDoc, onSnapshot, getDocs, getDoc, query, where, runTransaction };
   console.log('🔥 Firebase inicializado', { projectId: firebaseConfig?.projectId, authDomain: firebaseConfig?.authDomain });
   // Helpful LAN hint
   try{
@@ -114,546 +117,57 @@
     document.body.appendChild(hint);
     setTimeout(()=>{ hint.remove(); }, 6000);
   }catch(_){ }
+
+  // ── Failsafe: force-hide loading overlay from the module scope.
+  // This fires even if the DOMContentLoaded handler never runs (JS error).
+  // The module IIFE is confirmed to execute (hint above is proof).
+  (function forceHideLoader(){
+    function _kill(){
+      try{
+        const ov = document.getElementById('loading-overlay');
+        if(ov && ov.style.display !== 'none'){
+          ov.style.transition = 'opacity .4s ease';
+          ov.style.opacity = '0';
+          ov.style.pointerEvents = 'none';
+          setTimeout(()=>{ if(ov) ov.style.display = 'none'; }, 420);
+        }
+      }catch(_){}
+    }
+    // 3.5 s — catches slow-init cases; CSS animation above covers 5s
+    setTimeout(_kill, 3500);
+    // 1.5 s — faster path once DOM is definitely ready
+    if(document.readyState === 'complete' || document.readyState === 'interactive'){
+      setTimeout(_kill, 800);
+    } else {
+      document.addEventListener('DOMContentLoaded', ()=>setTimeout(_kill, 800), { once: true });
+    }
+  })();
+
   })(); // Fin de async init
+
+  // Registrar Service Worker para cache offline de la shell
+  if('serviceWorker' in navigator){
+    navigator.serviceWorker.register('/sw.js').then(reg=>{
+      console.log('[SW] Registrado:', reg.scope);
+    }).catch(err=>console.warn('[SW] Error al registrar:', err));
+  }
+
+  // Indicadores online/offline para el usuario
+  window.addEventListener('online',  ()=>{ try{ showToast('Conexión restaurada ✓', 'success'); }catch(_){} });
+  window.addEventListener('offline', ()=>{ try{ showToast('Sin conexión — modo offline activo', 'warning', 6000); }catch(_){} });
   </script>
 
-  <style>
-  /* Brand base GESTIA (premium dark) */
-  html{ scroll-behavior: smooth; }
-  :root{
-      /* Brand */
-      --brand-bg: #121212;
-      --brand-accent: #E6B325;
-      --brand-white: #FFFFFF;
-      --brand-text: var(--brand-white);
-      --brand-muted: color-mix(in srgb, var(--brand-white) 86%, var(--brand-accent));
-
-      /* Typography */
-      --font-display: "Bebas Neue", system-ui, -apple-system, "Segoe UI", sans-serif;
-      --font-body: "Montserrat", system-ui, -apple-system, "Segoe UI", sans-serif;
-
-      /* Compatibility tokens (existing code relies on these) */
-      --burger-accent: var(--brand-accent);
-      --burger-tomato: color-mix(in srgb, var(--brand-accent) 74%, #000);
-      --burger-cheese: var(--brand-accent);
-      --burger-bun: rgba(255,255,255,.12);
-      --burger-cream: var(--brand-bg);
-      --burger-light: color-mix(in srgb, var(--brand-bg) 78%, var(--brand-white));
-      --burger-dark: var(--brand-text);
-
-      /* App surfaces */
-      --app-bg: var(--brand-bg);
-      --app-surface: rgba(18,18,18,.72);
-      --app-surface-2: rgba(18,18,18,.88);
-      --app-border: rgba(255,255,255,.12);
-      --app-text: var(--brand-text);
-      --app-muted: rgba(255,255,255,.74);
-
-      /* Elevation */
-      --ring: 0 0 0 3px color-mix(in srgb, var(--brand-accent) 40%, transparent);
-      --shadow-1: 0 14px 40px rgba(0,0,0,.45);
-      --shadow-2: 0 26px 80px rgba(0,0,0,.55);
-
-      /* Grid helpers */
-      --grid-line: rgba(255,255,255,.08);
-      --grid-strong: rgba(255,255,255,.16);
-  }
-
-  /* Optional light mode (kept for toggle) */
-  html[data-theme="light"]{
-      color-scheme: light;
-      --app-bg: #FFFFFF;
-      --app-surface: rgba(255,255,255,.86);
-      --app-surface-2: rgba(255,255,255,.96);
-      --app-border: rgba(0,0,0,.10);
-      --app-text: rgba(0,0,0,.92);
-      --app-muted: rgba(0,0,0,.70);
-
-        --burger-bun: rgba(0,0,0,.12);
-        --grid-line: rgba(0,0,0,.06);
-        --grid-strong: rgba(0,0,0,.12);
-  }
-
-  body{ font-family: var(--font-body); color: var(--app-text); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale; background: var(--app-bg) !important; }
-  .font-sans{ font-family: var(--font-body) !important; }
-  h1,h2,h3,h4,.hero-title{ font-family: var(--font-display) !important; letter-spacing: .02em; }
-
-    html[data-theme="dark"] .panel,
-    html[data-theme="dark"] .stat-card,
-    html[data-theme="dark"] .product-card,
-    html[data-theme="dark"] .client-card,
-    html[data-theme="dark"] .insumos-panel,
-    html[data-theme="dark"] .insumos-shell,
-    html[data-theme="dark"] .kitchen-card{
-      background: var(--app-surface) !important;
-      border-color: var(--grid-strong) !important;
-      color: var(--app-text) !important;
-    }
-    html[data-theme="dark"] .panel:hover,
-    html[data-theme="dark"] .product-card:hover,
-    html[data-theme="dark"] .client-card:hover{
-      background: var(--app-surface-2) !important;
-      border-color: #475569 !important;
-    }
-
-    html[data-theme="dark"] .table-nice,
-    html[data-theme="dark"] .ingredientes-table,
-    html[data-theme="dark"] .insumos-table{
-      background: var(--app-surface) !important;
-      border-color: var(--grid-strong) !important;
-      color: var(--app-text) !important;
-    }
-    html[data-theme="dark"] .table-nice thead th,
-    html[data-theme="dark"] .ingredientes-table thead th,
-    html[data-theme="dark"] .insumos-table thead th{
-      background: var(--app-surface-2) !important;
-      border-bottom-color: var(--grid-strong) !important;
-      color: var(--app-text) !important;
-    }
-    html[data-theme="dark"] .table-nice th,
-    html[data-theme="dark"] .table-nice td,
-    html[data-theme="dark"] .ingredientes-table th,
-    html[data-theme="dark"] .ingredientes-table td,
-    html[data-theme="dark"] .insumos-table th,
-    html[data-theme="dark"] .insumos-table td{
-      border-bottom-color: var(--grid-strong) !important;
-      border-right-color: var(--grid-strong) !important;
-    }
-    html[data-theme="dark"] .table-nice td+td,
-    html[data-theme="dark"] .table-nice th+th{
-      border-left-color: var(--grid-strong) !important;
-    }
-    html[data-theme="dark"] .table-nice tbody tr:nth-child(even){ background: rgba(255,255,255,.03) !important; }
-    html[data-theme="dark"] .table-nice tbody tr:hover{ background: rgba(96,165,250,.10) !important; }
-
-    html[data-theme="dark"] .input-modern{
-      background: rgba(15,23,42,.75) !important;
-      border-color: var(--app-border) !important;
-      color: var(--app-text) !important;
-    }
-    html[data-theme="dark"] .input-modern::placeholder{ color: rgba(148,163,184,.95) !important; }
-
-    html[data-theme="dark"] .btn-outline{
-      background: rgba(15,23,42,.75) !important;
-      color: var(--app-text) !important;
-      border-color: var(--grid-strong) !important;
-    }
-
-    html[data-theme="dark"] .modal-header-nice{
-      background: var(--app-surface-2) !important;
-      border-bottom-color: var(--grid-strong) !important;
-      color: var(--app-text) !important;
-    }
-
-    /* Tailwind utility overrides used across the UI */
-    html[data-theme="dark"] .bg-white{ background-color: var(--app-surface) !important; }
-    html[data-theme="dark"] .bg-slate-50,
-    html[data-theme="dark"] .bg-gray-50{ background-color: var(--app-surface-2) !important; }
-    html[data-theme="dark"] .border-slate-200,
-    html[data-theme="dark"] .border-slate-300,
-    html[data-theme="dark"] .border-gray-200,
-    html[data-theme="dark"] .border-gray-300{ border-color: var(--app-border) !important; }
-
-    html[data-theme="dark"] .text-slate-900,
-    html[data-theme="dark"] .text-slate-800,
-    html[data-theme="dark"] .text-slate-700{ color: var(--app-text) !important; }
-    html[data-theme="dark"] .text-slate-600,
-    html[data-theme="dark"] .text-slate-500{ color: var(--app-muted) !important; }
-    html[data-theme="dark"] .text-slate-400{ color: rgba(148,163,184,.95) !important; }
-    /* Views: consistent frame + subtle grid background for readability */
-    .view{display:none; position:relative; border-radius:16px; padding:14px; border:2px solid var(--grid-strong); background:var(--app-surface); overflow:hidden}
-    .view.active{display:block}
-    .view::before{content:''; position:absolute; inset:0; border-radius:inherit; pointer-events:none;
-      background-image:
-        linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
-        linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
-      background-size: 24px 24px;
-      opacity:.55;
-    }
-    .view > *{ position:relative; }
-  .nav-link{display:block;padding:.75rem 1rem;border-radius:.5rem;transition:background .15s ease, transform .05s ease} .nav-link:hover{background:rgba(255,255,255,.08);transform:translateX(2px)} .nav-link.active{color:#fff;background:linear-gradient(135deg,var(--burger-accent),var(--burger-tomato))}
-    .loader{width:56px;height:56px;border:6px solid var(--burger-light);border-top-color:var(--burger-accent);border-radius:50%;animation:spin 1s linear infinite}
-    @keyframes spin{to{transform:rotate(360deg)}}
-  .btn-gradient{background:linear-gradient(135deg,var(--burger-cheese),var(--burger-bun));color:var(--burger-dark);font-weight:800; border:2px solid var(--burger-bun); transition:filter .15s ease, transform .06s ease} .btn-gradient:hover{filter:brightness(1.02);} .btn-gradient:active{transform:translateY(1px)}
-  .btn-success{background:linear-gradient(135deg,#16a34a,#22c55e);color:#fff;font-weight:800;border:2px solid #16a34a; transition:filter .15s ease, transform .06s ease} .btn-success:hover{filter:brightness(1.03);} .btn-success:active{transform:translateY(1px)}
-  .btn-danger{background:linear-gradient(135deg,#ef4444,#b91c1c);color:#fff;font-weight:800;border:2px solid #b91c1c; transition:filter .15s ease, transform .06s ease} .btn-danger:hover{filter:brightness(1.03);} .btn-danger:active{transform:translateY(1px)}
-  .btn-outline{background:var(--app-surface);border:2px solid var(--grid-strong);color:var(--app-text);font-weight:800; transition:background .15s ease, border-color .15s ease, color .15s ease, transform .06s ease} .btn-outline:hover{background:var(--app-surface-2);border-color:var(--burger-accent);} .btn-outline:active{transform:translateY(1px)}
-  
-  /* Estación buttons: letra dentro de cuadrado */
-  .estacion-btn{background:var(--app-surface-2);border:2px solid var(--grid-strong);color:var(--app-text);font-size:.85rem;font-weight:700;width:28px;height:28px;border-radius:8px;cursor:pointer;transition:all .15s ease;display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;padding:0}
-  .estacion-btn:hover{background:var(--app-surface);border-color:var(--burger-accent)}
-  .estacion-btn.active{background:linear-gradient(135deg,var(--burger-accent),var(--burger-tomato));border-color:var(--burger-accent);color:#fff;transform:scale(1.03)}
-  
-  /* Focus styles for accessibility (sin sombras, solo contorno) */
-  .nav-link:focus-visible, button:focus-visible, .btn-outline:focus-visible, .btn-success:focus-visible, .btn-danger:focus-visible, .btn-gradient:focus-visible {
-    outline:2px solid rgba(37,99,235,.7);
-    outline-offset:2px;
-  }
-    .input-modern{background:#fff;border:2px solid var(--burger-bun);color:var(--burger-dark); transition: border-color .15s ease }
-    .input-modern:focus{ outline:none; border-color: var(--burger-accent); }
-    .sidebar{position:relative}
-    .sidebar.collapsed{ display:none !important; }
-    /* Sidebar mobile: handled by responsive.css (mobile-first) */
-
-  /* ─── Section Titles ────────────────────────────────────────── */
-  .section-title{ display:flex; align-items:center; gap:.5rem; letter-spacing:.2px; padding-bottom:.55rem; margin-bottom:.9rem; border-bottom:1px solid var(--grid-strong); }
-  .section-title::after{ content:''; flex:1; height:3px; border-radius:999px; margin-left:.5rem; background:linear-gradient(90deg, var(--brand-accent), transparent); }
-
-  /* Global separators for readability */
-  hr{ border:0; border-top:1px solid var(--grid-strong); margin: .85rem 0; opacity:1; }
-  .stat-card > :first-child{ padding-bottom:.45rem; margin-bottom:.55rem; border-bottom:1px solid var(--grid-strong); }
-  /* Panel: divider between major blocks (not between individual inputs) */
-  .panel > :where(div, section, article, header, footer, table, canvas, ul, ol, p, form) + :where(div, section, article, header, footer, table, canvas, ul, ol, p, form){
-    margin-top: .85rem;
-    padding-top: .85rem;
-    border-top: 1px solid var(--grid-strong);
-  }
-  /* If panel starts with a toolbar/header row */
-  .panel > .flex:first-child,
-  .panel > .recipe-title-bar:first-child{ padding-bottom:.75rem; border-bottom:1px solid var(--grid-strong); }
-  /* Cards/Panels - estilo bento minimal */
-  .panel{
-    background:var(--app-surface);
-    border:2px solid var(--grid-strong);
-    border-radius:14px;
-    padding:16px;
-    box-shadow:none;
-    transition:border-color .15s ease, background-color .15s ease;
-  }
-  .panel:hover{
-    background:var(--app-surface-2);
-    border-color:var(--burger-accent);
-  }
-  .product-card{
-    background:var(--app-surface);
-    border:2px solid var(--grid-strong);
-    border-radius:14px;
-    box-shadow:none;
-    transition:border-color .15s ease, background-color .15s ease, transform .06s ease;
-  }
-  .product-card:hover{
-    border-color:var(--burger-accent);
-    background:var(--app-surface-2);
-    transform:translateY(-1px);
-  }
-
-    /* Recipe list: compact, responsive */
-    .recipe-title-bar{ display:flex; align-items:center; justify-content:space-between; gap:.75rem; }
-    .recipe-list{ max-height:60vh; overflow-y:auto; padding-right:.25rem; }
-    .recipe-row{ display:grid; grid-template-columns: 1fr 88px 36px; gap:.5rem; align-items:center; font-size:.9rem; }
-    .select-compact{ padding:.5rem .5rem; font-size:.9rem; }
-    .input-compact{ padding:.5rem .5rem; font-size:.9rem; }
-    .btn-compact{ padding:.375rem .5rem; font-size:.85rem; }
-    @media (max-width: 480px){
-      .recipe-row{ grid-template-columns: 1fr 72px 32px; font-size:.85rem; gap:.4rem; }
-      .select-compact, .input-compact{ padding:.4rem .45rem; font-size:.85rem; }
-      .btn-compact{ padding:.3rem .45rem; font-size:.8rem; }
-    }
-  /* POS: Modal de personalización bonito */
-  .opt-grid{ display:grid; grid-template-columns: 1fr; gap:.75rem; }
-  @media(min-width:520px){ .opt-grid{ grid-template-columns: 1fr 1fr; } }
-  .opt-card{ display:flex; align-items:center; justify-content:space-between; gap:.75rem; padding:.75rem .9rem; border:2px solid var(--grid-strong); background:var(--app-surface); border-radius:12px; cursor:pointer; transition:border-color .15s ease, background-color .15s ease; }
-  .opt-card:hover{ border-color:var(--burger-accent); background:var(--app-surface-2); }
-  .opt-card.selected{ background:#ECFDF5; border-color:#10B981; }
-  .opt-info{ display:flex; align-items:center; gap:.6rem; font-weight:700; color:var(--burger-dark); }
-  .opt-check{ width:22px; height:22px; border:1px solid #CBD5E1; border-radius:6px; display:inline-flex; align-items:center; justify-content:center; background:#fff; }
-  .opt-card.selected .opt-check{ border-color:#10B981; background:#10B981; color:#fff; }
-  .price-chip{ font-size:.85rem; font-weight:800; color:#065F46; background:#D1FAE5; padding:.2rem .5rem; border-radius:999px; border:1px solid #6EE7B7; }
-  .modal-header-nice{ background:var(--app-surface-2); color:var(--app-text); padding:1rem 1.25rem; border-bottom:2px solid var(--grid-strong); }
-  .summary-row{ display:flex; justify-content:space-between; align-items:center; padding:.25rem 0; }
-
-  /* Clientes: UI bento minimal */
-  .client-card{
-    background:var(--app-surface);
-    border:2px solid var(--grid-strong);
-    border-radius:14px;
-    padding:16px 18px;
-    box-shadow:none;
-    transition:border-color .15s ease, background-color .15s ease;
-    font-size:.95rem;
-    line-height:1.5;
-  }
-  .client-card:hover{
-    background:var(--app-surface-2);
-    border-color:var(--burger-accent);
-  }
-  .pill{ display:inline-flex; align-items:center; gap:.35rem; padding:.25rem .7rem; border-radius:999px; font-size:.8rem; font-weight:800; border:1px solid #0F172A; }
-  .pill-points{ background:#FEF3C7; color:#92400E; border-color:#FBBF24; }
-  .pill-spend{ background:#D1FAE5; color:#065F46; border-color:#6EE7B7; }
-  .icon-btn{ width:32px; height:32px; display:inline-flex; align-items:center; justify-content:center; border-radius:10px; border:1px solid var(--burger-bun); background:#fff; }
-  .icon-btn:hover{ background:#fff7ed; border-color:var(--burger-accent); }
-  .client-toolbar input, .client-toolbar select{ border:2px solid var(--burger-bun); }
-
-  /* Insumos: estilos visuales */
-  .insumo-badge{ font-size:.7rem; font-weight:800; padding:.15rem .4rem; border-radius:999px; border:1px solid; }
-  .insumo-badge-venta{ background:#EFF6FF; color:#075985; border-color:#7DD3FC; }
-  .insumo-badge-merma{ background:#FEE2E2; color:#991B1B; border-color:#FECACA; }
-  .stat-card{ background:var(--app-surface); border:2px solid var(--grid-strong); border-radius:14px; padding:14px; box-shadow:none; }
-  .table-nice{
-    width:100%;
-    border-collapse:collapse;
-    border-spacing:0;
-    overflow:hidden;
-    border-radius:12px;
-    border:2px solid var(--grid-strong);
-    background:var(--app-surface);
-  }
-  .table-nice thead th{
-    background:var(--app-surface-2);
-    border-bottom:2px solid var(--grid-strong);
-    position:sticky;
-    top:0;
-    z-index:1;
-  }
-  .table-nice tbody tr{ transition: background .12s ease }
-  .table-nice tbody tr:nth-child(even){ background:var(--app-surface-2) }
-  .table-nice tbody tr:hover{ background: rgba(37,99,235,.07) }
-  .table-nice th, .table-nice td{ border-bottom:1px solid var(--grid-strong); padding:.55rem .6rem; }
-  .table-nice td+td, .table-nice th+th{ border-left:1px solid var(--grid-strong); }
-  /* Sticky first column for wide tables */
-  .table-nice .sticky-col{ position:sticky; left:0; z-index:2; background:var(--app-surface); }
-  /* Monospaced, tabular numbers for mejor alineación */
-  .num{ font-variant-numeric: tabular-nums lining-nums; font-feature-settings: "tnum" 1, "lnum" 1; }
-  /* Aplica monoespaciado automáticamente a columnas numéricas en tablas */
-  .table-nice td.text-right,
-  .table-nice th.text-right,
-  .table-nice td.text-end,
-  .table-nice th.text-end{
-    font-variant-numeric: tabular-nums lining-nums;
-    font-feature-settings: "tnum" 1, "lnum" 1;
-  }
-
-  /* Sidebar auth status should only show on Inicio */
-  body[data-view]:not([data-view="inicio"]) #auth-status-card{ display:none !important; }
-
-  /* Floating theme button */
-  #btn-theme-fab{ position:fixed; right:16px; bottom:16px; z-index:75; width:56px; height:56px; border-radius:999px; display:flex; align-items:center; justify-content:center; color:#fff; box-shadow: 0 10px 22px rgba(15,23,42,.25); }
-  #btn-theme-fab:active{ transform: translateY(1px); }
-  /* Availability chips */
-  .inv-chip{ display:inline-block; min-width:56px; text-align:right; font-weight:800; padding:.18rem .4rem; border-radius:999px; border:1px solid; }
-  .inv-ok{ color:#065F46; background:#ECFDF5; border-color:#A7F3D0; }
-  .inv-warn{ color:#92400E; background:#FFFBEB; border-color:#FCD34D; }
-  .inv-bad{ color:#991B1B; background:#FEE2E2; border-color:#FECACA; }
-
-  /* Scrollbar */
-  ::-webkit-scrollbar{ width:10px; height:10px }
-  ::-webkit-scrollbar-thumb{ background:linear-gradient(180deg,var(--burger-bun),#eab676); border-radius:999px; border:2px solid #fff }
-  ::-webkit-scrollbar-track{ background:#fff3; }
-  .kpi-trend{ font-size:.7rem; font-weight:800; padding:.1rem .4rem; border-radius:999px; border:1px solid #ddd; }
-  .kpi-up{ background:#ECFDF5; color:#065F46; border-color:#A7F3D0 }
-  .kpi-down{ background:#FEE2E2; color:#991B1B; border-color:#FECACA }
-  .empty-state{ color: var(--app-muted); font-size: .9rem }
-  h2.section-title + .text-sm{ color: var(--app-muted) }
-
-  /* POS grid and cards (desktop and tablet, estilo bento minimal) */
-  #pos-product-list { gap: .75rem; }
-  #pos-product-list .product-card{
-    aspect-ratio: 3/2;
-    min-height: 100px;
-    padding:.65rem;
-    border:1px solid var(--app-border);
-    border-radius:12px;
-    background:#FFFFFF;
-    overflow:hidden;
-    display:flex; flex-direction:column; justify-content:space-between;
-    cursor:pointer; transition: border-color .15s ease, background-color .15s ease, transform .06s ease;
-  }
-  #pos-product-list .product-card:hover{
-    border-color:var(--burger-accent);
-    transform:translateY(-1px);
-  }
-  #pos-product-list .product-card:active{
-    transform:translateY(0);
-    background: rgba(37,99,235,.07);
-  }
-  .prod-class-pill{
-    display:inline-flex;align-items:center;gap:.3rem;
-    padding:.18rem .55rem;border-radius:999px;
-    font-size:.7rem;font-weight:800;
-    background:linear-gradient(135deg,#fef3c7,#fde68a);
-    color:#78350f;border:1px solid #facc15;
-  }
-  .prod-station-wrapper{display:flex;flex-wrap:wrap;gap:.25rem;}
-  .productos-table-row:hover{background:rgba(255,247,237,.9) !important;}
-
-  /* Estaciones: diseño visual */
-  .estaciones-kpi-value { font-size:1.1rem; font-weight:800; }
-  .estaciones-kpi-label { font-size:.7rem; letter-spacing:.08em; text-transform:uppercase; opacity:.7; }
-  .estacion-key-pill{
-    display:inline-flex;align-items:center;gap:.25rem;
-    padding:.15rem .5rem;border-radius:999px;
-    font-size:.7rem;font-weight:800;
-    background:linear-gradient(135deg,#e5e7eb,#f3f4f6);
-    color:#111827;border:1px solid #d1d5db;font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-  }
-  .estacion-chip-fixed{
-    display:inline-flex;align-items:center;gap:.25rem;
-    padding:.1rem .45rem;border-radius:999px;
-    font-size:.65rem;font-weight:800;
-    background:linear-gradient(135deg,#dcfce7,#bbf7d0);
-    color:#065f46;border:1px solid #4ade80;
-  }
-  .estaciones-table-row:hover{background:rgba(239,246,255,.9) !important;}
-
-  /* Ingredientes: tablas minimalistas estilo SaaS */
-  .ingredientes-table{ border-collapse:collapse; border-spacing:0; border-radius:12px; overflow:hidden; border:1px solid #0F172A; background:#FFFFFF; }
-  .ingredientes-table thead th{
-    background:#F9FAFB;
-    border-bottom:1px solid #0F172A;
-  }
-  .ingredientes-table th,
-  .ingredientes-table td{
-    border-bottom:1px solid #0F172A;
-    border-right:1px solid #0F172A;
-  }
-  .ingredientes-table tr:last-child td{ border-bottom:none; }
-  .ingredientes-table th:last-child,
-  .ingredientes-table td:last-child{ border-right:none; }
-  .ingredientes-table-row:nth-child(even){ background:#F9FAFB; }
-  .ingredientes-table-row:hover{background:#EFF6FF !important;}
-  .ingrediente-name-cell{ font-weight:600; }
-  .ingrediente-unit-cell{ font-size:.8rem; opacity:.8; }
-
-  /* Insumos gastados: paneles y tablas tipo dashboard */
-  .insumos-panel{
-    position:relative;
-    background:#FFFFFF;
-    border-radius:14px;
-    border:1px solid #0F172A;
-    box-shadow:none;
-    padding:1rem 1rem 1.1rem;
-  }
-  .insumos-panel::before{
-    content:none;
-  }
-  .insumos-panel-header{
-    display:flex;
-    align-items:center;
-    justify-content:space-between;
-    margin-bottom:.65rem;
-    gap:.75rem;
-  }
-  .insumos-panel-title{
-    font-weight:800;
-    letter-spacing:.02em;
-    font-size:.98rem;
-    color:var(--burger-dark);
-    display:flex;
-    align-items:center;
-    gap:.4rem;
-  }
-  .insumos-panel-pill{
-    font-size:.68rem;
-    text-transform:uppercase;
-    letter-spacing:.16em;
-    padding:.15rem .55rem;
-    border-radius:999px;
-    border:1px solid rgba(148,163,184,.55);
-    background:rgba(248,250,252,.9);
-    color:#4b5563;
-    white-space:nowrap;
-  }
-  .insumos-panel-subtext{ font-size:.7rem; opacity:.7; }
-
-  .insumos-shell{
-    margin-top:.25rem;
-    padding:1rem 1.25rem 1.35rem;
-    border-radius:16px;
-    border:1px solid #0F172A;
-    background:#FFFFFF;
-    box-shadow:none;
-  }
-
-  .insumos-tabs{ display:flex; flex-wrap:wrap; gap:.4rem; margin-bottom:.85rem; }
-  .insumos-tab-btn{
-    font-size:.78rem;
-    padding:.4rem .75rem;
-    border-radius:999px;
-    border:1px solid rgba(148,163,184,.55);
-    background:rgba(248,250,252,.85);
-    color:#4b5563;
-    font-weight:600;
-    letter-spacing:.02em;
-    cursor:pointer;
-  }
-
-  .insumos-tab-btn.active{
-    background:rgba(230,179,37,.18);
-    border-color:rgba(230,179,37,.55);
-    color:#111827;
-  }
-
-  /* Panels por tab: mostrar solo el activo */
-  .insumos-tab-panel{ display:none; }
-  .insumos-tab-panel.active{ display:block; }
-
-  /* Ajustes generales de inputs y POS (se salieron de llaves por error) */
-  .input-modern { padding: .45rem .55rem; }
-  #pos-product-list { gap: .75rem; }
-  /* Mobile: 3-column square tiles for POS product grid */
-  #pos-product-list{ grid-template-columns: repeat(3, minmax(0, 1fr)) !important; gap: .5rem; }
-  #pos-product-list .product-card{ aspect-ratio: 1/1; min-height: 110px; padding:.6rem; border:1px solid var(--app-border); border-radius:.75rem; background:var(--app-surface); overflow:hidden; display:flex; flex-direction:column; justify-content:space-between; box-shadow: var(--shadow-1); }
-  #pos-product-list .product-card .prod-desc{ display:none; }
-  #pos-product-list .product-card .prod-name{ font-size:.9rem; line-height:1.1rem; font-weight:800; display:-webkit-box; -webkit-line-clamp:2; line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
-  #pos-product-list .product-card .btn-add-to-order{ padding:.35rem .5rem; font-size:.75rem; }
-  #pos-product-list .product-card .text-lg{ font-size: .95rem; }
-  .loader { width: 44px; height: 44px; border-width: 5px; }
-
-  /* ── Mi Perfil: plan cards & profile ─── */
-  .profile-avatar { width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1.4rem;font-weight:900;flex-shrink:0;background:linear-gradient(135deg,var(--amber,#E6B325),#c99208);color:#000; }
-  .plan-card { border-radius:14px;padding:1.1rem;display:flex;flex-direction:column;gap:.45rem;border:1.5px solid var(--bdr-strong,rgba(255,255,255,.12));background:var(--panel-bg,rgba(255,255,255,.04)); }
-  .plan-card-premium { border-color:var(--amber,#E6B325);box-shadow:0 0 22px rgba(230,179,37,.18); }
-  .plan-card-header { display:flex;align-items:center;gap:.8rem;margin-bottom:.4rem; }
-  .plan-card-emoji { font-size:1.7rem;line-height:1; }
-  .plan-card-name { font-weight:900;font-size:.95rem; }
-  .plan-card-price { font-size:.88rem;font-weight:700;color:var(--amber,#E6B325); }
-  .plan-card-period { font-size:.68rem;font-weight:500;opacity:.6; }
-  .plan-feature-list { list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:.22rem;flex:1; }
-  .plan-feature-item { font-size:.76rem;display:flex;align-items:center;gap:.4rem; }
-  .plan-feature-item.ok::before { content:"✓";color:#22c55e;font-weight:900;font-size:.68rem;flex-shrink:0; }
-  .plan-feature-item.no::before { content:"✗";color:rgba(255,255,255,.25);font-weight:900;font-size:.68rem;flex-shrink:0; }
-  .plan-feature-item.no { opacity:.45; }
-  .plan-upgrade-btn { margin-top:.5rem;padding:.6rem;border-radius:10px;font-weight:700;font-size:.8rem;cursor:pointer;background:linear-gradient(135deg,var(--amber,#E6B325),#c99208);color:#000;border:none;transition:opacity .2s;width:100%; }
-  .plan-upgrade-btn:hover { opacity:.82; }
-  .plan-card-current { font-size:.7rem;font-weight:700;color:var(--amber,#E6B325);text-align:center;margin-top:.25rem; }
-  .nav-link .plan-lock { font-size:.68rem;margin-left:auto;opacity:.5;pointer-events:none; }
-  #upgrade-modal { display:none;position:fixed;inset:0;z-index:300;background:rgba(0,0,0,.72);align-items:center;justify-content:center;padding:1rem; }
-  #upgrade-modal.open { display:flex; }
-  #upgrade-modal-box { background:var(--panel-bg,#1a1a1a);border-radius:18px;padding:2rem;max-width:400px;width:100%;border:1.5px solid var(--amber,#E6B325);box-shadow:0 0 40px rgba(230,179,37,.22); }
-  </style>
+  <link rel="stylesheet" href="./styles/main.css" />
+  <link rel="stylesheet" href="./styles/custom.css" />
   <link rel="stylesheet" href="./styles/saas2026.css" />
   <link rel="stylesheet" href="./styles/enhancements.css" />
-  <!-- EmailJS SDK -->
-  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js"></script>
-  <script>(function(){ emailjs.init('q14FqhdjUSICAGOTm'); })();</script>
+  <!-- EmailJS SDK — carga diferida, no bloquea el render -->
+  <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js" defer></script>
+  <script defer>(function(){ window.addEventListener('load', function(){ if(typeof emailjs !== 'undefined'){ emailjs.init('q14FqhdjUSICAGOTm'); } }); })();</script>
 </head>
 <body class="font-sans min-h-screen">
   <!-- Navigation Progress Bar -->
   <div id="nav-progress" aria-hidden="true"></div>
-
-  <!-- ─── Bottom Tab Bar (mobile navigation) ─── -->
-  <nav id="bottom-tab-bar" role="navigation" aria-label="Navegación principal">
-    <a href="#inicio" class="tab-item active" data-tab="inicio" aria-label="Inicio">
-      <span class="tab-icon" aria-hidden="true">🏠</span>
-      <span>Inicio</span>
-    </a>
-    <a href="#vender" class="tab-item" data-tab="vender" aria-label="Punto de Venta">
-      <span class="tab-icon" aria-hidden="true">🛒</span>
-      <span>Vender</span>
-    </a>
-    <a href="#pedidos-pendientes" class="tab-item" data-tab="pedidos-pendientes" aria-label="Pedidos">
-      <span class="tab-icon" aria-hidden="true">🍳</span>
-      <span>Pedidos</span>
-    </a>
-    <a href="#dashboard" class="tab-item" data-tab="dashboard" aria-label="Dashboard">
-      <span class="tab-icon" aria-hidden="true">📊</span>
-      <span>Dashboard</span>
-    </a>
-    <button class="tab-item" id="bottom-tab-menu" aria-label="Abrir menú completo" aria-expanded="false">
-      <span class="tab-icon" aria-hidden="true">☰</span>
-      <span>Menú</span>
-    </button>
-  </nav>
 
   <!-- Loading -->
   <div id="loading-overlay" class="fixed inset-0 z-[100] flex flex-col justify-center items-center gap-4"
@@ -687,7 +201,9 @@
     <div class="p-5 border-b border-white/10 flex-shrink-0">
       <div class="flex items-center gap-3">
         <div class="w-20 h-12 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center" style="background:#fff; border:2px solid rgba(230,179,37,.38); box-shadow:0 0 18px rgba(230,179,37,.20); padding:4px 8px">
-          <img src="./gestia.jpg.png" alt="Gestia" class="w-full h-full object-contain" loading="lazy" />
+          <picture>
+            <img src="./gestia.jpg.png" alt="Gestia" class="w-full h-full object-contain" loading="lazy" width="180" height="60" />
+          </picture>
         </div>
         <div class="min-w-0">
           <div class="text-[9px] uppercase tracking-[0.24em] font-semibold" style="color:rgba(230,179,37,.75)">gestia.rest</div>
@@ -813,7 +329,9 @@
           <div class="hero-sr__bg" aria-hidden="true"></div>
           <div class="hero-sr__overlay" aria-hidden="true"></div>
           <div class="hero-sr__content relative z-10">
-            <img src="./gestia.jpg.png" alt="Gestia" class="hero-sr__logo" loading="lazy" />
+            <picture>
+              <img src="./gestia.jpg.png" alt="Gestia" class="hero-sr__logo" loading="lazy" width="180" height="60" />
+            </picture>
             <p class="text-xs font-bold uppercase tracking-[0.34em] mb-1" style="color:rgba(230,179,37,.90)">POS para Restaurantes</p>
             <h2 class="hero-title text-5xl md:text-7xl lg:text-8xl font-extrabold leading-[.92] mb-3">
               GESTIA
@@ -2622,6 +2140,7 @@
     </div>
   </div>
 
+  <script src="./utils/errorHandler.js"></script>
   <script>
     // Estado global
   const initialAppState = { ingredientes: [], productos: [], clientes: [], ventas: [], pedidosPendientes: [], insumosConsumo: { totales:{}, historial:[], merma:[] }, inventario:{ compras:[] }, finanzas:{ empleados:[], servicios:[], asignaciones:[], allocBase:'revenue', gastos:[] }, cajaTransferencias: [], cajaPendientes: [], cajaIngresos: [], mesas: [], mesaOrders: {}, nextSaleNumber: 1, estaciones: [], categorias: [] };
@@ -2638,6 +2157,16 @@
     const hideLoading = ()=>{ const el=$('#loading-overlay'); if(el){ el.style.display='none'; el.style.pointerEvents='none'; } };
     const USER_STATE_PREFIX = 'pointsell:user-state:v1:';
     let __activeUid = null;
+
+    // Debounce para renderAll() en callbacks de Firestore onSnapshot
+    // Evita re-renders múltiples cuando varios snapshots llegan en ráfaga al inicio de sesión
+    let _renderScheduleTimer = null;
+    function scheduleRender() {
+      clearTimeout(_renderScheduleTimer);
+      _renderScheduleTimer = setTimeout(() => {
+        try { renderAll(); renderPosProductList(); renderPedidosPendientes(); } catch(_) {}
+      }, 60);
+    }
 
     function getActiveUser(){
       const u = window.auth?.currentUser;
@@ -3583,6 +3112,8 @@
   let unsubscribeUserExtras = null; // caja/mesas/estaciones/categorías/finanzas extras
     function isFirestoreReady(){ return !!(window.db && window.fs); }
 
+    // showToast / showFirestoreError / FS_ERROR_MESSAGES → utils/errorHandler.js
+
     // --- Firestore: Extras de usuario (doc único por usuario) ---
     async function saveUserExtrasToFirestore(){
       try{
@@ -3606,7 +3137,7 @@
           }
         };
         await setDoc(doc(window.db, 'userExtras', uid), payload, { merge:true });
-      }catch(e){ console.warn('[FS] saveUserExtrasToFirestore', e); }
+      }catch(e){ showFirestoreError(e, ''); }
     }
 
     function subscribeUserExtras(){
@@ -3647,7 +3178,7 @@
             window.__applyingUserExtrasFromFirestore = false;
           }
         }, (err)=>console.warn('[FS] subscribeUserExtras', err));
-      }catch(e){ console.warn('[FS] subscribeUserExtras(outside)', e); }
+      }catch(e){ showFirestoreError(e, ''); }
     }
 
     async function maybeBootstrapUserExtrasToFirestore(){
@@ -3681,7 +3212,7 @@
     if(!uid) return;
     const { doc, setDoc } = window.fs;
     await setDoc(doc(window.db, 'productos', prod.id), { ...prod, userId: uid }, { merge:true });
-      }catch(e){ console.warn('[FS] saveProductToFirestore', e); }
+      }catch(e){ showFirestoreError(e, ''); }
     }
     async function deleteProductFromFirestore(id){
       // Soft-archive instead of hard delete to avoid re-seeding and rule issues
@@ -3690,7 +3221,7 @@
         const uid = window.auth?.currentUser?.uid; if(!uid) return;
         const { doc, setDoc } = window.fs;
         await setDoc(doc(window.db, 'productos', id), { archivado:true, archivedAt:new Date().toISOString(), userId: uid }, { merge:true });
-      }catch(e){ console.warn('[FS] deleteProductFromFirestore(archive)', e); }
+      }catch(e){ showFirestoreError(e, ''); }
     }
   function subscribeProducts(){
       try{
@@ -3716,10 +3247,9 @@
       // Marcamos que ya tenemos una primera sync para permitir seeding seguro sin crear duplicados
       window.__productsSynced = true;
           saveLS();
-          renderAll();
-          renderPosProductList();
+          scheduleRender();
         }, (err)=> console.warn('[FS] subscribeProducts', err));
-      }catch(e){ console.warn('[FS] subscribeProducts(outside)', e); }
+      }catch(e){ showFirestoreError(e, ''); }
     }
   async function maybeBootstrapProductsToFirestore(){
       try{
@@ -3749,14 +3279,14 @@
         const uid = window.auth?.currentUser?.uid; if(!uid) return;
         const { doc, setDoc } = window.fs;
         await setDoc(doc(window.db, 'ingredientes', ing.id), { ...ing, userId: uid }, { merge:true });
-      }catch(e){ console.warn('[FS] saveIngredientToFirestore', e); }
+      }catch(e){ showFirestoreError(e, ''); }
     }
     async function deleteIngredientFromFirestore(id){
       try{
         if(!isFirestoreReady() || !id) return;
         const { doc, deleteDoc } = window.fs;
         await deleteDoc(doc(window.db, 'ingredientes', id));
-      }catch(e){ console.warn('[FS] deleteIngredientFromFirestore', e); }
+      }catch(e){ showFirestoreError(e, ''); }
     }
     function subscribeIngredientes(){
       try{
@@ -3768,9 +3298,9 @@
         unsubscribeIngredientes = onSnapshot(q, (snap)=>{
           if(snap.empty){ try{ maybeBootstrapIngredientesToFirestore(); }catch(_){} return; }
           const arr = []; snap.forEach(d=>{ const data=d.data(); if(data && data.id) arr.push(data); });
-          appState.ingredientes = arr; saveLS(); renderAll();
+          appState.ingredientes = arr; saveLS(); scheduleRender();
         }, (err)=> console.warn('[FS] subscribeIngredientes', err));
-      }catch(e){ console.warn('[FS] subscribeIngredientes(outside)', e); }
+      }catch(e){ showFirestoreError(e, ''); }
     }
     async function maybeBootstrapIngredientesToFirestore(){
       try{
@@ -3792,14 +3322,14 @@
         const uid = window.auth?.currentUser?.uid; if(!uid) return;
         const { doc, setDoc } = window.fs;
         await setDoc(doc(window.db, 'clientes', cli.id), { ...cli, userId: uid }, { merge:true });
-      }catch(e){ console.warn('[FS] saveClienteToFirestore', e); }
+      }catch(e){ showFirestoreError(e, ''); }
     }
     async function deleteClienteFromFirestore(id){
       try{
         if(!isFirestoreReady() || !id) return;
         const { doc, deleteDoc } = window.fs;
         await deleteDoc(doc(window.db, 'clientes', id));
-      }catch(e){ console.warn('[FS] deleteClienteFromFirestore', e); }
+      }catch(e){ showFirestoreError(e, ''); }
     }
     function subscribeClientes(){
       try{
@@ -3811,9 +3341,9 @@
         unsubscribeClientes = onSnapshot(q, (snap)=>{
           if(snap.empty){ try{ maybeBootstrapClientesToFirestore(); }catch(_){} return; }
           const arr = []; snap.forEach(d=>{ const data=d.data(); if(data && data.id) arr.push(data); });
-          appState.clientes = arr; saveLS(); renderAll();
+          appState.clientes = arr; saveLS(); scheduleRender();
         }, (err)=> console.warn('[FS] subscribeClientes', err));
-      }catch(e){ console.warn('[FS] subscribeClientes(outside)', e); }
+      }catch(e){ showFirestoreError(e, ''); }
     }
     async function maybeBootstrapClientesToFirestore(){
       try{
@@ -3835,7 +3365,45 @@
         const uid = window.auth?.currentUser?.uid; if(!uid) return;
         const { doc, setDoc } = window.fs;
         await setDoc(doc(window.db, 'ventas', v.id), { ...v, userId: uid }, { merge:true });
-      }catch(e){ console.warn('[FS] saveVentaToFirestore', e); }
+      }catch(e){ showFirestoreError(e, ''); }
+    }
+
+    /**
+     * Transacción atómica: asigna un saleNumber único desde Firestore,
+     * guarda la venta y actualiza el contador en un solo commit.
+     * Si dos dispositivos lanzan esta función al mismo tiempo,
+     * Firestore reintenta automáticamente hasta que ambas operaciones
+     * obtengan números distintos sin colisión de datos.
+     * @param {object} venta - objeto de venta SIN saleNumber asignado aún
+     * @returns {number} saleNumber asignado
+     */
+    async function atomicSaveVenta(venta){
+      if(!isFirestoreReady() || !venta?.id) return null;
+      const uid = window.auth?.currentUser?.uid;
+      if(!uid) return null;
+      const { runTransaction, doc } = window.fs;
+      try{
+        const allocatedNumber = await runTransaction(window.db, async (tx) => {
+          const metaRef = doc(window.db, 'meta', uid);
+          const metaSnap = await tx.get(metaRef);
+          // Leer el contador actual desde Firestore (fuente de verdad)
+          const currentNext = metaSnap.exists()
+            ? (Number(metaSnap.data().nextSaleNumber) || 1)
+            : Math.max(appState.nextSaleNumber || 1, 1);
+          const saleNumber = currentNext;
+          const ventaConNumero = { ...venta, saleNumber, userId: uid };
+          const ventaRef = doc(window.db, 'ventas', venta.id);
+          tx.set(ventaRef, ventaConNumero, { merge: true });
+          tx.set(metaRef, { userId: uid, nextSaleNumber: saleNumber + 1 }, { merge: true });
+          return saleNumber;
+        });
+        return allocatedNumber;
+      }catch(e){
+        showFirestoreError(e, '');
+        // Fallback: si falla la transacción, guardar igualmente sin garantía atómica
+        await saveVentaToFirestore({ ...venta, userId: uid });
+        return venta.saleNumber || appState.nextSaleNumber;
+      }
     }
     function subscribeVentas(){
       try{
@@ -3851,9 +3419,9 @@
           appState.ventas = arr;
           try{ assignSaleNumbersIfMissing(); }catch(_){ }
           try{ recomputeInsumosFromVentas(); }catch(_){ }
-          saveLS(); renderAll();
+          saveLS(); scheduleRender();
         }, (err)=> console.warn('[FS] subscribeVentas', err));
-      }catch(e){ console.warn('[FS] subscribeVentas(outside)', e); }
+      }catch(e){ showFirestoreError(e, ''); }
     }
     async function maybeBootstrapVentasToFirestore(){
       try{
@@ -4086,6 +3654,210 @@
       }catch(e){ console.warn('importUserClientsPresetSilently', e); }
     }
 
+    // ─── Searchable Ingredient Picker helper ────────────────────────────────
+    // Transforma un <select class="ing-select"> dentro de un .recipe-row en un
+    // selector buscable custom. El <select> queda oculto y mantiene su valor.
+    function makeSearchableIngPicker(row, ingredients) {
+      const sel = row.querySelector('.ing-select');
+      if (!sel) return;
+
+      // Wrapper
+      const wrapper = document.createElement('div');
+      wrapper.className = 'ing-picker-wrapper';
+
+      // Trigger button
+      const trigger = document.createElement('button');
+      trigger.type = 'button';
+      trigger.className = 'ing-picker-trigger';
+      trigger.innerHTML = '<span class="ing-picker-label placeholder">Seleccione ingrediente</span><span class="ing-picker-arrow">&#9660;</span>';
+
+      // Dropdown
+      const dropdown = document.createElement('div');
+      dropdown.className = 'ing-picker-dropdown';
+      dropdown.innerHTML =
+        '<div class="ing-picker-search-wrap"><input type="text" class="ing-picker-search" placeholder="\uD83D\uDD0D Buscar ingrediente..." autocomplete="off" spellcheck="false"></div>' +
+        '<div class="ing-picker-list"></div>';
+
+      // Insert before select, then move select inside wrapper (hidden)
+      sel.style.display = 'none';
+      sel.parentNode.insertBefore(wrapper, sel);
+      wrapper.appendChild(trigger);
+      wrapper.appendChild(dropdown);
+      wrapper.appendChild(sel);
+
+      const labelEl  = trigger.querySelector('.ing-picker-label');
+      const arrowEl  = trigger.querySelector('.ing-picker-arrow');
+      const searchEl = dropdown.querySelector('.ing-picker-search');
+      const listEl   = dropdown.querySelector('.ing-picker-list');
+      let isOpen = false;
+      let kbIdx  = -1;
+
+      function renderList(q) {
+        const n = (s) => (s || '').toLowerCase();
+        const filtered = q
+          ? ingredients.filter(i => n(i.nombre).includes(n(q)) || n(i.unidad).includes(n(q)))
+          : [...ingredients];
+        listEl.innerHTML = '';
+        if (!filtered.length) {
+          listEl.innerHTML = '<div class="ing-picker-empty">Sin resultados</div>';
+          return;
+        }
+        filtered.forEach(ing => {
+          const opt = document.createElement('div');
+          opt.className = 'ing-picker-option' + (sel.value === ing.id ? ' sel' : '');
+          opt.dataset.id = ing.id;
+          opt.innerHTML =
+            '<span class="ing-picker-option-name">' + ing.nombre + '</span>' +
+            '<span class="ing-picker-option-unit">' + (ing.unidad || '') + '</span>';
+          opt.addEventListener('mousedown', e => { e.preventDefault(); pick(ing); closeDD(); });
+          listEl.appendChild(opt);
+        });
+        kbIdx = -1;
+      }
+
+      function pick(ing) {
+        sel.value = ing.id;
+        sel.dispatchEvent(new Event('change', { bubbles: true }));
+        labelEl.textContent = ing.nombre;
+        labelEl.classList.remove('placeholder');
+        let badge = trigger.querySelector('.ing-picker-unit');
+        if (!badge) {
+          badge = document.createElement('span');
+          badge.className = 'ing-picker-unit';
+          trigger.insertBefore(badge, arrowEl);
+        }
+        badge.textContent = ing.unidad || '';
+      }
+
+      function openDD() {
+        isOpen = true;
+        trigger.classList.add('open');
+        dropdown.classList.add('open');
+        searchEl.value = '';
+        renderList('');
+        setTimeout(() => searchEl.focus(), 8);
+      }
+
+      function closeDD() {
+        isOpen = false;
+        trigger.classList.remove('open');
+        dropdown.classList.remove('open');
+      }
+
+      trigger.addEventListener('click', () => isOpen ? closeDD() : openDD());
+      searchEl.addEventListener('input', () => renderList(searchEl.value));
+      searchEl.addEventListener('keydown', e => {
+        const opts = listEl.querySelectorAll('.ing-picker-option');
+        if (e.key === 'ArrowDown') {
+          kbIdx = Math.min(kbIdx + 1, opts.length - 1);
+          opts.forEach((o, i) => o.classList.toggle('kbfocus', i === kbIdx));
+          opts[kbIdx]?.scrollIntoView({ block: 'nearest' });
+          e.preventDefault();
+        } else if (e.key === 'ArrowUp') {
+          kbIdx = Math.max(kbIdx - 1, 0);
+          opts.forEach((o, i) => o.classList.toggle('kbfocus', i === kbIdx));
+          opts[kbIdx]?.scrollIntoView({ block: 'nearest' });
+          e.preventDefault();
+        } else if (e.key === 'Enter' && kbIdx >= 0) {
+          const ing = ingredients.find(i => i.id === (opts[kbIdx] && opts[kbIdx].dataset.id));
+          if (ing) { pick(ing); closeDD(); }
+          e.preventDefault();
+        } else if (e.key === 'Escape') {
+          closeDD(); trigger.focus();
+        }
+      });
+
+      // Close on outside click (self-cleaning)
+      function outsideClick(e) {
+        if (isOpen && !wrapper.contains(e.target)) closeDD();
+        if (!document.body.contains(row)) document.removeEventListener('click', outsideClick);
+      }
+      document.addEventListener('click', outsideClick);
+
+      // Pre-fill if the select already has a value (edit modal scenario)
+      if (sel.value) {
+        const ing = ingredients.find(i => i.id === sel.value);
+        if (ing) pick(ing);
+      }
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
+    // ─── Ingredient Sub-Modal (recipe builder) ────────────────────────────────
+    function openIngredientSubModal(ingredients, onAdd) {
+      function unitIcon(u){ const s=(u||'').toLowerCase(); if(s==='kg'||s==='g'||s.includes('gram')) return '⚖️'; if(s==='l'||s==='ml'||s.includes('litro')) return '🧃'; return '📦'; }
+      let selectedIng = null;
+      const bd = document.createElement('div');
+      bd.className = 'ing-submodal-backdrop';
+      bd.innerHTML = `
+        <div class="ing-submodal-card">
+          <div class="ing-submodal-header">
+            <div style="display:flex;align-items:center;gap:.55rem">
+              <span style="font-size:1.2rem">🥬</span>
+              <h4>AGREGAR INGREDIENTE</h4>
+            </div>
+            <button type="button" class="ing-sub-close-btn" style="background:rgba(255,255,255,.08);border:1.5px solid var(--grid-strong);color:var(--app-muted);width:30px;height:30px;border-radius:50%;font-size:1.1rem;cursor:pointer;display:flex;align-items:center;justify-content:center;font-weight:900;flex-shrink:0">×</button>
+          </div>
+          <div class="ing-submodal-search-wrap">
+            <input type="text" class="ing-submodal-search" placeholder="🔍  Busca por nombre o unidad..." autocomplete="off" spellcheck="false">
+          </div>
+          <div class="ing-submodal-list"></div>
+          <div class="ing-submodal-footer">
+            <label style="font-size:.8rem;font-weight:700;white-space:nowrap;color:var(--app-muted)">Cantidad:</label>
+            <input type="number" class="ing-submodal-qty" value="1" min="0.001" step="any" placeholder="0">
+            <span class="ing-sub-sel-unit" style="font-size:.8rem;color:var(--app-muted);min-width:2rem"></span>
+            <div style="flex:1"></div>
+            <button type="button" class="btn-success px-4 py-2 rounded-lg ing-sub-confirm-btn" style="font-weight:800;white-space:nowrap;flex-shrink:0">✔ Agregar</button>
+          </div>
+        </div>`;
+      document.body.appendChild(bd);
+      const listEl = bd.querySelector('.ing-submodal-list');
+      const searchEl = bd.querySelector('.ing-submodal-search');
+      const qtyEl = bd.querySelector('.ing-submodal-qty');
+      const unitLblEl = bd.querySelector('.ing-sub-sel-unit');
+      function renderList(q){
+        const n=s=>(s||'').toLowerCase();
+        const filtered = q ? ingredients.filter(i=>n(i.nombre).includes(n(q))||n(i.unidad).includes(n(q))) : [...ingredients];
+        listEl.innerHTML='';
+        if(!filtered.length){ listEl.innerHTML='<div style="padding:1.4rem;text-align:center;color:var(--app-muted);font-size:.87rem">Sin coincidencias</div>'; return; }
+        filtered.forEach(ing=>{
+          const item=document.createElement('div');
+          item.className='ing-sub-item'+(selectedIng&&selectedIng.id===ing.id?' selected':'');
+          item.dataset.id=ing.id;
+          const uc=(typeof getUnitCost==='function')?getUnitCost(ing):0;
+          item.innerHTML=`
+            <div class="ing-sub-icon">${unitIcon(ing.unidad)}</div>
+            <div class="ing-sub-info">
+              <div class="ing-sub-name">${ing.nombre}</div>
+              <div class="ing-sub-cost">$${uc.toFixed(4)} / ${ing.unidad||'u'}</div>
+            </div>
+            <span class="ing-sub-unit">${ing.unidad||''}</span>
+            <div class="ing-sub-check">✓</div>`;
+          item.addEventListener('click',()=>{
+            selectedIng=ing;
+            listEl.querySelectorAll('.ing-sub-item').forEach(el=>el.classList.toggle('selected',el.dataset.id===ing.id));
+            unitLblEl.textContent=ing.unidad||'';
+            qtyEl.focus(); qtyEl.select();
+          });
+          listEl.appendChild(item);
+        });
+      }
+      renderList('');
+      setTimeout(()=>searchEl.focus(),50);
+      searchEl.addEventListener('input',e=>renderList(e.target.value));
+      qtyEl.addEventListener('keydown',e=>{ if(e.key==='Enter') bd.querySelector('.ing-sub-confirm-btn').click(); });
+      bd.querySelector('.ing-sub-confirm-btn').addEventListener('click',()=>{
+        if(!selectedIng){ searchEl.focus(); return; }
+        const qty=parseFloat(qtyEl.value||'0');
+        if(!qty||qty<=0){ qtyEl.focus(); return; }
+        onAdd(selectedIng,qty);
+        if(document.body.contains(bd)) document.body.removeChild(bd);
+      });
+      const closeSubModal=()=>{ if(document.body.contains(bd)) document.body.removeChild(bd); };
+      bd.querySelector('.ing-sub-close-btn').addEventListener('click',closeSubModal);
+      bd.addEventListener('click',e=>{ if(e.target===bd) closeSubModal(); });
+    }
+    // ─────────────────────────────────────────────────────────────────────────
+
     // Modal de Producto con Receta
     function openProductModal(){
       console.log('[UI] Abrir modal Producto');
@@ -4119,66 +3891,78 @@
       }
 
       const html = `
-        <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg p-6">
-          <h3 class="text-lg font-bold mb-4" style="color:var(--burger-dark)">Nuevo Producto</h3>
-          <form id="product-form" class="space-y-4">
-            <div>
-              <label class="block text-sm font-bold mb-1">Tipo de Producto</label>
-              <select name="tipo" id="product-type-select" class="w-full input-modern p-2 rounded">
-                <option value="individual">Producto Individual</option>
-                <option value="combo">Combo</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-bold mb-1">Nombre</label>
-              <input type="text" name="nombre" class="w-full input-modern p-2 rounded" placeholder="Ej. Hamburguesa Doble" required>
-            </div>
-            <div>
-              <label class="block text-sm font-bold mb-1">Precio (venta)</label>
-              <input type="number" name="precio" class="w-full input-modern p-2 rounded" placeholder="0.00" min="0" step="0.01" required>
-            </div>
-            <div>
-              <label class="block text-sm font-bold mb-1">Descripción</label>
-              <textarea name="descripcion" rows="3" class="w-full input-modern p-2 rounded" placeholder="Descripción para el menú"></textarea>
-            </div>
-            <div>
-              <label class="block text-sm font-bold mb-1">Categoría</label>
-              <select name="categoria" class="w-full input-modern p-2 rounded">
-                <option value="">Sin categoría</option>
-                ${categoriaOptions}
-              </select>
-            </div>
-            <div id="tamano-section" class="hidden">
-              <label class="block text-sm font-bold mb-1">Tamaño del Complemento</label>
-              <select name="tamano" class="w-full input-modern p-2 rounded">
-                <option value="">Sin especificar</option>
-                <option value="chico">🔹 Chico</option>
-                <option value="mediano">🔸 Mediano</option>
-                <option value="grande">🔶 Grande</option>
-              </select>
-            </div>
-            <div class="border-t pt-3" id="recipe-section">
-              <div class="recipe-title-bar mb-2">
-                <label class="block text-sm font-bold">Receta (ingredientes)</label>
-                <button type="button" id="add-ingredient-row" class="btn-success btn-compact rounded" ${disabledRecipe?'disabled':''}>+ Agregar</button>
+        <div class="prod-modal-card">
+          <div class="prod-modal-header">
+            <span style="font-size:1.5rem">🍔</span>
+            <h3>NUEVO PRODUCTO</h3>
+            <button type="button" id="cancel-product-modal" class="prod-close-btn">×</button>
+          </div>
+          <div class="prod-modal-body">
+            <form id="product-form" class="space-y-4">
+              <div>
+                <label class="prod-form-label">Tipo de Producto</label>
+                <select name="tipo" id="product-type-select" class="w-full input-modern p-2 rounded">
+                  <option value="individual">🍔 Producto Individual</option>
+                  <option value="combo">🎁 Combo</option>
+                </select>
               </div>
-              ${disabledRecipe? '<div class="p-3 text-sm rounded bg-yellow-100 text-yellow-800">Primero agrega ingredientes en la sección Ingredientes.</div>' : ''}
-              <div id="recipe-rows" class="recipe-list space-y-2"></div>
-              <div id="cost-estimate" class="text-xs opacity-70 mt-2"></div>
-            </div>
-            <div class="border-t pt-3 hidden" id="combo-section">
-              <div class="combo-title-bar mb-2">
-                <label class="block text-sm font-bold">Configuración del Combo</label>
-                <div class="text-xs text-gray-600 mb-3">Selecciona las categorías que incluye este combo y la cantidad de cada una. Al tomar la orden, podrás elegir los productos de cada categoría.</div>
+              <div>
+                <label class="prod-form-label">Nombre del Producto</label>
+                <input type="text" name="nombre" class="w-full input-modern p-2 rounded" placeholder="Ej. Hamburguesa Doble Queso" required>
               </div>
-              <div id="combo-dyn-categories" class="space-y-2"></div>
-              <div id="combo-cost-estimate" class="text-xs opacity-70 mt-2"></div>
-            </div>
-            <div class="flex gap-2 pt-2">
-              <button type="submit" class="btn-success px-4 py-2 rounded">Guardar</button>
-              <button type="button" id="cancel-product-modal" class="btn-danger px-4 py-2 rounded">Cancelar</button>
-            </div>
-          </form>
+              <div class="prod-form-row">
+                <div>
+                  <label class="prod-form-label">💰 Precio de Venta</label>
+                  <input type="number" name="precio" class="w-full input-modern p-2 rounded" placeholder="0.00" min="0" step="0.01" required>
+                </div>
+                <div>
+                  <label class="prod-form-label">🏷️ Categoría</label>
+                  <select name="categoria" class="w-full input-modern p-2 rounded">
+                    <option value="">Sin categoría</option>
+                    ${categoriaOptions}
+                  </select>
+                </div>
+              </div>
+              <div id="tamano-section" class="hidden">
+                <label class="prod-form-label">Tamaño del Complemento</label>
+                <select name="tamano" class="w-full input-modern p-2 rounded">
+                  <option value="">Sin especificar</option>
+                  <option value="chico">🔹 Chico</option>
+                  <option value="mediano">🔸 Mediano</option>
+                  <option value="grande">🔶 Grande</option>
+                </select>
+              </div>
+              <div>
+                <label class="prod-form-label">📝 Descripción (opcional)</label>
+                <textarea name="descripcion" rows="2" class="w-full input-modern p-2 rounded" placeholder="Descripción corta para el menú"></textarea>
+              </div>
+              <div class="prod-recipe-box" id="recipe-section">
+                <div class="recipe-title-bar mb-3">
+                  <div style="display:flex;align-items:center;gap:.5rem">
+                    <span>🧪</span>
+                    <span style="font-weight:800;font-size:.9rem">Receta</span>
+                    <span id="recipe-count-badge" style="font-size:.72rem;padding:.1rem .5rem;border-radius:999px;background:rgba(230,179,37,.2);color:var(--burger-accent);font-weight:800;min-width:1.4rem;text-align:center">0</span>
+                  </div>
+                  <button type="button" id="add-ingredient-row" class="btn-gradient btn-compact rounded px-3" style="font-weight:800" ${disabledRecipe?'disabled':''}>+ Agregar</button>
+                </div>
+                ${disabledRecipe? '<div style="padding:.7rem;font-size:.85rem;border-radius:8px;background:rgba(251,191,36,.1);border:1px solid rgba(251,191,36,.3);color:#92400E">⚠️ Primero agrega ingredientes en la sección Ingredientes.</div>' : '<div id="recipe-empty-hint" class="prod-recipe-empty">Haz clic en <strong>+ Agregar</strong> para construir la receta</div>'}
+                <div id="recipe-rows" class="space-y-2 mt-1"></div>
+                <div id="cost-estimate" class="text-xs mt-2" style="color:var(--app-muted)"></div>
+              </div>
+              <div class="prod-recipe-box hidden" id="combo-section">
+                <div class="combo-title-bar mb-2">
+                  <span style="font-weight:800;font-size:.9rem">🎁 Configuración del Combo</span>
+                </div>
+                <div class="text-xs mb-3" style="color:var(--app-muted)">Selecciona las categorías que incluye este combo y la cantidad de cada una.</div>
+                <div id="combo-dyn-categories" class="space-y-2"></div>
+                <div id="combo-cost-estimate" class="text-xs mt-2" style="color:var(--app-muted)"></div>
+              </div>
+              <div class="flex gap-2 pt-1">
+                <button type="submit" class="btn-success flex-1 py-2 rounded-xl font-bold">✅ Guardar Producto</button>
+                <button type="button" id="cancel-product-modal-2" class="btn-danger px-5 py-2 rounded-xl font-bold">✕</button>
+              </div>
+            </form>
+          </div>
         </div>`;
 
       container.innerHTML = html;
@@ -4189,25 +3973,32 @@
       document.documentElement.style.overflow = 'hidden';
       document.body.style.overflow = 'hidden';
 
-      function addRow(defaultId='', defaultQty=''){
+      function addChipRow(ingId, ingNombre, ingUnidad, qty){
         const rows = $('#recipe-rows');
         if(!rows) return;
+        const emptyHint = document.getElementById('recipe-empty-hint');
+        if(emptyHint) emptyHint.style.display = 'none';
         const row = document.createElement('div');
-        row.className = 'recipe-row';
+        row.className = 'recipe-chip-row';
         row.innerHTML = `
-          <select class="select-compact input-modern rounded ing-select">
-            <option value="">Seleccione ingrediente</option>
-            ${ingOptions}
-          </select>
-          <input type="number" class="input-compact input-modern rounded qty-input" placeholder="Cant." min="0" step="any">
-          <button type="button" class="btn-danger btn-compact rounded remove-row">×</button>
+          <div class="recipe-chip-info">
+            <span class="recipe-chip-name">${ingNombre}</span>
+            <span class="recipe-chip-unit">${ingUnidad||''}</span>
+          </div>
+          <input type="number" class="recipe-chip-qty qty-input" value="${qty||''}" placeholder="Cant." min="0" step="any">
+          <button type="button" class="btn-danger btn-compact rounded remove-row" style="flex-shrink:0">×</button>
+          <select class="ing-select" style="display:none"><option value="${ingId}" selected></option></select>
         `;
         rows.appendChild(row);
-        if(defaultId){ row.querySelector('.ing-select').value = defaultId; }
-        if(defaultQty!==''){ row.querySelector('.qty-input').value = defaultQty; }
-        row.querySelector('.remove-row').addEventListener('click', ()=>{ row.remove(); recalcCost(); });
-        row.querySelector('.ing-select').addEventListener('change', recalcCost);
+        updateRecipeCount();
+        row.querySelector('.remove-row').addEventListener('click', ()=>{ row.remove(); recalcCost(); updateRecipeCount(); });
         row.querySelector('.qty-input').addEventListener('input', recalcCost);
+        recalcCost();
+      }
+
+      function updateRecipeCount(){
+        const badge = document.getElementById('recipe-count-badge');
+        if(badge) badge.textContent = $$('#recipe-rows .recipe-chip-row').length;
       }
 
       function recalcCost(){
@@ -4227,8 +4018,9 @@
         if(el) el.textContent = `Costo: ${fmt(cost)} • Margen: ${fmt(margin)} (${pct.toFixed(1)}%)`;
       }
 
-      $('#add-ingredient-row')?.addEventListener('click', ()=> addRow());
-      if(!disabledRecipe) addRow();
+      $('#add-ingredient-row')?.addEventListener('click', ()=>{
+        openIngredientSubModal(appState.ingredientes, (ing, qty)=>{ addChipRow(ing.id, ing.nombre, ing.unidad, qty); });
+      });
       recalcCost();
 
       // Combo functionality
@@ -4357,6 +4149,7 @@
       toggleProductType();
 
     $('#cancel-product-modal')?.addEventListener('click', closeModal);
+    $('#cancel-product-modal-2')?.addEventListener('click', closeModal);
     document.querySelector('#product-form [name="precio"]')?.addEventListener('input', ()=>{
       const productType = document.getElementById('product-type-select')?.value;
       if(productType === 'combo') {
@@ -4698,14 +4491,6 @@
 
       btn?.addEventListener('click', ()=> toggle());
       backdrop?.addEventListener('click', ()=> toggle(false));
-
-      // Bottom tab bar — "Menú" button opens sidebar
-      const bottomMenuBtn = document.getElementById('bottom-tab-menu');
-      bottomMenuBtn?.addEventListener('click', ()=>{
-        toggle();
-        const isOpen = sidebar?.classList.contains('open');
-        bottomMenuBtn.setAttribute('aria-expanded', String(!!isOpen));
-      });
       document.addEventListener('click', (e)=>{
         if(window.innerWidth<=1024 && sidebar?.classList.contains('open')){
           const inside = sidebar.contains(e.target) || btn?.contains(e.target);
@@ -4799,8 +4584,6 @@
         setTimeout(()=>{ if(prog){ prog.classList.add('prog-complete'); } }, 180);
 
         $$('.nav-link').forEach(a=> a.classList.toggle('active', a.getAttribute('href')==='#'+id));
-        // Sync bottom tab bar active state
-        $$('#bottom-tab-bar .tab-item[data-tab]').forEach(t=> t.classList.toggle('active', t.getAttribute('data-tab')===id));
         if(id==='dashboard') updateDashboard();
         if(id==='vender'){
           try{ document.getElementById('pos-search-input').value=''; }catch(_){ }
@@ -5182,9 +4965,22 @@
       return { total, list: arr };
     }
 
+    // Carga dinámica de jsPDF — se descarga solo cuando el usuario genera un PDF por primera vez
+    async function ensureJsPDF() {
+      if (window.jspdf?.jsPDF) return;
+      await new Promise((resolve, reject) => {
+        const s = document.createElement('script');
+        s.src = 'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js';
+        s.onload = resolve;
+        s.onerror = () => reject(new Error('No se pudo cargar jsPDF'));
+        document.head.appendChild(s);
+      });
+    }
+
     // Exportar PDF: Resumen Finanzas con KPIs, Top, COGS e índice por fecha
   async function exportVentasPDFForFinanzas(){
       try{
+        await ensureJsPDF();
         const { jsPDF } = window.jspdf || {};
         if(!jsPDF){ alert('No se pudo cargar jsPDF'); return; }
         const generatedAt = new Date();
@@ -7934,6 +7730,7 @@
         row.querySelector('.remove-row').addEventListener('click', ()=> { row.remove(); recalcEditCost(); });
         row.querySelector('.ing-select').addEventListener('change', recalcEditCost);
         row.querySelector('.qty-input').addEventListener('input', recalcEditCost);
+        makeSearchableIngPicker(row, appState.ingredientes);
       }
       // Prefill receta
       (prod.receta||[]).forEach(r=> addRow(r.ingredienteId, r.cantidad));
@@ -9264,14 +9061,14 @@
           {name:'referencia', label:'Referencia (opcional)', type:'text', placeholder:'Folio/últimos 4/etc'}
         ],
         submitText:'Confirmar cobro',
-        onSubmit:(data)=>{
+        onSubmit: async (data)=>{
           currentOrder.pago = { metodo: (data.metodo||'').trim()||'Efectivo', referencia: (data.referencia||'').trim() };
-          processSale();
+          await processSale();
         }
       });
     }
 
-    function processSale(){
+    async function processSale(){
       if(__processingSale) return;
       __processingSale = true;
       try{
@@ -9280,9 +9077,9 @@
         try{ const btn = document.getElementById('pos-pay-btn'); if(btn) btn.disabled = true; }catch(_){ }
         const sel = document.getElementById('pos-customer-select');
         const clienteId = sel && sel.value ? sel.value : null;
-      // Asignar número de venta secuencial
+      // Número de venta provisional (local) — será confirmado/corregido por la transacción atómica
       if(typeof appState.nextSaleNumber !== 'number' || appState.nextSaleNumber < 1){ appState.nextSaleNumber = 1; }
-      const saleNumber = appState.nextSaleNumber++;
+      const provisionalSaleNumber = appState.nextSaleNumber;
     const mesaId = currentOrder.mesaId || null;
     const mesaName = mesaId ? (getMesaById(mesaId)?.nombre || '') : '';
       const venta = {
@@ -9293,15 +9090,23 @@
   pago: currentOrder.pago,
   mesaId,
   mesaName,
-        saleNumber,
+        saleNumber: provisionalSaleNumber,
         items: JSON.parse(JSON.stringify(currentOrder.items)),
         subtotal: currentOrder.subtotal,
         descuento: currentOrder.descuento,
         costoEnvio: currentOrder.costoEnvio,
         total: currentOrder.total
       };
+      // Transacción atómica: asigna saleNumber único y persiste en una sola operación.
+      // Si Firestore detecta colisión por concurrencia, reintenta automáticamente.
+      const confirmedSaleNumber = (typeof atomicSaveVenta === 'function' && isFirestoreReady())
+        ? await atomicSaveVenta(venta)
+        : provisionalSaleNumber;
+      venta.saleNumber = confirmedSaleNumber || provisionalSaleNumber;
+      appState.nextSaleNumber = venta.saleNumber + 1;
       appState.ventas.push(venta);
-  if(typeof saveVentaToFirestore==='function') try{ saveVentaToFirestore(venta); }catch(_){ }
+      // saveVentaToFirestore ya fue llamado dentro de atomicSaveVenta; solo hacer fallback si FS no estaba listo
+      if(!isFirestoreReady()){ if(typeof saveVentaToFirestore==='function') try{ saveVentaToFirestore(venta); }catch(_){ } }
   // insumos consumidos por esta venta
   accumulateInsumosFromVenta(venta);
   renderInventario();
@@ -9333,7 +9138,9 @@
   try{ updateOrderUI(); }catch(_){ }
       if(sel) sel.value = '';
   if(typeof saveInsumosToFirestore==='function') saveInsumosToFirestore();
-  if(typeof saveMetaToFirestore==='function') saveMetaToFirestore();
+  // saveMetaToFirestore ya fue ejecutado dentro de atomicSaveVenta (transacción atómica).
+  // Solo actualizar como fallback si Firestore no estaba disponible.
+  if(!isFirestoreReady() && typeof saveMetaToFirestore==='function') saveMetaToFirestore();
   saveLS(); renderAll(); renderPosProductList(); renderPedidosPendientes();
         alert('Venta procesada correctamente');
       } finally {
@@ -10887,6 +10694,7 @@
       });
     });
       try{
+        await ensureJsPDF();
         const { jsPDF } = window.jspdf || {};
         if(!jsPDF){ alert('No se pudo cargar jsPDF'); return; }
         const generatedAt = new Date();
@@ -11004,6 +10812,7 @@
       try{
         const ventas = getFilteredVentas();
         const { start, end } = currentReportPeriod();
+        await ensureJsPDF();
         const { jsPDF } = window.jspdf || {};
         if(!jsPDF){ alert('No se pudo cargar jsPDF'); return; }
         const generatedAt = new Date();
@@ -11408,6 +11217,7 @@
     }
     async function exportRecPDF(){
       try{
+        await ensureJsPDF();
         const { jsPDF } = window.jspdf || {};
         if(!jsPDF){ alert('No se pudo cargar jsPDF'); return; }
         const selRows = gatherRecRows();
@@ -11615,6 +11425,7 @@
     // Exportar PDF de insumos gastados por venta (detalle de consumo)
     async function exportInsumosVentasPDF(){
       try{
+        await ensureJsPDF();
         const { jsPDF } = window.jspdf || {};
         if(!jsPDF){ alert('No se pudo cargar jsPDF'); return; }
         const { start, end } = getRangeFor('ins');
@@ -11724,6 +11535,7 @@
     // Exportar PDF de insumos gastados de una venta individual
     async function exportInsumosVentaDetallePDF(ventaId){
       try{
+        await ensureJsPDF();
         const { jsPDF } = window.jspdf || {};
         if(!jsPDF){ alert('No se pudo cargar jsPDF'); return; }
         const generatedAt = new Date();
@@ -12450,7 +12262,7 @@ En Firebase Console → Authentication:
       try{ setupChartDefaults(); }catch(_){ }
       loadSavedTheme();
       // Failsafe: nunca dejar el loader pegado si algo truena en el init
-      setTimeout(()=>{ try{ hideLoading(); }catch(_){ } }, 2500);
+      setTimeout(()=>{ try{ hideLoading(); }catch(_){ } }, 400);
       try{
         // Importante: NO cargamos datos de negocio hasta que el usuario inicie sesión con correo.
         // Esto evita que el siguiente usuario vea los datos del anterior en el mismo dispositivo.
