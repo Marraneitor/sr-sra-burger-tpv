@@ -1,0 +1,534 @@
+/* ============================================================
+   Gestia POS — Design System v2 (UI/UX refinement)
+   - Una sola familia tipográfica (Inter) con escala precisa
+   - Menos contaminación visual: bordes finos, sombras suaves
+   - Animaciones sutiles, jamás aparatosas
+   - Modales con entrada suave y respiración
+   - Focus accesible y consistente
+   ============================================================ */
+
+/* Inter (Variable) — la más usada en SaaS profesional. JetBrains Mono para code/totales. */
+@import url('https://rsms.me/inter/inter.css');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap');
+
+:root {
+  /* === Tipografía === */
+  --ds-font:        'Inter var', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, system-ui, sans-serif;
+  --ds-font-mono:   'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  /* Escala — densidad correcta para POS sin sentirse apretado */
+  --ds-fs-2xs:  0.6875rem; /* 11px */
+  --ds-fs-xs:   0.75rem;   /* 12px */
+  --ds-fs-sm:   0.8125rem; /* 13px */
+  --ds-fs-base: 0.9375rem; /* 15px */
+  --ds-fs-md:   1rem;      /* 16px */
+  --ds-fs-lg:   1.125rem;  /* 18px */
+  --ds-fs-xl:   1.375rem;  /* 22px */
+  --ds-fs-2xl:  1.625rem;  /* 26px */
+  --ds-fs-3xl:  2rem;      /* 32px */
+  --ds-fs-hero: 3.25rem;   /* 52px */
+
+  --ds-lh-tight:  1.18;
+  --ds-lh-snug:   1.32;
+  --ds-lh-normal: 1.55;
+
+  --ds-tracking-tight:   -0.02em;
+  --ds-tracking-snug:    -0.011em;
+  --ds-tracking-normal:   0em;
+  --ds-tracking-wide:     0.04em;
+
+  /* === Forma === */
+  --ds-radius-xs: 6px;
+  --ds-radius-sm: 8px;
+  --ds-radius-md: 12px;
+  --ds-radius-lg: 16px;
+  --ds-radius-xl: 22px;
+  --ds-radius-full: 999px;
+
+  /* === Espaciado === */
+  --ds-space-1: 0.25rem;
+  --ds-space-2: 0.5rem;
+  --ds-space-3: 0.75rem;
+  --ds-space-4: 1rem;
+  --ds-space-5: 1.25rem;
+  --ds-space-6: 1.5rem;
+  --ds-space-8: 2rem;
+
+  /* === Sombras (suaves, capas reales) === */
+  --ds-shadow-xs: 0 1px 2px rgba(0,0,0,.06);
+  --ds-shadow-sm: 0 2px 6px rgba(0,0,0,.07), 0 1px 2px rgba(0,0,0,.05);
+  --ds-shadow-md: 0 6px 18px rgba(0,0,0,.10), 0 2px 6px rgba(0,0,0,.06);
+  --ds-shadow-lg: 0 18px 48px rgba(0,0,0,.18), 0 6px 16px rgba(0,0,0,.10);
+
+  /* === Curvas de animación === */
+  --ds-ease-out:   cubic-bezier(.16, 1, .3, 1);
+  --ds-ease-in:    cubic-bezier(.7, 0, .84, 0);
+  --ds-ease-soft:  cubic-bezier(.4, 0, .2, 1);
+  --ds-dur-fast:   140ms;
+  --ds-dur-base:   220ms;
+  --ds-dur-slow:   420ms;
+}
+
+/* ============================================================
+   1) Reset tipográfico global
+   ============================================================ */
+html {
+  font-feature-settings: 'cv11', 'ss01', 'ss03', 'cv02';
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  scroll-behavior: smooth;
+}
+
+@supports (font-variation-settings: normal) {
+  :root { --ds-font: 'Inter var', -apple-system, BlinkMacSystemFont, system-ui, sans-serif; }
+}
+
+body,
+input,
+select,
+textarea,
+button {
+  font-family: var(--ds-font);
+  font-size: var(--ds-fs-base);
+  line-height: var(--ds-lh-normal);
+  letter-spacing: var(--ds-tracking-normal);
+}
+
+/* Cifras tabulares para precios y totales */
+.num,
+td.num,
+.totals,
+.kpi-value,
+.stat-value,
+input[type="number"],
+.price,
+.folio,
+.total-row {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1, 'cv11' 1;
+}
+
+/* ============================================================
+   2) Jerarquía de encabezados
+   ============================================================ */
+h1, h2, h3, h4, h5, h6,
+.hero-title,
+.section-title,
+.modal-header-nice h3,
+.h-display, .h-section, .h-sub {
+  font-family: var(--ds-font);
+  font-weight: 600;
+  line-height: var(--ds-lh-tight);
+  letter-spacing: var(--ds-tracking-snug);
+  margin: 0 0 var(--ds-space-3);
+  color: inherit;
+}
+
+h1, .h-display      { font-size: var(--ds-fs-3xl); font-weight: 700; letter-spacing: var(--ds-tracking-tight); }
+h2, .h-section      { font-size: var(--ds-fs-2xl); font-weight: 650; letter-spacing: var(--ds-tracking-tight); }
+h3, .h-sub          { font-size: var(--ds-fs-xl);  font-weight: 600; line-height: var(--ds-lh-snug); }
+h4                  { font-size: var(--ds-fs-lg);  font-weight: 600; line-height: var(--ds-lh-snug); }
+h5                  { font-size: var(--ds-fs-md);  font-weight: 600; line-height: var(--ds-lh-snug); }
+h6                  { font-size: var(--ds-fs-2xs); font-weight: 600; text-transform: uppercase; letter-spacing: var(--ds-tracking-wide); opacity: .72; }
+
+.hero-title {
+  font-size: clamp(2.25rem, 6vw, var(--ds-fs-hero));
+  font-weight: 700;
+  line-height: 1.04;
+  letter-spacing: -0.028em;
+}
+
+.section-title {
+  font-size: var(--ds-fs-2xl);
+  font-weight: 650;
+  margin-bottom: var(--ds-space-4);
+  letter-spacing: var(--ds-tracking-tight);
+  display: flex;
+  align-items: center;
+  gap: .5rem;
+}
+
+h2.section-title, h2.h-section { font-size: var(--ds-fs-2xl); }
+h3.section-title, h3.h-sub      { font-size: var(--ds-fs-xl); }
+
+.section-subtitle,
+.section-title + p,
+.h-section + p {
+  font-family: var(--ds-font);
+  font-size: var(--ds-fs-sm);
+  font-weight: 400;
+  opacity: .65;
+  margin: -.2rem 0 var(--ds-space-5);
+  line-height: var(--ds-lh-snug);
+  letter-spacing: 0;
+}
+
+.section-title.font-extrabold,
+.section-title.font-bold,
+h2.font-extrabold, h2.font-bold { font-weight: 650; }
+h3.font-extrabold, h3.font-bold { font-weight: 600; }
+
+/* ============================================================
+   3) Paneles, tarjetas (menos bordes, sombras suaves)
+   ============================================================ */
+.panel,
+.card,
+.stat-card {
+  border-radius: var(--ds-radius-lg);
+  padding: var(--ds-space-5);
+  box-shadow: var(--ds-shadow-sm);
+  transition: box-shadow var(--ds-dur-base) var(--ds-ease-out),
+              transform var(--ds-dur-base) var(--ds-ease-out);
+}
+
+.stat-card:hover {
+  box-shadow: var(--ds-shadow-md);
+  transform: translateY(-1px);
+}
+
+@media (max-width: 768px) {
+  .panel, .card, .stat-card { padding: var(--ds-space-4); border-radius: var(--ds-radius-md); }
+}
+@media (max-width: 420px) {
+  .panel, .card, .stat-card { padding: var(--ds-space-3); }
+}
+
+/* ============================================================
+   4) Botones — sutiles, consistentes
+   ============================================================ */
+.btn-gradient,
+.btn-success,
+.btn-danger,
+.btn-outline,
+.btn-soft,
+.btn-primary,
+button.btn,
+.btn {
+  font-family: var(--ds-font);
+  font-weight: 600;
+  font-size: var(--ds-fs-sm);
+  line-height: 1.1;
+  border-radius: var(--ds-radius-md);
+  padding: 0.55rem 0.95rem;
+  letter-spacing: 0;
+  transition: background-color var(--ds-dur-fast) var(--ds-ease-soft),
+              box-shadow var(--ds-dur-base) var(--ds-ease-out),
+              transform var(--ds-dur-fast) var(--ds-ease-out),
+              opacity var(--ds-dur-fast) var(--ds-ease-soft);
+  will-change: transform;
+}
+
+.btn-gradient,
+.btn-success,
+.btn-danger,
+.btn-outline,
+.btn-soft { border-radius: var(--ds-radius-md); }
+
+.table-nice .btn-gradient,
+.table-nice .btn-danger,
+.table-nice .btn-success,
+.table-nice .btn-outline,
+table .btn-gradient,
+table .btn-danger,
+table .btn-success,
+table .btn-outline {
+  font-size: var(--ds-fs-xs);
+  padding: 0.32rem 0.65rem;
+  border-radius: var(--ds-radius-sm);
+  font-weight: 600;
+}
+
+.btn-gradient:hover,
+.btn-success:hover,
+.btn-danger:hover,
+.btn-outline:hover,
+.btn-soft:hover {
+  transform: translateY(-0.5px);
+  box-shadow: var(--ds-shadow-sm);
+}
+
+.btn-gradient:active,
+.btn-success:active,
+.btn-danger:active,
+.btn-outline:active,
+.btn-soft:active {
+  transform: translateY(0);
+  box-shadow: none;
+  transition-duration: 60ms;
+}
+
+.btn-gradient[disabled],
+.btn-success[disabled],
+.btn-danger[disabled],
+button[disabled] {
+  opacity: .45;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* ============================================================
+   5) Inputs uniformes y limpios
+   ============================================================ */
+.input-modern,
+input[type="text"],
+input[type="email"],
+input[type="password"],
+input[type="number"],
+input[type="search"],
+input[type="tel"],
+input[type="date"],
+input[type="time"],
+select,
+textarea {
+  font-family: var(--ds-font);
+  font-size: var(--ds-fs-sm);
+  line-height: 1.4;
+  border-radius: var(--ds-radius-md);
+  padding: 0.55rem 0.75rem;
+  transition: border-color var(--ds-dur-fast) var(--ds-ease-soft),
+              box-shadow var(--ds-dur-fast) var(--ds-ease-soft),
+              background-color var(--ds-dur-fast) var(--ds-ease-soft);
+}
+
+input::placeholder,
+textarea::placeholder {
+  opacity: .45;
+  font-weight: 400;
+}
+
+label {
+  font-family: var(--ds-font);
+  font-size: var(--ds-fs-xs);
+  font-weight: 600;
+  letter-spacing: 0.005em;
+  opacity: .85;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+input[type="number"] { -moz-appearance: textfield; }
+
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button { display: none; }
+
+/* ============================================================
+   6) Tablas — densidad correcta
+   ============================================================ */
+.table-nice,
+table.table-nice {
+  font-size: var(--ds-fs-sm);
+  font-family: var(--ds-font);
+}
+
+.table-nice thead th,
+table.table-nice thead th {
+  font-family: var(--ds-font);
+  font-size: var(--ds-fs-2xs);
+  font-weight: 600;
+  letter-spacing: var(--ds-tracking-wide);
+  text-transform: uppercase;
+  opacity: .68;
+}
+
+.table-nice tbody td { font-size: var(--ds-fs-sm); vertical-align: middle; }
+.table-nice tbody tr { transition: background-color var(--ds-dur-fast) var(--ds-ease-soft); }
+
+/* ============================================================
+   7) Chips / Badges
+   ============================================================ */
+.badge,
+.chip,
+.tag {
+  font-family: var(--ds-font);
+  font-size: var(--ds-fs-2xs);
+  font-weight: 600;
+  letter-spacing: 0.025em;
+  text-transform: none;
+  border-radius: var(--ds-radius-full);
+  padding: .22rem .6rem;
+  line-height: 1.2;
+  display: inline-flex;
+  align-items: center;
+  gap: .35rem;
+}
+
+/* ============================================================
+   8) Navegación — discreta
+   ============================================================ */
+.nav-link,
+.tab-link,
+nav a,
+.menu-item {
+  font-family: var(--ds-font);
+  font-size: var(--ds-fs-sm);
+  font-weight: 500;
+  letter-spacing: 0;
+  transition: background-color var(--ds-dur-fast) var(--ds-ease-soft),
+              color var(--ds-dur-fast) var(--ds-ease-soft),
+              opacity var(--ds-dur-fast) var(--ds-ease-soft);
+}
+
+.nav-link.active,
+.tab-link.active { font-weight: 600; }
+
+.nav-icon { transition: transform var(--ds-dur-fast) var(--ds-ease-soft); }
+.nav-link:hover .nav-icon { transform: scale(1.06); }
+
+/* ============================================================
+   9) MODALES — entrada elegante con motion sutil
+   ============================================================ */
+@keyframes ds-backdrop-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes ds-modal-in {
+  from { opacity: 0; transform: translateY(8px) scale(.985); }
+  to   { opacity: 1; transform: translateY(0)   scale(1);    }
+}
+
+#modal-backdrop {
+  background: rgba(8, 10, 14, .55) !important;
+  backdrop-filter: blur(8px) saturate(120%) !important;
+  -webkit-backdrop-filter: blur(8px) saturate(120%) !important;
+  animation: ds-backdrop-in var(--ds-dur-base) var(--ds-ease-out);
+}
+
+#modal-container > div,
+#modal-container .bg-white {
+  border-radius: var(--ds-radius-xl) !important;
+  box-shadow: var(--ds-shadow-lg) !important;
+  animation: ds-modal-in var(--ds-dur-base) var(--ds-ease-out);
+  overflow: hidden;
+  border: 1px solid rgba(0,0,0,.04);
+}
+
+.modal-header-nice {
+  padding: var(--ds-space-5) var(--ds-space-6) var(--ds-space-3);
+  border-bottom: 1px solid rgba(0,0,0,.06);
+  background: linear-gradient(180deg, rgba(0,0,0,.015), transparent);
+}
+.modal-header-nice h3 {
+  font-size: var(--ds-fs-lg);
+  font-weight: 600;
+  letter-spacing: var(--ds-tracking-snug);
+  margin: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: 0ms !important; transition-duration: 0ms !important; }
+  html { scroll-behavior: auto; }
+}
+
+/* ============================================================
+   10) Microajustes de simetría / alineación
+   ============================================================ */
+section[id^="view-"] > .flex.justify-between,
+section[id^="view-"] > div:first-child { align-items: center; }
+section[id^="view-"] { padding-block: var(--ds-space-2); }
+
+small, .small, .text-tiny { font-size: var(--ds-fs-xs); }
+
+/* ============================================================
+   11) Selección y focus accesible
+   ============================================================ */
+::selection {
+  background: rgba(230, 179, 37, .28);
+  color: inherit;
+}
+
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+[tabindex]:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(230, 179, 37, .55), 0 0 0 4px rgba(230, 179, 37, .15);
+  border-radius: var(--ds-radius-sm);
+  transition: box-shadow var(--ds-dur-fast) var(--ds-ease-soft);
+}
+
+/* ============================================================
+   12) Scrollbars limpias
+   ============================================================ */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255,255,255,.18) transparent;
+}
+*::-webkit-scrollbar { width: 10px; height: 10px; }
+*::-webkit-scrollbar-track { background: transparent; }
+*::-webkit-scrollbar-thumb {
+  background: rgba(255,255,255,.10);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  border-radius: var(--ds-radius-full);
+  transition: background-color var(--ds-dur-fast) var(--ds-ease-soft);
+}
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(255,255,255,.22);
+  background-clip: padding-box;
+}
+
+/* ============================================================
+   13) Floating Action Button refinado
+   ============================================================ */
+.fab,
+.floating-btn,
+button.fab {
+  position: fixed;
+  right: var(--ds-space-6);
+  bottom: var(--ds-space-6);
+  z-index: 35;
+  width: 56px; height: 56px;
+  border-radius: var(--ds-radius-full);
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 1.4rem;
+  box-shadow: var(--ds-shadow-md);
+  transition: transform var(--ds-dur-base) var(--ds-ease-out),
+              box-shadow var(--ds-dur-base) var(--ds-ease-out);
+}
+.fab:hover,
+.floating-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--ds-shadow-lg);
+}
+.fab:active { transform: translateY(0); }
+
+/* ============================================================
+   14) Reducir contaminación visual
+   ============================================================ */
+.panel hr, .card hr, hr {
+  border: none;
+  border-top: 1px solid rgba(255,255,255,.06);
+  margin: var(--ds-space-4) 0;
+}
+
+.insumos-tab-btn,
+.tab-btn {
+  transition: background-color var(--ds-dur-fast) var(--ds-ease-soft),
+              color var(--ds-dur-fast) var(--ds-ease-soft);
+}
+
+/* Quitar fills/gradientes innecesarios sobre títulos largos */
+.section-title {
+  background: none !important;
+  -webkit-text-fill-color: currentColor;
+  color: inherit !important;
+}
+
+/* ============================================================
+   15) Toast / micro-feedback
+   ============================================================ */
+@keyframes ds-toast-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.toast, .snack {
+  animation: ds-toast-in var(--ds-dur-base) var(--ds-ease-out);
+  border-radius: var(--ds-radius-md);
+  box-shadow: var(--ds-shadow-md);
+  font-size: var(--ds-fs-sm);
+  font-weight: 500;
+}

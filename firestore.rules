@@ -2,18 +2,127 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Admin anonymous reads: any authenticated user can read all collections
-    // Regular users can only write their own documents
+    // ── Helpers ──────────────────────────────────────────────────────────
+    // Verifica que el usuario autenticado sea dueño del documento por campo userId
+    function isOwner() {
+      return request.auth != null &&
+        request.resource.data.userId == request.auth.uid;
+    }
+    // Para documentos cuyo docId es el propio UID del usuario
+    function isOwnDoc(docId) {
+      return request.auth != null && request.auth.uid == docId;
+    }
+    // Verifica existencia de userId en el documento como string no vacío
+    function hasValidUserId() {
+      return request.resource.data.userId is string &&
+        request.resource.data.userId.size() > 0;
+    }
+    // Verifica que el campo existe, es string, y tiene largo válido
+    function validStr(field, maxLen) {
+      return request.resource.data[field] is string &&
+        request.resource.data[field].size() > 0 &&
+        request.resource.data[field].size() <= maxLen;
+    }
+    // Verifica que el campo existe y es número no negativo
+    function validPrice(field) {
+      return request.resource.data[field] is number &&
+        request.resource.data[field] >= 0 &&
+        request.resource.data[field] <= 9999999;
+    }
 
-    // Admin panel reads all collections (protected by admin password in the HTML)
-    // Users can only write their own documents
-    match /{collection}/{docId} {
-      allow read: if true;
-      allow write: if request.auth != null && (
-        request.auth.uid == docId ||
-        request.auth.uid == resource.data.userId ||
-        request.auth.uid == request.resource.data.userId
-      );
+    // ── Admin panel — solo lectura, solo para admins autenticados ─────────
+    match /admins/{uid} {
+      allow read:  if request.auth != null && request.auth.uid == uid;
+      allow write: if false; // Solo se escribe desde Firebase Console o Cloud Functions
+    }
+
+    // ── Productos ────────────────────────────────────────────────────────
+    match /productos/{docId} {
+      allow read:   if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if isOwner() && hasValidUserId()
+        && validStr('nombre', 120)
+        && validPrice('precio');
+      allow update: if isOwner() && hasValidUserId()
+        && validStr('nombre', 120)
+        && validPrice('precio');
+      allow delete: if request.auth != null &&
+        resource.data.userId == request.auth.uid;
+    }
+
+    // ── Ingredientes ─────────────────────────────────────────────────────
+    match /ingredientes/{docId} {
+      allow read:   if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create, update: if isOwner() && hasValidUserId()
+        && validStr('nombre', 120);
+      allow delete: if request.auth != null &&
+        resource.data.userId == request.auth.uid;
+    }
+
+    // ── Clientes ─────────────────────────────────────────────────────────
+    match /clientes/{docId} {
+      allow read:   if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create, update: if isOwner() && hasValidUserId()
+        && validStr('nombre', 150);
+      allow delete: if request.auth != null &&
+        resource.data.userId == request.auth.uid;
+    }
+
+    // ── Ventas ───────────────────────────────────────────────────────────
+    match /ventas/{docId} {
+      allow read:   if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create: if isOwner() && hasValidUserId()
+        && validPrice('total');
+      allow update: if isOwner() && hasValidUserId()
+        && validPrice('total');
+      allow delete: if false; // Las ventas no se borran
+    }
+
+    // ── Pedidos ──────────────────────────────────────────────────────────
+    match /pedidos/{docId} {
+      allow read:   if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create, update: if isOwner() && hasValidUserId();
+      allow delete: if request.auth != null &&
+        resource.data.userId == request.auth.uid;
+    }
+
+    // ── Compras de inventario ─────────────────────────────────────────────
+    match /compras/{docId} {
+      allow read:   if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create, update: if isOwner() && hasValidUserId();
+      allow delete: if false;
+    }
+
+    // ── Empleados ────────────────────────────────────────────────────────
+    match /empleados/{docId} {
+      allow read:   if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create, update: if isOwner() && hasValidUserId()
+        && validStr('nombre', 150);
+      allow delete: if request.auth != null &&
+        resource.data.userId == request.auth.uid;
+    }
+
+    // ── Servicios ────────────────────────────────────────────────────────
+    match /servicios/{docId} {
+      allow read:   if request.auth != null && resource.data.userId == request.auth.uid;
+      allow create, update: if isOwner() && hasValidUserId()
+        && validStr('nombre', 150);
+      allow delete: if request.auth != null &&
+        resource.data.userId == request.auth.uid;
+    }
+
+    // ── Documentos singulares por usuario (docId == uid) ─────────────────
+    // meta, insumos, userExtras, usuarios
+    match /meta/{uid} {
+      allow read, write: if isOwnDoc(uid) && hasValidUserId();
+    }
+    match /insumos/{uid} {
+      allow read, write: if isOwnDoc(uid) && hasValidUserId();
+    }
+    match /userExtras/{uid} {
+      allow read, write: if isOwnDoc(uid) && hasValidUserId();
+    }
+    match /usuarios/{uid} {
+      allow read, write: if isOwnDoc(uid);
     }
   }
 }

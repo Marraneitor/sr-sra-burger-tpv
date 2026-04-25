@@ -87,7 +87,6 @@
     .lmsg{margin-top:14px;font-size:.8rem;color:var(--text-dim);}
     @media(max-width:700px){.sidebar{width:100%;height:220px;border-right:none;border-bottom:1px solid var(--border);}.body-split{flex-direction:column;}}
   </style>
-  <script src="./_auth_lookup.js"></script>
 </head>
 <body>
 
@@ -95,7 +94,8 @@
   <div class="login-card">
     <h1>GESTIA</h1>
     <p>Panel de Administración &mdash; acceso restringido</p>
-    <input id="admin-pass" type="password" class="li" placeholder="Contraseña de administrador" autocomplete="off" />
+    <input id="admin-email" type="email" class="li" placeholder="Email de administrador" autocomplete="username" style="margin-bottom:10px" />
+    <input id="admin-pass" type="password" class="li" placeholder="Contraseña" autocomplete="current-password" />
     <button id="admin-login-btn" class="lb">INGRESAR</button>
     <div id="login-error"></div>
   </div>
@@ -152,12 +152,30 @@
 
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-import { getFirestore, collection, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-const CFG={apiKey:"AIzaSyDnoGvY5cuschts3XqivqOE0-sc4piNaQ4",authDomain:"manager-d860c.firebaseapp.com",projectId:"manager-d860c",storageBucket:"manager-d860c.firebasestorage.app",messagingSenderId:"626095533475",appId:"1:626095533475:web:8204abfbd6454d17effe16"};
-const PASS="admingestia3141592";
+import { getFirestore, collection, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+// Firebase config cargada desde window.__FIREBASE_CONFIG__ (inyectada por el servidor)
+// o desde firebase-config.json en desarrollo local.
+async function loadCFG(){
+  if(window.__FIREBASE_CONFIG__) return window.__FIREBASE_CONFIG__;
+  try{
+    const r=await fetch('./firebase-config.json',{cache:'no-store'});
+    if(r.ok){ const j=await r.json(); if(j?.apiKey) return j; }
+  }catch(_){}
+  // Fallback solo para desarrollo — no expone producción
+  return null;
+}
 let db=null,auth=null,allData={},selUid=null;
-async function initFB(){try{const app=initializeApp(CFG);db=getFirestore(app);auth=getAuth(app);try{await signInAnonymously(auth);}catch(_){}return true;}catch(e){console.error("FB",e);return false;}}
+async function initFB(){
+  try{
+    const CFG=await loadCFG();
+    if(!CFG){ throw new Error('No se pudo cargar la configuración de Firebase.'); }
+    const app=initializeApp(CFG);
+    db=getFirestore(app);
+    auth=getAuth(app);
+    return true;
+  }catch(e){console.error('FB',e);return false;}
+}
 const $=id=>document.getElementById(id);
 function sl(m){$("loverlay").classList.add("show");$("lmsg").textContent=m||"Cargando...";}
 function hl(){$("loverlay").classList.remove("show");}
@@ -180,9 +198,6 @@ async function loadAll(){
   const errs=[];
   for(const{n,fn}of cols){try{sl("Leyendo "+n+"...");fn(await getDocs(collection(db,n)));}catch(e){const msg=e.code||e.message;console.warn("[Admin]",n,msg);errs.push(n+": "+msg);}}
   allData=users;
-  // Apply Firebase Auth email lookup as fallback for any user missing email in Firestore
-  const lookup = window.__AUTH_EMAILS || {};
-  Object.values(allData).forEach(u=>{ if(!u.email && lookup[u.uid]) u.email=lookup[u.uid]; });
   hl();
   const eb=$("err-banner");
   if(errs.length){eb.style.display="block";eb.innerHTML="<b>Errores de lectura:</b><br>"+errs.map(e=>`&#x26A0; ${e}`).join("<br>");}else{eb.style.display="none";}
@@ -214,7 +229,10 @@ function renderSidebar(){
     (E.length?'<div class="sep-lbl">Con email</div>'+E.map(u=>card(u,false)).join(""):"")+
     (D.length?'<div class="sep-lbl">Sin email (usuarios con datos)</div>'+D.map(u=>card(u,true)).join(""):"");
 }
+let _pagLimits={Pr:25,V:25,P:25,C:25};let _pagUid=null;
+function morBtn(sec,arr,lim){if(arr.length<=lim)return'';var rem=arr.length-lim;return'<button onclick="adminLoadMore(\''+sec+'\')" style="margin-top:8px;display:block;padding:5px 14px;border-radius:6px;border:1px solid rgba(230,179,37,.4);background:rgba(230,179,37,.1);color:var(--gold);font-size:.75rem;cursor:pointer;font-family:Montserrat,sans-serif;">Ver '+(rem>25?25:rem)+' más &mdash; '+rem+' restantes</button>';}
 window.selUser=function(uid){
+  if(uid!==_pagUid){_pagLimits={Pr:25,V:25,P:25,C:25};_pagUid=uid;}
   selUid=uid;renderSidebar();
   const u=allData[uid];if(!u)return;
   $("estate").style.display="none";$("udetail").style.display="block";
@@ -248,27 +266,66 @@ window.selUser=function(uid){
     `<svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>`+
     `Ver contraseña</button>`+
     `<div class="pbox" id="${pid}"></div></div>`+
-    `<div class="dsec"><div class="dtitle">Productos <span class="dcnt">${Pr.length}</span></div>${tbl(Pr.slice(0,100).map(p=>`<tr><td>${esc(p.nombre||"--")}</td><td style="color:var(--text-dim)">${esc(p.categoria||"--")}</td><td style="text-align:right;font-weight:600;color:#34d399">${money(p.precio)}</td><td style="font-size:.72rem">${p.archivado?"<span style='color:#f87171'>Archivado</span>":"<span style='color:#34d399'>Activo</span>"}</td></tr>`).join(""),["Nombre","Categoría","Precio","Estado"],"Sin productos")}</div>`+
-    `<div class="dsec"><div class="dtitle">Ventas <span class="dcnt">${V.length}</span></div>${tbl(V.slice(0,50).map(v=>`<tr><td style="font-family:monospace;font-size:.72rem;color:var(--text-dim)">${esc((v.id||"").slice(-8)||"--")}</td><td>${fmtD(v.fecha)}</td><td>${Array.isArray(v.items)?v.items.length:"--"}</td><td style="text-align:right;color:#34d399;font-weight:600">${money(v.total)}</td><td style="font-size:.72rem;color:var(--text-dim)">${esc(v.pago?.metodo||"--")}</td></tr>`).join(""),["ID","Fecha","Ítems","Total","Pago"],"Sin ventas")}</div>`+
-    `<div class="dsec"><div class="dtitle">Pedidos <span class="dcnt">${P.length}</span></div>${tbl(P.slice(0,50).map(p=>`<tr><td style="font-family:monospace;font-size:.72rem;color:var(--text-dim)">${esc((p.id||"").slice(-8)||"--")}</td><td>${esc(p.mesa||p.tipo||"--")}</td><td style="text-align:right;font-weight:600">${money(p.total)}</td><td style="font-size:.72rem">${esc(p.estado||"--")}</td><td style="font-size:.72rem;color:var(--text-dim)">${fmtD(p.fecha||p.createdAt)}</td></tr>`).join(""),["ID","Mesa/Tipo","Total","Estado","Fecha"],"Sin pedidos")}</div>`+
-    `<div class="dsec"><div class="dtitle">Clientes <span class="dcnt">${C.length}</span></div>${tbl(C.slice(0,100).map(c=>`<tr><td>${esc(c.nombre||"--")}</td><td style="color:var(--text-dim)">${esc(c.telefono||c.tel||"--")}</td><td style="color:var(--text-dim);font-size:.75rem">${esc(c.direccion||c.dir||"--")}</td><td style="font-size:.72rem;color:var(--text-dim)">${fmtD(c.createdAt||c.fecha)}</td></tr>`).join(""),["Nombre","Teléfono","Dirección","Registrado"],"Sin clientes")}</div>`;
+    `<div class="dsec"><div class="dtitle">Productos <span class="dcnt">${Pr.length}</span></div>${tbl(Pr.slice(0,_pagLimits.Pr).map(p=>`<tr><td>${esc(p.nombre||"--")}</td><td style="color:var(--text-dim)">${esc(p.categoria||"--")}</td><td style="text-align:right;font-weight:600;color:#34d399">${money(p.precio)}</td><td style="font-size:.72rem">${p.archivado?"<span style='color:#f87171'>Archivado</span>":"<span style='color:#34d399'>Activo</span>"}</td></tr>`).join(""),["Nombre","Categoría","Precio","Estado"],"Sin productos")}${morBtn('Pr',Pr,_pagLimits.Pr)}</div>`+
+    `<div class="dsec"><div class="dtitle">Ventas <span class="dcnt">${V.length}</span></div>${tbl(V.slice(0,_pagLimits.V).map(v=>`<tr><td style="font-family:monospace;font-size:.72rem;color:var(--text-dim)">${esc((v.id||"").slice(-8)||"--")}</td><td>${fmtD(v.fecha)}</td><td>${Array.isArray(v.items)?v.items.length:"--"}</td><td style="text-align:right;color:#34d399;font-weight:600">${money(v.total)}</td><td style="font-size:.72rem;color:var(--text-dim)">${esc(v.pago?.metodo||"--")}</td></tr>`).join(""),["ID","Fecha","Ítems","Total","Pago"],"Sin ventas")}${morBtn('V',V,_pagLimits.V)}</div>`+
+    `<div class="dsec"><div class="dtitle">Pedidos <span class="dcnt">${P.length}</span></div>${tbl(P.slice(0,_pagLimits.P).map(p=>`<tr><td style="font-family:monospace;font-size:.72rem;color:var(--text-dim)">${esc((p.id||"").slice(-8)||"--")}</td><td>${esc(p.mesa||p.tipo||"--")}</td><td style="text-align:right;font-weight:600">${money(p.total)}</td><td style="font-size:.72rem">${esc(p.estado||"--")}</td><td style="font-size:.72rem;color:var(--text-dim)">${fmtD(p.fecha||p.createdAt)}</td></tr>`).join(""),["ID","Mesa/Tipo","Total","Estado","Fecha"],"Sin pedidos")}${morBtn('P',P,_pagLimits.P)}</div>`+
+    `<div class="dsec"><div class="dtitle">Clientes <span class="dcnt">${C.length}</span></div>${tbl(C.slice(0,_pagLimits.C).map(c=>`<tr><td>${esc(c.nombre||"--")}</td><td style="color:var(--text-dim)">${esc(c.telefono||c.tel||"--")}</td><td style="color:var(--text-dim);font-size:.75rem">${esc(c.direccion||c.dir||"--")}</td><td style="font-size:.72rem;color:var(--text-dim)">${fmtD(c.createdAt||c.fecha)}</td></tr>`).join(""),["Nombre","Teléfono","Dirección","Registrado"],"Sin clientes")}${morBtn('C',C,_pagLimits.C)}</div>`;
 };
 window.togglePw=function(id,pass){const el=$(id);if(!el)return;const v=el.style.display==="block";el.style.display=v?"none":"block";if(!v)el.textContent=pass;};
-function doLogin(){
-  if($("admin-pass").value===PASS){
-    $("login-screen").style.display="none";$("admin-screen").classList.add("show");
-    sessionStorage.setItem("g_adm","1");loadAll();
-  } else {
-    $("login-error").textContent="Contraseña incorrecta.";$("admin-pass").focus();
-    setTimeout(()=>$("login-error").textContent="",2500);
+window.adminLoadMore=function(sec){_pagLimits[sec]=(_pagLimits[sec]||25)+25;window.selUser(selUid);};
+
+// Autenticación segura con Firebase Auth — sin passwords hardcodeados en el código
+async function doLogin(){
+  const email=($("admin-email").value||"").trim();
+  const pass=($("admin-pass").value||"").trim();
+  if(!email||!pass){$("login-error").textContent="Ingresa email y contraseña.";return;}
+  const btn=$("admin-login-btn");
+  btn.disabled=true;btn.textContent="Ingresando...";
+  $("login-error").textContent="";
+  try{
+    if(!db&&!await initFB()){throw new Error("No se pudo conectar con Firebase.");}
+    const cred=await signInWithEmailAndPassword(auth,email,pass);
+    // Verificar que el usuario tiene documento de admin en Firestore (/admins/{uid})
+    const adminDoc=await getDoc(doc(db,"admins",cred.user.uid));
+    if(!adminDoc.exists()||adminDoc.data().role!=="admin"){
+      await signOut(auth);
+      throw new Error("Tu cuenta no tiene permisos de administrador.");
+    }
+    $("login-screen").style.display="none";
+    $("admin-screen").classList.add("show");
+    sessionStorage.setItem("g_adm",cred.user.uid);
+    loadAll();
+  }catch(e){
+    const msg=e.code==="auth/invalid-credential"||e.code==="auth/user-not-found"||e.code==="auth/wrong-password"
+      ?"Email o contraseña incorrectos."
+      :e.code==="auth/too-many-requests"
+      ?"Demasiados intentos fallidos. Espera unos minutos."
+      :(e.message||"Error al iniciar sesión.");
+    $("login-error").textContent=msg;
+  }finally{
+    btn.disabled=false;btn.textContent="INGRESAR";
   }
 }
+
 $("admin-login-btn").addEventListener("click",doLogin);
+$("admin-email").addEventListener("keydown",e=>{if(e.key==="Enter")$("admin-pass").focus();});
 $("admin-pass").addEventListener("keydown",e=>{if(e.key==="Enter")doLogin();});
-$("logout-btn").addEventListener("click",()=>{sessionStorage.removeItem("g_adm");$("admin-screen").classList.remove("show");$("login-screen").style.display="flex";$("admin-pass").value="";selUid=null;});
+$("logout-btn").addEventListener("click",async()=>{
+  try{if(auth)await signOut(auth);}catch(_){}
+  sessionStorage.removeItem("g_adm");
+  $("admin-screen").classList.remove("show");
+  $("login-screen").style.display="flex";
+  $("admin-email").value="";$("admin-pass").value="";
+  selUid=null;
+});
 $("refresh-btn").addEventListener("click",loadAll);
 $("ssearch").addEventListener("change",e=>{if(e.target.value)selUser(e.target.value);});
-if(sessionStorage.getItem("g_adm")==="1"){$("login-screen").style.display="none";$("admin-screen").classList.add("show");loadAll();}
+// Restaurar sesión activa si existe UID en sessionStorage
+if(sessionStorage.getItem("g_adm")){
+  $("login-screen").style.display="none";
+  $("admin-screen").classList.add("show");
+  loadAll();
+}
 </script>
 </body>
 </html>

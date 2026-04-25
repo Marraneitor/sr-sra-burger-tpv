@@ -107,7 +107,14 @@ Thumbs.db
 
 # Local development
 *.local
- 
+
+# Firebase sensitive config — no subir al repositorio
+firebase-config.js
+firebase-config.json
+_auth_lookup.js
+.env.local
+.env.production
+
 # Local Firebase config (keep private)
 firebase-config.js
 firebase-config.json

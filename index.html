@@ -161,6 +161,8 @@
   <link rel="stylesheet" href="./styles/custom.css" />
   <link rel="stylesheet" href="./styles/saas2026.css" />
   <link rel="stylesheet" href="./styles/enhancements.css" />
+  <!-- Design System (carga al final para ganar la cascada de forma limpia) -->
+  <link rel="stylesheet" href="./styles/design-system.css" />
   <!-- EmailJS SDK — carga diferida, no bloquea el render -->
   <script src="https://cdn.jsdelivr.net/npm/@emailjs/browser@4/dist/email.min.js" defer></script>
   <script defer>(function(){ window.addEventListener('load', function(){ if(typeof emailjs !== 'undefined'){ emailjs.init('q14FqhdjUSICAGOTm'); } }); })();</script>
@@ -305,6 +307,10 @@
       <a href="#perfil" class="nav-link">
         <span class="nav-icon">👤</span>
         <span>Mi Perfil</span>
+      </a>
+      <a href="#manual" class="nav-link">
+        <span class="nav-icon">📖</span>
+        <span>Manual</span>
       </a>
 
     </nav>
@@ -456,6 +462,9 @@
           </div>
           <!-- Signup tab -->
           <div id="tab-signup" class="space-y-2" style="display:none;">
+            <div style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:.55rem .8rem;border-radius:12px;font-size:.72rem;font-weight:800;text-align:center;letter-spacing:.01em;box-shadow:0 4px 14px rgba(16,185,129,.25)">
+              🎁 1 mes gratis de Premium al crear tu cuenta
+            </div>
             <div class="flex flex-col gap-0.5">
               <label class="text-[10px] font-semibold uppercase tracking-wide opacity-60">Nombre del restaurante</label>
               <input id="auth-nombre" type="text" placeholder="Ej: Sysra Burger" class="w-full input-modern px-3 py-2 rounded-xl text-sm" required />
@@ -1136,7 +1145,7 @@
 
       <!-- Pedidos -->
       <section id="view-pedidos-pendientes" class="view">
-        <h2 class="text-2xl font-bold mb-4" style="color:var(--burger-dark)">Pedidos Pendientes</h2>
+        <h2 class="text-2xl font-bold mb-4 section-title" style="color:var(--burger-dark)">Pedidos Pendientes</h2>
   <div class="panel">
           <div class="flex items-center gap-4 mb-3">
             <div class="text-sm opacity-70">En cola: <span id="pedidos-count">0</span></div>
@@ -1437,6 +1446,16 @@
               <span>🧾</span><span class="hidden md:inline">Exportar JSON</span>
             </button>
           </div>
+        </div>
+        <div class="mb-3">
+          <div class="relative" style="max-width:420px">
+            <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:.55;pointer-events:none">🔎</span>
+            <input id="ingredientes-search" type="search" autocomplete="off" placeholder="Buscar ingrediente por nombre o unidad…"
+              class="w-full input-modern rounded" style="padding:.55rem .55rem .55rem 2rem" aria-label="Buscar ingrediente">
+            <button type="button" id="ingredientes-search-clear" class="hidden" aria-label="Limpiar búsqueda"
+              style="position:absolute;right:6px;top:50%;transform:translateY(-50%);background:transparent;border:0;font-size:1.1rem;cursor:pointer;opacity:.6">×</button>
+          </div>
+          <div id="ingredientes-search-meta" class="text-[11px] opacity-60 mt-1"></div>
         </div>
 	<div class="panel overflow-x-auto">
           <table class="w-full text-left table-nice ingredientes-table text-sm">
@@ -2037,6 +2056,456 @@
           </div>
 
         </div>
+      </section>
+
+      <!-- ─── MANUAL DE USO ──────────────────────────────── -->
+      <section id="view-manual" class="view">
+        <h2 class="text-2xl font-extrabold mb-1 section-title" style="color:var(--burger-dark)">📖 Manual de uso</h2>
+        <p class="text-sm mb-6" style="color:var(--app-muted)">Guía completa de Gestia POS, sección por sección. Usa el índice o el buscador para ir directo al tema que necesites.</p>
+
+        <div class="panel mb-4" style="position:sticky;top:0;z-index:5">
+          <div class="flex flex-col md:flex-row gap-3 md:items-center">
+            <div class="relative flex-1">
+              <span style="position:absolute;left:10px;top:50%;transform:translateY(-50%);opacity:.55;pointer-events:none">🔎</span>
+              <input id="manual-search" type="search" autocomplete="off" placeholder="Buscar en el manual…"
+                class="w-full input-modern rounded" style="padding:.6rem .6rem .6rem 2rem" aria-label="Buscar en el manual">
+            </div>
+            <div class="text-xs opacity-70" id="manual-search-meta"></div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          <!-- Índice -->
+          <aside class="lg:col-span-1">
+            <div class="panel" style="position:sticky;top:90px">
+              <h3 class="font-extrabold text-sm mb-3 tracking-wide">Índice</h3>
+              <nav id="manual-toc" class="flex flex-col gap-1 text-sm">
+                <a href="#m-intro"          class="manual-toc-link">🚀 Introducción</a>
+                <a href="#m-primeros-pasos" class="manual-toc-link">🎯 Primeros pasos</a>
+                <a href="#m-perfil"         class="manual-toc-link">👤 Mi Perfil y plan</a>
+                <a href="#m-ingredientes"   class="manual-toc-link">🥬 Ingredientes</a>
+                <a href="#m-productos"      class="manual-toc-link">🍔 Productos y recetas</a>
+                <a href="#m-estaciones"     class="manual-toc-link">🏭 Estaciones de cocina</a>
+                <a href="#m-personalizar"   class="manual-toc-link">🎨 Personalizar</a>
+                <a href="#m-pos"            class="manual-toc-link">🛍️ Punto de Venta</a>
+                <a href="#m-pedidos"        class="manual-toc-link">📦 Pedidos pendientes</a>
+                <a href="#m-ventas"         class="manual-toc-link">💳 Ventas</a>
+                <a href="#m-clientes"       class="manual-toc-link">👥 Clientes (CRM)</a>
+                <a href="#m-caja"           class="manual-toc-link">💵 Caja</a>
+                <a href="#m-finanzas"       class="manual-toc-link">📊 Finanzas</a>
+                <a href="#m-insumos"        class="manual-toc-link">📦 Insumos gastados</a>
+                <a href="#m-inventario"     class="manual-toc-link">📦 Inventario</a>
+                <a href="#m-recomendaciones" class="manual-toc-link">💡 Recomendaciones</a>
+                <a href="#m-dashboard"      class="manual-toc-link">📈 Dashboard</a>
+                <a href="#m-reportes"       class="manual-toc-link">📄 Reportes</a>
+                <a href="#m-tickets"        class="manual-toc-link">🖨️ Impresión de tickets</a>
+                <a href="#m-seguridad"      class="manual-toc-link">🔒 Seguridad y datos</a>
+                <a href="#m-faq"            class="manual-toc-link">❓ Preguntas frecuentes</a>
+              </nav>
+            </div>
+          </aside>
+
+          <!-- Contenido -->
+          <div class="lg:col-span-3 manual-content">
+            <article id="manual-articles" class="flex flex-col gap-5">
+
+              <section id="m-intro" class="panel manual-section">
+                <h3 class="manual-h">🚀 Introducción</h3>
+                <p>Gestia POS es un sistema de punto de venta diseñado para restaurantes, cafeterías y negocios de comida. Funciona desde cualquier navegador, sincroniza tus datos en la nube y te permite operar caja, inventario y CRM desde un solo lugar.</p>
+                <p><strong>¿Qué puedes hacer aquí?</strong></p>
+                <ul>
+                  <li>Vender en mostrador, mesa, para llevar o domicilio.</li>
+                  <li>Controlar ingredientes, recetas y costos por plato.</li>
+                  <li>Registrar pagos en efectivo, transferencia o tarjeta.</li>
+                  <li>Imprimir tickets en impresora térmica de 80 mm.</li>
+                  <li>Ver reportes de ventas, ganancias, mermas e inventario.</li>
+                  <li>Llevar un CRM básico de clientes con puntos de fidelidad.</li>
+                </ul>
+              </section>
+
+              <section id="m-primeros-pasos" class="panel manual-section">
+                <h3 class="manual-h">🎯 Primeros pasos</h3>
+                <p>Antes de empezar a vender, te recomendamos seguir este orden:</p>
+                <ol>
+                  <li><strong>Mi Perfil</strong>: configura el nombre de tu negocio (aparecerá en los tickets).</li>
+                  <li><strong>Ingredientes</strong>: da de alta tus insumos con su costo unitario.</li>
+                  <li><strong>Estaciones</strong>: crea las áreas de tu cocina (parrilla, barra, postres…).</li>
+                  <li><strong>Productos</strong>: arma tu menú con precios y receta de cada platillo.</li>
+                  <li><strong>Personalizar</strong>: ajusta categorías, mesas y opciones del POS.</li>
+                  <li><strong>Punto de Venta</strong>: ¡ya puedes empezar a cobrar!</li>
+                </ol>
+                <p class="manual-tip">💡 Si quieres saltar los pasos 2–4, ve a Ingredientes y usa <em>Importar base</em> para cargar una lista pre‑armada.</p>
+              </section>
+
+              <section id="m-perfil" class="panel manual-section">
+                <h3 class="manual-h">👤 Mi Perfil y plan</h3>
+                <p>En esta sección configuras los datos de tu cuenta y eliges tu plan.</p>
+                <h4 class="manual-h-sub">Datos del negocio</h4>
+                <ul>
+                  <li><strong>Correo</strong>: el que usaste para registrarte. No se puede cambiar desde aquí.</li>
+                  <li><strong>Nombre del negocio</strong>: aparece en cada ticket impreso. Puedes cambiarlo cuando quieras.</li>
+                  <li><strong>Contraseña</strong>: déjala vacía si no quieres cambiarla. Mínimo 6 caracteres.</li>
+                </ul>
+                <h4 class="manual-h-sub">Planes</h4>
+                <ul>
+                  <li><strong>Free</strong>: hasta 20 productos y 50 ingredientes. Ideal para probar.</li>
+                  <li><strong>Premium</strong>: productos e ingredientes ilimitados, ventas, inventario, recomendaciones, CRM y reportes avanzados.</li>
+                </ul>
+                <p>Si estás en Free, los módulos bloqueados se ven en gris en el menú. Al actualizar a Premium se desbloquean al instante.</p>
+              </section>
+
+              <section id="m-ingredientes" class="panel manual-section">
+                <h3 class="manual-h">🥬 Ingredientes</h3>
+                <p>Aquí registras todos los insumos que usa tu cocina (carne, pan, queso, salsas, vasos, etc.). Es la base para calcular el costo real de cada platillo.</p>
+                <h4 class="manual-h-sub">Campos</h4>
+                <ul>
+                  <li><strong>Nombre</strong>: el del insumo, ej. “Queso americano”.</li>
+                  <li><strong>Unidad</strong>: gramo, mililitro, pieza, etc.</li>
+                  <li><strong>Precio del paquete</strong>: cuánto te cuesta el paquete completo al comprarlo.</li>
+                  <li><strong>Unidades por paquete</strong>: cuántas unidades vienen en ese paquete.</li>
+                  <li><strong>Costo unitario</strong>: se calcula automáticamente (precio ÷ unidades).</li>
+                </ul>
+                <h4 class="manual-h-sub">Acciones útiles</h4>
+                <ul>
+                  <li><strong>Añadir Ingrediente</strong>: alta manual.</li>
+                  <li><strong>Importar base</strong>: carga una lista predefinida típica de hamburguesas/comida rápida.</li>
+                  <li><strong>Exportar CSV / JSON</strong>: descarga toda tu lista para respaldarla o llevarla a Excel.</li>
+                  <li><strong>Buscador</strong>: filtra escribiendo nombre o unidad (ignora mayúsculas y acentos).</li>
+                </ul>
+                <p class="manual-tip">💡 Mantén actualizado el precio del paquete cuando cambien tus proveedores: así los costos de tus platillos siempre reflejan la realidad.</p>
+              </section>
+
+              <section id="m-productos" class="panel manual-section">
+                <h3 class="manual-h">🍔 Productos y recetas</h3>
+                <p>Los productos son lo que vendes en el POS. Cada uno puede tener una receta (ingredientes y cantidades) para calcular costo y ganancia.</p>
+                <h4 class="manual-h-sub">Crear un producto</h4>
+                <ol>
+                  <li>Pulsa <strong>Añadir Producto</strong>.</li>
+                  <li>Llena nombre, precio de venta y categoría.</li>
+                  <li>(Opcional) asigna estación de cocina (parrilla, barra…).</li>
+                  <li>(Opcional) agrega los ingredientes que consume y la cantidad de cada uno.</li>
+                  <li>Guarda. El sistema calcula automáticamente costo, margen y ganancia.</li>
+                </ol>
+                <h4 class="manual-h-sub">Categorías</h4>
+                <p>Puedes filtrar productos por categoría en el POS. Las categorías estandarizadas son: hamburguesa, bebida, complemento, postre, combo y otras que tú crees.</p>
+                <h4 class="manual-h-sub">Combos</h4>
+                <p>Si marcas un producto como <strong>combo</strong>, podrás definir qué hamburguesas, bebidas y complementos lo componen. Al cobrar, el ticket detalla cada componente.</p>
+              </section>
+
+              <section id="m-estaciones" class="panel manual-section">
+                <h3 class="manual-h">🏭 Estaciones de cocina</h3>
+                <p>Las estaciones representan las áreas donde se preparan los productos: parrilla, freidora, barra, postres, etc. Sirven para organizar los pedidos pendientes y dirigirlos a la persona correcta.</p>
+                <ul>
+                  <li>Crea cuantas necesites con un nombre claro.</li>
+                  <li>Asigna cada producto a su estación al editarlo.</li>
+                  <li>En <strong>Pedidos pendientes</strong> verás cada item agrupado por estación.</li>
+                </ul>
+              </section>
+
+              <section id="m-personalizar" class="panel manual-section">
+                <h3 class="manual-h">🎨 Personalizar</h3>
+                <p>Aquí configuras detalles específicos de tu negocio:</p>
+                <ul>
+                  <li><strong>Mesas</strong>: alta, edición y orden de mesas para servicio en local.</li>
+                  <li><strong>Categorías</strong>: crea/elimina las categorías que veas en el POS.</li>
+                  <li><strong>Opciones generales</strong>: comportamiento del POS, tipo de orden por defecto, etc.</li>
+                </ul>
+              </section>
+
+              <section id="m-pos" class="panel manual-section">
+                <h3 class="manual-h">🛍️ Punto de Venta (Vender)</h3>
+                <p>Es la pantalla principal de operación diaria.</p>
+                <h4 class="manual-h-sub">Flujo de una venta</h4>
+                <ol>
+                  <li>Selecciona el <strong>tipo de orden</strong>: en local, para llevar o domicilio.</li>
+                  <li>Si es en local, elige la <strong>mesa</strong>.</li>
+                  <li>Toca los productos para agregarlos a la orden. Usa los filtros por categoría para encontrarlos rápido.</li>
+                  <li>(Opcional) asigna un <strong>cliente</strong> registrado para sumar puntos.</li>
+                  <li>(Opcional) aplica descuento o costo de envío.</li>
+                  <li>Pulsa <strong>💳 Cobrar</strong>, elige método de pago y confirma.</li>
+                </ol>
+                <h4 class="manual-h-sub">Después del cobro</h4>
+                <ul>
+                  <li>El sistema asigna un <strong>folio único</strong> a la venta.</li>
+                  <li>Se imprime el <strong>ticket automáticamente</strong> en tu impresora térmica.</li>
+                  <li>Se descuentan los insumos consumidos del inventario.</li>
+                  <li>Aparece un modal con resumen y botón de <strong>Reimprimir</strong>.</li>
+                </ul>
+                <h4 class="manual-h-sub">Cuentas por mesa</h4>
+                <p>Cada mesa guarda su propia orden hasta que la cobres. Puedes cambiar de mesa sin perder lo que ya cargaste.</p>
+              </section>
+
+              <section id="m-pedidos" class="panel manual-section">
+                <h3 class="manual-h">📦 Pedidos pendientes</h3>
+                <p>Cuando se cobra una venta, automáticamente se crea un pedido pendiente. Aquí la cocina ve qué hay que preparar.</p>
+                <ul>
+                  <li>Cada pedido muestra mesa, cliente y los items.</li>
+                  <li>Marca un pedido como listo o entregado para limpiarlo de la cola.</li>
+                  <li>Si una venta se cancela, su pedido se elimina automáticamente.</li>
+                </ul>
+              </section>
+
+              <section id="m-ventas" class="panel manual-section">
+                <h3 class="manual-h">💳 Ventas</h3>
+                <p>Lista histórica de todas tus transacciones cobradas.</p>
+                <h4 class="manual-h-sub">Columnas</h4>
+                <ul>
+                  <li><strong>Folio</strong> y fecha/hora.</li>
+                  <li><strong>Cliente</strong> (o “General” si no se asignó).</li>
+                  <li><strong>Items</strong> vendidos.</li>
+                  <li><strong>Total</strong> cobrado, <strong>costo</strong> de producción y <strong>ganancia</strong> con margen %.</li>
+                </ul>
+                <h4 class="manual-h-sub">Acciones por venta</h4>
+                <ul>
+                  <li><strong>Ver</strong>: muestra el desglose completo del ticket.</li>
+                  <li><strong>🖨️ Imprimir</strong>: reimprime el ticket idéntico al original.</li>
+                  <li><strong>✕ Cancelar</strong>: marca la venta como cancelada (no contará en reportes ni descontará insumos).</li>
+                </ul>
+              </section>
+
+              <section id="m-clientes" class="panel manual-section">
+                <h3 class="manual-h">👥 Clientes (CRM)</h3>
+                <p>Lleva el control de tus clientes recurrentes y premíalos con un programa de puntos sencillo.</p>
+                <ul>
+                  <li>Da de alta nombre, teléfono y dirección.</li>
+                  <li>El sistema acumula <strong>1 punto por cada $10 gastados</strong>.</li>
+                  <li>Verifica el historial de compras y el gasto total de cada cliente.</li>
+                  <li>Vista en tarjetas o tabla, ordenable y con buscador.</li>
+                </ul>
+              </section>
+
+              <section id="m-caja" class="panel manual-section">
+                <h3 class="manual-h">💵 Caja</h3>
+                <p>Control de efectivo y movimientos diarios.</p>
+                <ul>
+                  <li><strong>Ingresos</strong>: dinero que entra fuera de las ventas (aportaciones, fondos).</li>
+                  <li><strong>Transferencias</strong>: salidas o entradas entre cajas/bancos.</li>
+                  <li><strong>Pendientes</strong>: cuentas por cobrar o pagar pendientes.</li>
+                  <li>Resumen del día con saldos calculados automáticamente.</li>
+                </ul>
+              </section>
+
+              <section id="m-finanzas" class="panel manual-section">
+                <h3 class="manual-h">📊 Finanzas</h3>
+                <p>Visión global del negocio.</p>
+                <ul>
+                  <li><strong>Empleados</strong>: registra nómina y costos laborales.</li>
+                  <li><strong>Servicios</strong>: renta, luz, agua, internet, etc.</li>
+                  <li><strong>Asignaciones</strong>: cómo se reparten los gastos (por ingreso, fijo, etc.).</li>
+                  <li><strong>Gastos</strong>: bitácora de egresos del período.</li>
+                </ul>
+                <p>Con todo esto la app calcula la ganancia neta real, no solo la bruta.</p>
+              </section>
+
+              <section id="m-insumos" class="panel manual-section">
+                <h3 class="manual-h">📦 Insumos gastados</h3>
+                <p>Te dice cuántos gramos, piezas o ml has consumido según tus ventas. Tres pestañas:</p>
+                <ul>
+                  <li><strong>Totales consumidos</strong>: cuánto se ha gastado en total de cada ingrediente.</li>
+                  <li><strong>Ventas (consumo)</strong>: detalle de qué venta consumió qué.</li>
+                  <li><strong>Mermas</strong>: registro manual de productos dañados o desperdiciados.</li>
+                </ul>
+              </section>
+
+              <section id="m-inventario" class="panel manual-section">
+                <h3 class="manual-h">📦 Inventario</h3>
+                <p>Control de stock real basado en compras y consumo.</p>
+                <ul>
+                  <li>Registra cada <strong>compra</strong> con cantidad y costo.</li>
+                  <li>El sistema resta lo que se va vendiendo o se merma.</li>
+                  <li>Te alerta cuando un ingrediente está por agotarse.</li>
+                </ul>
+                <p class="manual-tip">💡 Para que el inventario sea preciso, registra todas las compras y reporta las mermas con honestidad.</p>
+              </section>
+
+              <section id="m-recomendaciones" class="panel manual-section">
+                <h3 class="manual-h">💡 Recomendaciones</h3>
+                <p>El sistema analiza tus ventas y te sugiere acciones: productos más rentables, los que no se venden, ingredientes con bajo margen, etc. Útil para decisiones de menú.</p>
+              </section>
+
+              <section id="m-dashboard" class="panel manual-section">
+                <h3 class="manual-h">📈 Dashboard</h3>
+                <p>Resumen visual del rendimiento: ingresos del día/semana/mes, ticket promedio, ROI, productos top, métodos de pago más usados, etc.</p>
+                <p>Es el primer lugar al que conviene mirar cada mañana.</p>
+              </section>
+
+              <section id="m-reportes" class="panel manual-section">
+                <h3 class="manual-h">📄 Reportes</h3>
+                <p>Reportes detallados que puedes filtrar por rango de fechas y exportar.</p>
+                <ul>
+                  <li>Ventas por período, por cliente, por producto.</li>
+                  <li>Costos vs. ingresos (rentabilidad real).</li>
+                  <li>Consumo de ingredientes y mermas.</li>
+                </ul>
+              </section>
+
+              <section id="m-tickets" class="panel manual-section">
+                <h3 class="manual-h">🖨️ Impresión de tickets</h3>
+                <p>Gestia imprime tickets en impresora térmica de <strong>80&nbsp;mm</strong>.</p>
+                <h4 class="manual-h-sub">Configuración recomendada</h4>
+                <ul>
+                  <li>Conecta tu impresora térmica al sistema (USB, Bluetooth o red) e instálala como impresora del sistema operativo.</li>
+                  <li>Pruebe imprimir desde Windows/Mac antes de usarla en Gestia.</li>
+                  <li>En el diálogo de impresión del navegador: selecciona tu térmica, Márgenes “Ninguno” y desmarca encabezados/pies de página.</li>
+                </ul>
+                <h4 class="manual-h-sub">Impresión silenciosa</h4>
+                <p>Para no ver el diálogo cada vez, abre Chrome con el flag <code>--kiosk-printing</code> y deja la térmica como impresora predeterminada.</p>
+                <h4 class="manual-h-sub">Reimpresión</h4>
+                <p>Desde la sección <strong>Ventas</strong> puedes reimprimir cualquier ticket pulsando el botón 🖨️ de la fila.</p>
+              </section>
+
+              <section id="m-seguridad" class="panel manual-section">
+                <h3 class="manual-h">🔒 Seguridad y datos</h3>
+                <ul>
+                  <li>Tus datos viven en tu cuenta y están aislados de otros usuarios.</li>
+                  <li>La autenticación usa Firebase con estándares de la industria.</li>
+                  <li>Las contraseñas nunca viajan en texto plano.</li>
+                  <li>Si pierdes tu contraseña, usa <em>Recuperar</em> en el login para recibir un correo.</li>
+                  <li>Recomendación: exporta periódicamente tu lista de ingredientes/productos como respaldo.</li>
+                </ul>
+              </section>
+
+              <section id="m-faq" class="panel manual-section">
+                <h3 class="manual-h">❓ Preguntas frecuentes</h3>
+                <h4 class="manual-h-sub">No se imprime el ticket</h4>
+                <p>Verifica que la impresora térmica esté instalada en tu sistema y esté seleccionada en el diálogo de impresión. Si el navegador bloqueó las pestañas emergentes, permítelas para este sitio.</p>
+                <h4 class="manual-h-sub">Las letras del ticket salen demasiado oscuras o cortadas</h4>
+                <p>Asegúrate de seleccionar Márgenes “Ninguno” y tamaño de papel 80&nbsp;mm. Si tu impresora tiene control de densidad, bájalo a medio.</p>
+                <h4 class="manual-h-sub">Por qué el costo de mi platillo es 0</h4>
+                <p>Porque no le has asignado ingredientes/receta. Edita el producto y agrega lo que consume.</p>
+                <h4 class="manual-h-sub">No me deja crear más productos</h4>
+                <p>Probablemente alcanzaste el límite del Plan Free (20 productos). Cambia a Premium en <em>Mi Perfil</em>.</p>
+                <h4 class="manual-h-sub">¿Puedo usar Gestia sin internet?</h4>
+                <p>Necesitas conexión para iniciar sesión y sincronizar. Una vez cargado, puedes seguir vendiendo brevemente, pero los cambios se sincronizan al recuperar la red.</p>
+              </section>
+
+            </article>
+          </div>
+        </div>
+
+        <style>
+          .manual-content :is(p, ul, ol) { font-size: 0.95rem; line-height: 1.6; margin: .35rem 0 .6rem; }
+          .manual-content ul, .manual-content ol { padding-left: 1.25rem; }
+          .manual-content li { margin: .15rem 0; }
+          .manual-content code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+            font-size: .85em; padding: .05rem .35rem; border-radius: 6px;
+            background: rgba(255,255,255,.08);
+          }
+          .manual-h {
+            font-size: 1.25rem; font-weight: 800; margin: 0 0 .5rem;
+            display: flex; align-items: center; gap: .4rem;
+          }
+          .manual-h-sub {
+            font-size: 1rem; font-weight: 700; margin: .9rem 0 .3rem; opacity: .92;
+          }
+          .manual-tip {
+            background: rgba(230,179,37,.10);
+            border-left: 3px solid var(--amber, #E6B325);
+            padding: .55rem .75rem; border-radius: 6px;
+            font-size: .88rem; margin: .5rem 0;
+          }
+          .manual-toc-link {
+            display: block; padding: .35rem .55rem; border-radius: 8px;
+            text-decoration: none; color: inherit; opacity: .82;
+            transition: background .15s ease, opacity .15s ease;
+          }
+          .manual-toc-link:hover { background: rgba(255,255,255,.06); opacity: 1; }
+          .manual-toc-link.active {
+            background: rgba(230,179,37,.15);
+            color: var(--amber, #E6B325);
+            opacity: 1;
+            font-weight: 700;
+          }
+          .manual-section { scroll-margin-top: 90px; }
+          .manual-section.manual-hidden { display: none; }
+          .manual-section .manual-hl {
+            background: rgba(230,179,37,.35); color: inherit; border-radius: 3px; padding: 0 2px;
+          }
+        </style>
+
+        <script>
+          (function(){
+            // Navegación suave del índice del manual
+            document.addEventListener('click', function(e){
+              const a = e.target.closest && e.target.closest('.manual-toc-link');
+              if(!a) return;
+              const href = a.getAttribute('href') || '';
+              if(!href.startsWith('#m-')) return;
+              e.preventDefault();
+              const target = document.querySelector(href);
+              if(!target) return;
+              target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              document.querySelectorAll('.manual-toc-link').forEach(function(x){ x.classList.remove('active'); });
+              a.classList.add('active');
+            });
+
+            // Buscador del manual: filtra secciones y resalta coincidencias
+            const input = document.getElementById('manual-search');
+            const meta  = document.getElementById('manual-search-meta');
+            if(!input) return;
+            const sections = Array.from(document.querySelectorAll('#manual-articles .manual-section'));
+            const originals = new Map();
+            sections.forEach(function(sec){ originals.set(sec.id, sec.innerHTML); });
+
+            function escReg(s){ return s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+            function norm(s){
+              return String(s||'').toLowerCase()
+                .normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+            }
+
+            let t = null;
+            input.addEventListener('input', function(){
+              clearTimeout(t);
+              t = setTimeout(applyFilter, 90);
+            });
+
+            function applyFilter(){
+              const qRaw = input.value.trim();
+              const q = norm(qRaw);
+              let visibles = 0;
+              sections.forEach(function(sec){
+                sec.innerHTML = originals.get(sec.id);
+                if(!q){ sec.classList.remove('manual-hidden'); visibles++; return; }
+                const text = norm(sec.textContent || '');
+                if(text.indexOf(q) === -1){
+                  sec.classList.add('manual-hidden');
+                  return;
+                }
+                sec.classList.remove('manual-hidden');
+                visibles++;
+                // Resaltado
+                try{
+                  const re = new RegExp('(' + escReg(qRaw) + ')', 'gi');
+                  walkAndHighlight(sec, re);
+                }catch(_){}
+              });
+              if(meta){
+                meta.textContent = q
+                  ? (visibles + ' sección(es) con coincidencias')
+                  : '';
+              }
+            }
+
+            function walkAndHighlight(root, re){
+              const skip = new Set(['SCRIPT','STYLE','CODE']);
+              const walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, null);
+              const nodes = [];
+              while(walker.nextNode()){
+                const n = walker.currentNode;
+                if(n.parentNode && !skip.has(n.parentNode.tagName) && re.test(n.nodeValue)){
+                  nodes.push(n);
+                }
+                re.lastIndex = 0;
+              }
+              nodes.forEach(function(n){
+                const span = document.createElement('span');
+                span.innerHTML = n.nodeValue.replace(re, '<mark class="manual-hl">$1</mark>');
+                n.parentNode.replaceChild(span, n);
+              });
+            }
+          })();
+        </script>
       </section>
 
     </main>
@@ -6352,14 +6821,58 @@
       }
     }
 
+    // Estado del buscador de ingredientes (filtrado en cliente, sin tocar Firestore)
+    let __ingredientesQuery = '';
+    function _normIng(s){
+      return String(s||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'');
+    }
+    function setupIngredientesSearch(){
+      const input = document.getElementById('ingredientes-search');
+      const clear = document.getElementById('ingredientes-search-clear');
+      if(!input || input.dataset.bound==='1') return;
+      input.dataset.bound = '1';
+      input.value = __ingredientesQuery;
+      if(clear) clear.classList.toggle('hidden', !__ingredientesQuery);
+      input.addEventListener('input', ()=>{
+        __ingredientesQuery = input.value || '';
+        if(clear) clear.classList.toggle('hidden', !__ingredientesQuery);
+        renderIngredientesTabla();
+      });
+      if(clear){
+        clear.addEventListener('click', ()=>{
+          __ingredientesQuery = '';
+          input.value = '';
+          clear.classList.add('hidden');
+          renderIngredientesTabla();
+          input.focus();
+        });
+      }
+    }
+
     function renderIngredientesTabla(){
+      setupIngredientesSearch();
       const tb=$('#ingredientes-list-body'); if(!tb) return;
+      const meta = document.getElementById('ingredientes-search-meta');
       tb.innerHTML='';
       if(!Array.isArray(appState.ingredientes) || appState.ingredientes.length===0){
         tb.innerHTML='<tr><td colspan="5" class="p-3 text-center opacity-60">Sin ingredientes</td></tr>';
+        if(meta) meta.textContent='';
         return;
       }
-      appState.ingredientes.forEach(i=>{
+      const q = _normIng(__ingredientesQuery).trim();
+      const lista = q
+        ? appState.ingredientes.filter(i => _normIng(i?.nombre).includes(q) || _normIng(i?.unidad).includes(q))
+        : appState.ingredientes;
+      if(meta){
+        meta.textContent = q
+          ? `${lista.length} de ${appState.ingredientes.length} ingredientes`
+          : '';
+      }
+      if(lista.length===0){
+        tb.innerHTML=`<tr><td colspan="5" class="p-3 text-center opacity-60">Sin coincidencias para "${esc(__ingredientesQuery)}"</td></tr>`;
+        return;
+      }
+      lista.forEach(i=>{
         const unitCost = getUnitCost(i);
         const tr=document.createElement('tr');
         tr.className = 'ingredientes-table-row';
@@ -6957,6 +7470,7 @@
           </td>
           <td class="p-2 flex items-center gap-2">
             <button class="px-2 py-1 rounded border text-sm btn-view-sale" data-id="${v.id}">Ver</button>
+            <button class="px-2 py-1 rounded border text-sm btn-print-sale" title="Imprimir ticket" aria-label="Imprimir ticket" data-id="${v.id}">🖨️</button>
             <button class="px-2 py-1 rounded border border-red-300 text-red-700 hover:bg-red-50 text-sm btn-delete-sale" title="Cancelar venta" aria-label="Cancelar venta" data-id="${v.id}">✕</button>
           </td>
         `;
@@ -7000,6 +7514,21 @@
         if(v.costoEnvio){ lines.push(`Envío: ${fmt(v.costoEnvio)}`); }
         lines.push(`Total: ${fmt(v.total||0)}`);
         openFormModal({ title: `${label} • ${new Date(v.fecha).toLocaleString()}`, fields:[{ name:'detalle', label:'', type:'textarea', rows: Math.min(14, Math.max(8, lines.length+2)), value: lines.join('\n') }], submitText:'Cerrar', onSubmit:()=>{} });
+      });
+    })();
+
+    // Reimprimir ticket desde la sección de Ventas
+    (function setupVentasPrint(){
+      document.addEventListener('click', (e)=>{
+        const btn = e.target.closest && e.target.closest('button.btn-print-sale');
+        if(!btn) return;
+        const id = btn.getAttribute('data-id');
+        const v = (appState.ventas||[]).find(x=>x.id===id);
+        if(!v){ alert('Venta no encontrada'); return; }
+        if(v.cancelada){
+          if(!confirm('Esta venta está cancelada. ¿Imprimir ticket de todos modos?')) return;
+        }
+        try{ printTicket(v); }catch(err){ console.warn('[ventas printTicket]', err); alert('No se pudo imprimir el ticket'); }
       });
     })();
 
@@ -9054,6 +9583,206 @@
       toggleMesaUIByType();
     }
 
+    // ===== Impresión de ticket térmico (80mm) =====
+    // Obtiene el nombre del negocio configurado en "Mi Perfil".
+    // Lo usa cacheado en appState/window; si no existe lo lee de Firestore una sola vez.
+    async function getBusinessName(){
+      try{
+        const cached = appState?.nombreNegocio || window.__nombreNegocio;
+        if(cached) return cached;
+        const u = window.auth?.currentUser;
+        if(!u || !window.db || !window.fs) return 'Mi Negocio';
+        const { doc, getDoc } = window.fs;
+        const snap = await getDoc(doc(window.db, 'usuarios', u.uid));
+        const name = (snap && snap.exists() ? (snap.data()?.nombreNegocio || '') : '').trim();
+        const finalName = name || 'Mi Negocio';
+        try{ appState.nombreNegocio = finalName; window.__nombreNegocio = finalName; }catch(_){ }
+        return finalName;
+      }catch(_){ return 'Mi Negocio'; }
+    }
+
+    // Construye el HTML del ticket optimizado para impresoras térmicas de 80 mm.
+    // Todos los datos se escapan con esc() para prevenir XSS.
+    function buildTicketHTML(venta, businessName){
+      const fecha = new Date(venta?.fecha || Date.now());
+      const fechaStr = fecha.toLocaleString('es-MX', { dateStyle:'short', timeStyle:'short' });
+      const cliente = venta?.clienteId
+        ? ((appState.clientes||[]).find(c=>c.id===venta.clienteId)?.nombre || '')
+        : '';
+      const tipoLabel = ({ local:'Consumo en local', delivery:'Domicilio', takeaway:'Para llevar' })[venta?.tipo] || (venta?.tipo||'');
+      const items = (venta?.items||[]).map(it=>{
+        const cant = Number(it.cantidad)||0;
+        const pu = Number(it.precio)||0;
+        const sub = cant * pu;
+        const mods = Array.isArray(it.modifiers) && it.modifiers.length
+          ? '<div class="mod">' + esc(it.modifiers.map(m => (m && (m.nombre || m.label)) || m).join(', ')) + '</div>'
+          : '';
+        return `
+          <tr>
+            <td class="qty">${esc(cant)}</td>
+            <td class="name">${esc(it.nombre||'')}${mods}<div class="pu">${fmt(pu)} c/u</div></td>
+            <td class="price">${fmt(sub)}</td>
+          </tr>`;
+      }).join('');
+      const desc = Number(venta?.descuento)||0;
+      const env  = Number(venta?.costoEnvio)||0;
+      return `<!doctype html><html lang="es"><head><meta charset="utf-8">
+<title>Ticket #${esc(venta?.saleNumber ?? '')}</title>
+<style>
+  /* Ticket térmico 80mm — área imprimible real ~72mm */
+  @page { size: 80mm auto; margin: 0; }
+  * { box-sizing: border-box; }
+  html, body { margin:0; padding:0; background:#fff; color:#000; }
+  body {
+    font-family: 'Courier New', Courier, monospace;
+    width: 72mm;            /* deja 4mm de margen lógico a cada lado */
+    margin: 0 auto;
+    padding: 3mm 2mm 5mm;   /* respeta zona no imprimible del cabezal */
+    font-size: 12px;
+    line-height: 1.4;
+    font-weight: 700;       /* texto pequeño con buen grosor para que se lea bien */
+    color: #000;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    word-wrap: break-word;
+    overflow-wrap: anywhere;
+  }
+  .center { text-align:center; }
+  .right  { text-align:right; }
+  .small  { font-size: 11px; font-weight: 700; }
+  /* Títulos / encabezados — mismo peso que ya gustaba */
+  .biz    { text-align:center; font-size: 16px; font-weight: 700; letter-spacing: .5px; margin: 0 0 2px; text-transform: uppercase; }
+  .sub    { text-align:center; font-size: 11px; font-weight: 700; margin-bottom: 4px; }
+  hr      { border: none; border-top: 1px dashed #000; margin: 5px 0; }
+  /* Bloque de meta: etiqueta a la izquierda, valor a la derecha — simétrico */
+  .meta   { font-size: 12px; font-weight: 700; }
+  .meta div { display:flex; justify-content:space-between; align-items:baseline; gap:6px; padding: 1px 0; }
+  .meta div > span:first-child { opacity: .9; }
+  .meta div > span:last-child  { text-align: right; font-weight: 700; }
+  table   { width: 100%; border-collapse: collapse; table-layout: fixed; }
+  th, td  { vertical-align: top; padding: 2px 0; font-size: 12px; font-weight: 700; text-align: left; word-wrap: break-word; overflow-wrap: anywhere; }
+  thead td { font-weight: 700; border-bottom: 1px dashed #000; padding-bottom: 3px; text-transform: uppercase; letter-spacing: .3px; }
+  .qty    { width: 8mm; text-align: center; }
+  .price  { width: 18mm; text-align: right; white-space: nowrap; }
+  .name   { padding: 0 2mm; text-align: left; }
+  .name .mod { display:block; font-size: 10px; font-weight: 700; font-style: italic; }
+  .name .pu  { display:block; font-size: 10px; font-weight: 700; }
+  /* Totales: etiqueta justificada izquierda / valor derecha alineado */
+  .totals td { padding: 2px 0; font-size: 12px; font-weight: 700; }
+  .totals .lbl { text-align: left; }
+  .totals .val { text-align: right; white-space: nowrap; }
+  .total-row td { font-size: 14px; font-weight: 700; border-top: 1px dashed #000; padding-top: 5px; }
+  /* Pago centrado y simétrico */
+  .pay    { font-size: 12px; font-weight: 700; text-align: center; }
+  .pay strong { font-weight: 700; }
+  .footer { text-align: center; margin-top: 6px; font-size: 11px; font-weight: 700; }
+  .folio  { font-size: 13px; font-weight: 700; }
+</style></head>
+<body>
+  <div class="biz">${esc(businessName)}</div>
+  <div class="sub">Ticket de venta</div>
+  <hr>
+  <div class="meta">
+    <div><span>Folio:</span><span class="folio">#${esc(venta?.saleNumber ?? '')}</span></div>
+    <div><span>Fecha:</span><span>${esc(fechaStr)}</span></div>
+    ${tipoLabel ? `<div><span>Tipo:</span><span>${esc(tipoLabel)}</span></div>` : ''}
+    ${venta?.mesaName ? `<div><span>Mesa:</span><span>${esc(venta.mesaName)}</span></div>` : ''}
+    ${cliente ? `<div><span>Cliente:</span><span>${esc(cliente)}</span></div>` : ''}
+  </div>
+  <hr>
+  <table>
+    <thead><tr><td class="qty">Cant</td><td>Producto</td><td class="price">Importe</td></tr></thead>
+    <tbody>${items}</tbody>
+  </table>
+  <hr>
+  <table class="totals">
+    <tr><td class="lbl">Subtotal</td><td class="val">${fmt(venta?.subtotal||0)}</td></tr>
+    ${desc > 0 ? `<tr><td class="lbl">Descuento</td><td class="val">- ${fmt(desc)}</td></tr>` : ''}
+    ${env  > 0 ? `<tr><td class="lbl">Envío</td><td class="val">${fmt(env)}</td></tr>` : ''}
+    <tr class="total-row"><td class="lbl">TOTAL</td><td class="val">${fmt(venta?.total||0)}</td></tr>
+  </table>
+  <hr>
+  <div class="pay">Pago: <strong>${esc(venta?.pago?.metodo||'—')}</strong></div>
+  ${venta?.pago?.referencia ? `<div class="pay small">Ref: ${esc(venta.pago.referencia)}</div>` : ''}
+  <hr>
+  <div class="footer">¡Gracias por su compra!</div>
+  <div class="footer small">Conserve este ticket para cualquier aclaración.</div>
+</body></html>`;
+    }
+
+    // Imprime el ticket usando un iframe oculto para no interferir con la app.
+    // El navegador mostrará el diálogo de impresión donde el usuario seleccionará
+    // su impresora térmica. Configurar márgenes a "Ninguno" en el cuadro de diálogo.
+    async function printTicket(venta){
+      try{
+        if(!venta){ return; }
+        const businessName = await getBusinessName();
+        const html = buildTicketHTML(venta, businessName);
+        // Reemplaza un iframe previo si existe
+        const prev = document.getElementById('__ticket-print-frame');
+        if(prev) prev.remove();
+        const iframe = document.createElement('iframe');
+        iframe.id = '__ticket-print-frame';
+        iframe.setAttribute('aria-hidden', 'true');
+        iframe.style.cssText = 'position:fixed;right:0;bottom:0;width:0;height:0;border:0;visibility:hidden;';
+        document.body.appendChild(iframe);
+        const doInvokePrint = ()=>{
+          try{
+            const win = iframe.contentWindow;
+            if(!win) return;
+            win.focus();
+            win.print();
+          }catch(e){ console.warn('[printTicket] print()', e); }
+        };
+        iframe.onload = ()=> setTimeout(doInvokePrint, 80);
+        const cdoc = iframe.contentWindow.document;
+        cdoc.open(); cdoc.write(html); cdoc.close();
+        // Fallback por si onload no se dispara en algunos navegadores
+        setTimeout(doInvokePrint, 600);
+      }catch(e){
+        console.error('[printTicket]', e);
+        alert('No se pudo abrir el diálogo de impresión: ' + (e?.message || e));
+      }
+    }
+    // Exponer para depuración / reimpresión desde otras vistas
+    window.printTicket = printTicket;
+
+    // Modal post-venta con resumen + opción de reimprimir
+    function openPostSaleModal(venta){
+      try{
+        openFormModal({
+          title: `✅ Venta #${venta.saleNumber} registrada`,
+          fields: [
+            { type:'html', html: `
+              <div style="font-size:.95rem;color:#111">
+                <div style="display:flex;justify-content:space-between;margin:.2rem 0">
+                  <span>Total cobrado</span>
+                  <strong>${fmt(venta.total||0)}</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin:.2rem 0">
+                  <span>Método de pago</span>
+                  <strong>${esc(venta.pago?.metodo||'—')}</strong>
+                </div>
+                <div style="display:flex;justify-content:space-between;margin:.2rem 0">
+                  <span>Productos</span>
+                  <strong>${(venta.items||[]).reduce((a,it)=>a+(Number(it.cantidad)||0),0)}</strong>
+                </div>
+                <div style="margin-top:.6rem;padding:.5rem;border:1px dashed #999;border-radius:6px;font-size:.8rem;opacity:.85">
+                  Se envió el ticket a la impresora. Si no se imprimió, usa el botón para reintentar.
+                </div>
+              </div>` }
+          ],
+          submitText: '🖨️ Reimprimir ticket',
+          onSubmit: ()=>{ printTicket(venta); return false; /* mantener modal abierto */ }
+        });
+        // Renombrar el botón cancelar a "Cerrar"
+        setTimeout(()=>{
+          const c = document.getElementById('cancel-modal-btn');
+          if(c) c.textContent = 'Cerrar';
+        }, 0);
+      }catch(e){ console.warn('[openPostSaleModal]', e); }
+    }
+
     function openPayModal(){
       if(currentOrder.items.length===0){ alert('No hay productos en la orden'); return; }
       openFormModal({
@@ -9148,7 +9877,9 @@
   // Solo actualizar como fallback si Firestore no estaba disponible.
   if(!isFirestoreReady() && typeof saveMetaToFirestore==='function') saveMetaToFirestore();
   saveLS(); renderAll(); renderPosProductList(); renderPedidosPendientes();
-        alert('Venta procesada correctamente');
+        // Imprimir ticket automáticamente y mostrar modal con opción de reimpresión
+        try{ printTicket(venta); }catch(e){ console.warn('[processSale] printTicket', e); }
+        try{ openPostSaleModal(venta); }catch(_){ alert('Venta procesada correctamente'); }
       } finally {
         __processingSale = false;
         try{ const btn = document.getElementById('pos-pay-btn'); if(btn) btn.disabled = false; }catch(_){ }
@@ -11866,7 +12597,7 @@
         let waited = 0;
         while((!window.db || !window.fs) && waited < 80){ await new Promise(r=>setTimeout(r,100)); waited++; }
         if(!window.db || !window.fs) return;
-        const {doc, setDoc} = window.fs;
+        const {doc, setDoc, getDoc} = window.fs;
         // Always prefer the real email from Firebase Auth over whatever was typed
         const resolvedEmail = email || window.auth?.currentUser?.email || '';
         const payload = { uid, updatedAt: new Date().toISOString() };
@@ -11874,7 +12605,24 @@
         if(password) payload.password = password;
         if(extraData.nombre)   payload.nombre   = extraData.nombre;
         if(extraData.telefono) payload.telefono = extraData.telefono;
-        await setDoc(doc(window.db, 'usuarios', uid), payload, { merge: true });
+        // Otorgar 1 mes gratis de Premium a usuarios nuevos (solo si no tienen plan registrado)
+        try{
+          const ref = doc(window.db, 'usuarios', uid);
+          const snap = await getDoc(ref);
+          const data = snap.exists() ? snap.data() : null;
+          const noPlan = !data || (!data.plan && !data.trialEndsAt);
+          if(noPlan){
+            const now = new Date();
+            const trialEnd = new Date(now.getTime() + 30*24*60*60*1000);
+            payload.plan = 'trial';
+            payload.trialStartsAt = now.toISOString();
+            payload.trialEndsAt = trialEnd.toISOString();
+            if(!data || !data.createdAt) payload.createdAt = now.toISOString();
+          }
+          await setDoc(ref, payload, { merge: true });
+        }catch(_){
+          await setDoc(doc(window.db, 'usuarios', uid), payload, { merge: true });
+        }
       }catch(e){ console.warn('[Admin] saveUserProfile', e); }
     }
 
@@ -11971,12 +12719,12 @@ En Firebase Console → Authentication:
           const targetUser = newUserCredential?.user || window.auth.currentUser;
           if(targetUser && M.sendEmailVerification){
             await M.sendEmailVerification(targetUser);
-            alert('Cuenta creada. Te enviamos un correo de verificación. Revisa tu bandeja de entrada o spam.');
+            alert('¡Cuenta creada! 🎁 Activamos 1 mes gratis de Premium para ti. Te enviamos un correo de verificación, revisa tu bandeja de entrada o spam.');
           } else {
-            alert('Cuenta creada. Tus datos quedarán asociados a esta cuenta.');
+            alert('¡Cuenta creada! 🎁 Activamos 1 mes gratis de Premium para ti.');
           }
         }catch(_){
-          alert('Cuenta creada. Tus datos quedarán asociados a esta cuenta.');
+          alert('¡Cuenta creada! 🎁 Activamos 1 mes gratis de Premium para ti.');
         }
         try{ initializeAuth(); }catch(_){ }
       }catch(err){
@@ -12481,10 +13229,18 @@ En Firebase Console → Authentication:
     const ADMIN_UID = 'Gi7lpYblceRCzebBIL6si5NoTU72';
     window.ADMIN_UID = ADMIN_UID;
     window.__userPlan = 'free';
+    window.__trialEndsAt = null; // ISO string si el usuario está en periodo de prueba
     window.isPremium = function(){
       const u = window.auth?.currentUser;
       if(u && u.uid === ADMIN_UID) return true;
-      return window.__userPlan === 'premium';
+      return window.__userPlan === 'premium' || window.__userPlan === 'trial';
+    };
+    window.getTrialDaysLeft = function(){
+      try{
+        if(!window.__trialEndsAt) return 0;
+        const ms = new Date(window.__trialEndsAt).getTime() - Date.now();
+        return ms > 0 ? Math.ceil(ms / (24*60*60*1000)) : 0;
+      }catch(_){ return 0; }
     };
 
     window.applyNavLocks = function(){
@@ -12508,13 +13264,29 @@ En Firebase Console → Authentication:
         const u = window.auth?.currentUser;
         if(!u || u.isAnonymous){ window.applyNavLocks(); return; }
         // Admin always gets premium
-        if(u.uid === ADMIN_UID){ window.__userPlan = 'premium'; window.applyNavLocks(); return; }
+        if(u.uid === ADMIN_UID){ window.__userPlan = 'premium'; window.__trialEndsAt = null; window.applyNavLocks(); return; }
         let waited = 0;
         while((!window.db || !window.fs) && waited < 50){ await new Promise(r=>setTimeout(r,100)); waited++; }
         if(!window.db || !window.fs){ window.applyNavLocks(); return; }
         const {doc, getDoc} = window.fs;
         const snap = await getDoc(doc(window.db, 'usuarios', u.uid));
-        if(snap.exists()) window.__userPlan = snap.data().plan || 'free';
+        if(snap.exists()){
+          const data = snap.data() || {};
+          let plan = data.plan || 'free';
+          window.__trialEndsAt = data.trialEndsAt || null;
+          // Expirar el trial si la fecha ya pasó
+          if(plan === 'trial'){
+            const ends = data.trialEndsAt ? new Date(data.trialEndsAt).getTime() : 0;
+            if(!ends || ends <= Date.now()){
+              plan = 'free';
+              window.__trialEndsAt = null;
+            }
+          }
+          window.__userPlan = plan;
+        } else {
+          window.__userPlan = 'free';
+          window.__trialEndsAt = null;
+        }
         window.applyNavLocks();
       }catch(e){ console.warn('[Plan] loadUserPlan', e); window.applyNavLocks(); }
     };
@@ -12596,6 +13368,7 @@ En Firebase Console → Authentication:
               const data = snap.data();
               const nEl = document.getElementById('perfil-nombre-negocio');
               if(nEl && data.nombreNegocio) nEl.value = data.nombreNegocio;
+              if(data.nombreNegocio){ try{ appState.nombreNegocio = data.nombreNegocio; window.__nombreNegocio = data.nombreNegocio; }catch(_){ } }
               window.__userPlan = data.plan || 'free';
             }
             renderPlanBadge();
@@ -12624,6 +13397,7 @@ En Firebase Console → Authentication:
                 const payload = { uid: u.uid, updatedAt: new Date().toISOString() };
                 if(nombreNegocio) payload.nombreNegocio = nombreNegocio;
                 await setDoc(doc(window.db, 'usuarios', u.uid), payload, {merge:true});
+                if(nombreNegocio){ try{ appState.nombreNegocio = nombreNegocio; window.__nombreNegocio = nombreNegocio; }catch(_){ } }
               }
               // Update password via Firebase Auth
               if(newPass){
@@ -12646,15 +13420,22 @@ En Firebase Console → Authentication:
       const badge = document.getElementById('perfil-plan-badge');
       if(!badge) return;
       const prem = window.isPremium();
-      badge.innerHTML = prem
-        ? `<span style="display:inline-flex;align-items:center;gap:.4rem;padding:.3rem .8rem;border-radius:999px;background:linear-gradient(135deg,var(--amber,#E6B325),#c99208);color:#000;font-size:.76rem;font-weight:900">⭐ Plan Premium activo</span>`
-        : `<span style="display:inline-flex;align-items:center;gap:.4rem;padding:.3rem .8rem;border-radius:999px;background:rgba(255,255,255,.08);font-size:.76rem;font-weight:700;opacity:.7">🆓 Plan Free</span>`;
+      const isTrial = window.__userPlan === 'trial' && window.__trialEndsAt;
+      const daysLeft = isTrial ? (window.getTrialDaysLeft?.() || 0) : 0;
+      if(isTrial){
+        badge.innerHTML = `<span style="display:inline-flex;align-items:center;gap:.4rem;padding:.3rem .8rem;border-radius:999px;background:linear-gradient(135deg,#10b981,#059669);color:#fff;font-size:.76rem;font-weight:900">🎁 Prueba gratis · ${daysLeft} día${daysLeft===1?'':'s'} restante${daysLeft===1?'':'s'}</span>`;
+      } else {
+        badge.innerHTML = prem
+          ? `<span style="display:inline-flex;align-items:center;gap:.4rem;padding:.3rem .8rem;border-radius:999px;background:linear-gradient(135deg,var(--amber,#E6B325),#c99208);color:#000;font-size:.76rem;font-weight:900">⭐ Plan Premium activo</span>`
+          : `<span style="display:inline-flex;align-items:center;gap:.4rem;padding:.3rem .8rem;border-radius:999px;background:rgba(255,255,255,.08);font-size:.76rem;font-weight:700;opacity:.7">🆓 Plan Free</span>`;
+      }
       const fl = document.getElementById('plan-badge-free');
       const pl = document.getElementById('plan-badge-premium');
       const ub = document.getElementById('btn-upgrade-premium');
       if(fl) fl.style.display = prem ? 'none' : 'block';
       if(pl) pl.style.display = prem ? 'block' : 'none';
-      if(ub) ub.style.display = prem ? 'none' : 'block';
+      // Mostrar el botón de upgrade durante el trial para invitar a convertir
+      if(ub) ub.style.display = (prem && !isTrial) ? 'none' : 'block';
     }
 
     // Load plan on auth state change (called after auth ready)
