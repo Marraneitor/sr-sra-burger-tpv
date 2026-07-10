@@ -293,9 +293,17 @@ async function doLogin(){
   try{
     if(!db&&!await initFB()){throw new Error("No se pudo conectar con Firebase.");}
     const cred=await signInWithEmailAndPassword(auth,email,pass);
-    // Verificar que el usuario tiene documento de admin en Firestore (/admins/{uid})
-    const adminDoc=await getDoc(doc(db,"admins",cred.user.uid));
-    if(!adminDoc.exists()||adminDoc.data().role!=="admin"){
+    // Verificar permisos: por email admin O por documento /admins/{uid}
+    const ADMIN_EMAILS = ['yoelskygold@gmail.com'];
+    const isAdminByEmail = ADMIN_EMAILS.includes((cred.user.email||'').toLowerCase());
+    let isAdminByDoc = false;
+    if(!isAdminByEmail){
+      try{
+        const adminDoc=await getDoc(doc(db,"admins",cred.user.uid));
+        isAdminByDoc = adminDoc.exists() && adminDoc.data().role==="admin";
+      }catch(_){}
+    }
+    if(!isAdminByEmail && !isAdminByDoc){
       await signOut(auth);
       throw new Error("Tu cuenta no tiene permisos de administrador.");
     }
