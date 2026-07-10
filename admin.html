@@ -301,7 +301,7 @@ async function doLogin(){
     }
     $("login-screen").style.display="none";
     $("admin-screen").classList.add("show");
-    sessionStorage.setItem("g_adm",cred.user.uid);
+    localStorage.setItem("g_adm",cred.user.uid);
     loadAll();
   }catch(e){
     const msg=e.code==="auth/invalid-credential"||e.code==="auth/user-not-found"||e.code==="auth/wrong-password"
@@ -321,6 +321,7 @@ $("admin-pass").addEventListener("keydown",e=>{if(e.key==="Enter")doLogin();});
 $("logout-btn").addEventListener("click",async()=>{
   try{if(auth)await signOut(auth);}catch(_){}
   sessionStorage.removeItem("g_adm");
+  localStorage.removeItem("g_adm");
   $("admin-screen").classList.remove("show");
   $("login-screen").style.display="flex";
   $("admin-email").value="";$("admin-pass").value="";
@@ -328,8 +329,8 @@ $("logout-btn").addEventListener("click",async()=>{
 });
 $("refresh-btn").addEventListener("click",loadAll);
 $("ssearch").addEventListener("change",e=>{if(e.target.value)selUser(e.target.value);});
-// Restaurar sesión activa si existe UID en sessionStorage
-if(sessionStorage.getItem("g_adm")){
+// Restaurar sesión activa si existe UID en localStorage/sessionStorage
+if(localStorage.getItem("g_adm")||sessionStorage.getItem("g_adm")){
   $("login-screen").style.display="none";
   $("admin-screen").classList.add("show");
   loadAll();
