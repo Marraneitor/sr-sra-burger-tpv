@@ -4705,13 +4705,6 @@
           // Add the product to the state
           // Add the product to the state
           if (prod) {
-            // Plan limit check
-            const activeProds = (appState.productos||[]).filter(p=>!p.archivado).length;
-            if(activeProds >= (window.FREE_PLAN_MAX_PRODUCTOS||20) && typeof window.isPremium==='function' && !window.isPremium()){
-              closeModal();
-              if(typeof window.showUpgradeModal==='function') window.showUpgradeModal();
-              return;
-            }
             console.log('[UI] Guardando producto:', prod);
             appState.productos.push(prod);
             if(typeof saveProductToFirestore === 'function') saveProductToFirestore(prod);
@@ -4736,12 +4729,6 @@
         onSubmit:(data)=>{
           try{
             const ing = { id: generateId('ing'), nombre:(data.nombre||'').trim(), unidad:(data.unidad||'').trim(), precioPaquete:Number(data.precioPaquete)||0, unidadesPaquete:Number(data.unidadesPaquete)||1 };
-            // Plan limit check
-            const activeIngs = (appState.ingredientes||[]).length;
-            if(activeIngs >= (window.FREE_PLAN_MAX_INGREDIENTES||50) && typeof window.isPremium==='function' && !window.isPremium()){
-              if(typeof window.showUpgradeModal==='function') window.showUpgradeModal();
-              return;
-            }
             appState.ingredientes.push(ing);
             if(typeof saveIngredientToFirestore==='function') saveIngredientToFirestore(ing);
             saveLS(); renderAll();
@@ -5021,12 +5008,7 @@
     function showView(id){
       try{
         console.log('[NAV] showView ->', id);
-        // Plan gate — intercept premium-only sections for free users
-        const GATED = ['ventas','insumos','inventario','recomendaciones','clientes'];
-        if(GATED.includes(id) && typeof window.isPremium==='function' && !window.isPremium()){
-          if(typeof window.showUpgradeModal==='function') window.showUpgradeModal();
-          return;
-        }
+        // Sin restricciones de plan — acceso completo para todos
         try{ document.body.setAttribute('data-view', id); }catch(_){ }
         const targetId = 'view-' + id;
         const views = $$('.view');
@@ -13231,9 +13213,7 @@ En Firebase Console → Authentication:
     window.__userPlan = 'free';
     window.__trialEndsAt = null; // ISO string si el usuario está en periodo de prueba
     window.isPremium = function(){
-      const u = window.auth?.currentUser;
-      if(u && u.uid === ADMIN_UID) return true;
-      return window.__userPlan === 'premium' || window.__userPlan === 'trial';
+      return true; // Todos los usuarios tienen acceso completo y gratuito
     };
     window.getTrialDaysLeft = function(){
       try{
@@ -13244,18 +13224,11 @@ En Firebase Console → Authentication:
     };
 
     window.applyNavLocks = function(){
-      const gated = ['ventas','insumos','inventario','recomendaciones','clientes'];
+      // Sin restricciones: acceso completo para todos los usuarios
       document.querySelectorAll('.nav-link').forEach(function(a){
-        const href = (a.getAttribute('href')||'').replace('#','');
-        if(!gated.includes(href)) return;
-        let lock = a.querySelector('.plan-lock');
-        if(!window.isPremium()){
-          if(!lock){ lock = document.createElement('span'); lock.className='plan-lock'; lock.textContent='🔒'; a.appendChild(lock); }
-          a.style.opacity = '0.55';
-        } else {
-          if(lock) lock.remove();
-          a.style.opacity = '';
-        }
+        const lock = a.querySelector('.plan-lock');
+        if(lock) lock.remove();
+        a.style.opacity = '';
       });
     };
 
