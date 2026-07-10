@@ -29,11 +29,10 @@ service cloud.firestore {
         request.resource.data[field] >= 0 &&
         request.resource.data[field] <= 9999999;
     }
-    // Verifica si el usuario autenticado tiene rol admin en /admins/{uid}
+    // Verifica si el usuario autenticado es administrador por email
     function isAdmin() {
       return request.auth != null &&
-        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
-        get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'admin';
+        request.auth.token.email == 'yoelskygold@gmail.com';
     }
 
     // ── Admin panel — solo lectura, solo para admins autenticados ─────────
