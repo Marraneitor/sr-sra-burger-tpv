@@ -9611,15 +9611,15 @@
       return `<!doctype html><html lang="es"><head><meta charset="utf-8">
 <title>Ticket #${esc(venta?.saleNumber ?? '')}</title>
 <style>
-  /* Ticket térmico 80mm — área imprimible real ~72mm */
-  @page { size: 80mm auto; margin: 0; }
+  /* Ticket térmico 58mm — área imprimible real ~50mm */
+  @page { size: 58mm auto; margin: 0; }
   * { box-sizing: border-box; }
   html, body { margin:0; padding:0; background:#fff; color:#000; }
   body {
     font-family: 'Courier New', Courier, monospace;
-    width: 72mm;            /* deja 4mm de margen lógico a cada lado */
+    width: 54mm;            /* deja 2mm de margen a cada lado */
     margin: 0 auto;
-    padding: 3mm 2mm 5mm;   /* respeta zona no imprimible del cabezal */
+    padding: 2mm 1mm 5mm;
     font-size: 12px;
     line-height: 1.4;
     font-weight: 700;       /* texto pequeño con buen grosor para que se lea bien */
@@ -9685,6 +9685,8 @@
   </table>
   <hr>
   <div class="pay">Pago: <strong>${esc(venta?.pago?.metodo||'—')}</strong></div>
+  ${venta?.pago?.montoRecibido > 0 ? `<div class="pay small">Recibido: ${fmt(venta.pago.montoRecibido)}</div>` : ''}
+  ${venta?.pago?.cambio > 0 ? `<div class="pay" style="font-size:14px">CAMBIO: <strong>${fmt(venta.pago.cambio)}</strong></div>` : ''}
   ${venta?.pago?.referencia ? `<div class="pay small">Ref: ${esc(venta.pago.referencia)}</div>` : ''}
   <hr>
   <div class="footer">¡Gracias por su compra!</div>
@@ -9775,11 +9777,14 @@
             { label:'Transferencia', value:'Transferencia' },
             { label:'Tarjeta', value:'Tarjeta' }
           ]},
+          {name:'montoRecibido', label:'Monto recibido (efectivo)', type:'number', placeholder:'0.00', min:0, step:'0.01'},
           {name:'referencia', label:'Referencia (opcional)', type:'text', placeholder:'Folio/últimos 4/etc'}
         ],
         submitText:'Confirmar cobro',
         onSubmit: async (data)=>{
-          currentOrder.pago = { metodo: (data.metodo||'').trim()||'Efectivo', referencia: (data.referencia||'').trim() };
+          const monto = parseFloat(data.montoRecibido)||0;
+          const cambio = monto > 0 ? Math.max(0, monto - (currentOrder.total||0)) : 0;
+          currentOrder.pago = { metodo: (data.metodo||'').trim()||'Efectivo', referencia: (data.referencia||'').trim(), montoRecibido: monto||null, cambio: cambio||null };
           await processSale();
         }
       });
