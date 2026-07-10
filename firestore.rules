@@ -29,6 +29,12 @@ service cloud.firestore {
         request.resource.data[field] >= 0 &&
         request.resource.data[field] <= 9999999;
     }
+    // Verifica si el usuario autenticado tiene rol admin en /admins/{uid}
+    function isAdmin() {
+      return request.auth != null &&
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/admins/$(request.auth.uid)).data.role == 'admin';
+    }
 
     // ── Admin panel — solo lectura, solo para admins autenticados ─────────
     match /admins/{uid} {
@@ -38,7 +44,7 @@ service cloud.firestore {
 
     // ── Productos ────────────────────────────────────────────────────────
     match /productos/{docId} {
-      allow read:   if request.auth != null && resource.data.userId == request.auth.uid;
+      allow read:   if (request.auth != null && resource.data.userId == request.auth.uid) || isAdmin();
       allow create: if isOwner() && hasValidUserId()
         && validStr('nombre', 120)
         && validPrice('precio');
@@ -51,7 +57,7 @@ service cloud.firestore {
 
     // ── Ingredientes ─────────────────────────────────────────────────────
     match /ingredientes/{docId} {
-      allow read:   if request.auth != null && resource.data.userId == request.auth.uid;
+      allow read:   if (request.auth != null && resource.data.userId == request.auth.uid) || isAdmin();
       allow create, update: if isOwner() && hasValidUserId()
         && validStr('nombre', 120);
       allow delete: if request.auth != null &&
@@ -60,7 +66,7 @@ service cloud.firestore {
 
     // ── Clientes ─────────────────────────────────────────────────────────
     match /clientes/{docId} {
-      allow read:   if request.auth != null && resource.data.userId == request.auth.uid;
+      allow read:   if (request.auth != null && resource.data.userId == request.auth.uid) || isAdmin();
       allow create, update: if isOwner() && hasValidUserId()
         && validStr('nombre', 150);
       allow delete: if request.auth != null &&
@@ -69,7 +75,7 @@ service cloud.firestore {
 
     // ── Ventas ───────────────────────────────────────────────────────────
     match /ventas/{docId} {
-      allow read:   if request.auth != null && resource.data.userId == request.auth.uid;
+      allow read:   if (request.auth != null && resource.data.userId == request.auth.uid) || isAdmin();
       allow create: if isOwner() && hasValidUserId()
         && validPrice('total');
       allow update: if isOwner() && hasValidUserId()
@@ -79,7 +85,7 @@ service cloud.firestore {
 
     // ── Pedidos ──────────────────────────────────────────────────────────
     match /pedidos/{docId} {
-      allow read:   if request.auth != null && resource.data.userId == request.auth.uid;
+      allow read:   if (request.auth != null && resource.data.userId == request.auth.uid) || isAdmin();
       allow create, update: if isOwner() && hasValidUserId();
       allow delete: if request.auth != null &&
         resource.data.userId == request.auth.uid;
@@ -122,7 +128,7 @@ service cloud.firestore {
       allow read, write: if isOwnDoc(uid) && hasValidUserId();
     }
     match /usuarios/{uid} {
-      allow read, write: if isOwnDoc(uid);
+      allow read, write: if isOwnDoc(uid) || isAdmin();
     }
   }
 }
