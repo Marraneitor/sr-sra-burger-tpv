@@ -158,12 +158,20 @@ import { getAuth, signInWithEmailAndPassword, signOut } from "https://www.gstati
 // o desde firebase-config.json en desarrollo local.
 async function loadCFG(){
   if(window.__FIREBASE_CONFIG__) return window.__FIREBASE_CONFIG__;
+  // Config inline como fallback principal (firebase-config.json no está en git)
+  const INLINE_CFG = {
+    apiKey: "AIzaSyDnoGvY5cuschts3XqivqOE0-sc4piNaQ4",
+    authDomain: "manager-d860c.firebaseapp.com",
+    projectId: "manager-d860c",
+    storageBucket: "manager-d860c.firebasestorage.app",
+    messagingSenderId: "626095533475",
+    appId: "1:626095533475:web:8204abfbd6454d17effe16"
+  };
   try{
     const r=await fetch('./firebase-config.json',{cache:'no-store'});
     if(r.ok){ const j=await r.json(); if(j?.apiKey) return j; }
   }catch(_){}
-  // Fallback solo para desarrollo — no expone producción
-  return null;
+  return INLINE_CFG;
 }
 let db=null,auth=null,allData={},selUid=null;
 async function initFB(){
