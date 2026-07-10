@@ -7645,34 +7645,36 @@
             const c = it.customization;
             const baseMult = qty || 1;
 
-            // Combos por categorías (selección dinámica)
-            if(Array.isArray(c.categorias)){
+            // Usar categorias si tienen items (evita doble conteo con los arrays individuales)
+            const hasCategories = Array.isArray(c.categorias) && c.categorias.some(cat=>(cat?.items||[]).length>0);
+            if(hasCategories){
               c.categorias.forEach(cat=>{
                 (cat?.items||[]).forEach(sel=>{
                   if(sel?.productId) applyRecipeForProduct(sel.productId, baseMult);
                 });
               });
-            }
-
-            if(Array.isArray(c.hamburguesas)){
-              c.hamburguesas.forEach(b=>{
-                if(b.productId) applyRecipeForProduct(b.productId, baseMult);
-              });
-            }
-            if(Array.isArray(c.hotdogs)){
-              c.hotdogs.forEach(h=>{
-                if(h.productId) applyRecipeForProduct(h.productId, baseMult);
-              });
-            }
-            if(Array.isArray(c.complementos)){
-              c.complementos.forEach(comp=>{
-                if(comp.productId) applyRecipeForProduct(comp.productId, baseMult);
-              });
-            }
-            if(Array.isArray(c.bebidas)){
-              c.bebidas.forEach(beb=>{
-                if(beb.productId) applyRecipeForProduct(beb.productId, baseMult);
-              });
+            } else {
+              // Fallback: arrays individuales (formato legacy)
+              if(Array.isArray(c.hamburguesas)){
+                c.hamburguesas.forEach(b=>{
+                  if(b.productId) applyRecipeForProduct(b.productId, baseMult);
+                });
+              }
+              if(Array.isArray(c.hotdogs)){
+                c.hotdogs.forEach(h=>{
+                  if(h.productId) applyRecipeForProduct(h.productId, baseMult);
+                });
+              }
+              if(Array.isArray(c.complementos)){
+                c.complementos.forEach(comp=>{
+                  if(comp.productId) applyRecipeForProduct(comp.productId, baseMult);
+                });
+              }
+              if(Array.isArray(c.bebidas)){
+                c.bebidas.forEach(beb=>{
+                  if(beb.productId) applyRecipeForProduct(beb.productId, baseMult);
+                });
+              }
             }
           } else {
             // 2) Productos normales y combos legacy con comboProductos
